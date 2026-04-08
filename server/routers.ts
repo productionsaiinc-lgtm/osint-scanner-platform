@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles } from "./db";
 import { invokeLLM } from "./_core/llm";
+import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch } from "./osint";
 
 export const appRouter = router({
   system: systemRouter,
@@ -231,6 +232,153 @@ Provide the analysis in a clear, structured format suitable for security profess
           ...profile,
           profileData: profile.profileData ? JSON.parse(profile.profileData) : {},
         }));
+      }),
+
+    // Execute network scan
+    executeNetworkScan: protectedProcedure
+      .input(z.object({
+        target: z.string(),
+        scanId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await updateScan(input.scanId, { status: "running" } as any);
+
+          // Run all network scans in parallel
+          const [geoData, portData, pingData, traceData] = await Promise.all([
+            getIPGeolocation(input.target),
+            simulatePortScan(input.target),
+            simulatePing(input.target),
+            simulateTraceroute(input.target),
+          ]);
+
+          const results = {
+            geolocation: geoData,
+            ports: portData,
+            ping: pingData,
+            traceroute: traceData,
+          };
+
+          // Store discovered host if geolocation succeeded
+          if (geoData.success) {
+            await createDiscoveredHost({
+              scanId: input.scanId,
+              ipAddress: input.target,
+              openPorts: portData.success ? JSON.stringify(portData.openPorts) : null,
+              services: portData.success && portData.ports ? JSON.stringify(portData.ports.map((p: any) => p.service)) : null,
+              geolocation: JSON.stringify({
+                latitude: geoData.latitude,
+                longitude: geoData.longitude,
+                country: geoData.country,
+                city: geoData.city,
+              }),
+            } as any);
+          }
+
+          await updateScan(input.scanId, {
+            rawResults: JSON.stringify(results) as any,
+            status: "completed",
+          } as any);
+
+          return { success: true, results };
+        } catch (error) {
+          console.error("Network scan error:", error);
+          await updateScan(input.scanId, { status: "error" } as any);
+          return { success: false, error: "Network scan failed" };
+        }
+      }),
+
+    // Execute domain scan
+    executeDomainScan: protectedProcedure
+      .input(z.object({
+        target: z.string(),
+        scanId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await updateScan(input.scanId, { status: "running" } as any);
+
+          // Run all domain scans in parallel
+          const [dnsData, whoisData, subdomainData, sslData] = await Promise.all([
+            simulateDNSLookup(input.target),
+            simulateWHOISLookup(input.target),
+            simulateSubdomainEnum(input.target),
+            simulateSSLLookup(input.target),
+          ]);
+
+          const results = {
+            dns: dnsData,
+            whois: whoisData,
+            subdomains: subdomainData,
+            ssl: sslData,
+          };
+
+          // Store domain record
+          await createDomainRecord({
+            scanId: input.scanId,
+            domain: input.target,
+            registrar: whoisData.success ? whoisData.registrar : undefined,
+            registrationDate: whoisData.success ? whoisData.registrationDate : undefined,
+            expirationDate: whoisData.success ? whoisData.expirationDate : undefined,
+            nameservers: whoisData.success ? JSON.stringify(whoisData.nameservers) : null,
+            dnsRecords: dnsData.success ? JSON.stringify(dnsData.records) : null,
+            sslCertificate: sslData.success ? JSON.stringify(sslData.certificate) : null,
+            subdomains: subdomainData.success ? JSON.stringify(subdomainData.subdomains) : null,
+          } as any);
+
+          await updateScan(input.scanId, {
+            rawResults: JSON.stringify(results) as any,
+            status: "completed",
+          } as any);
+
+          return { success: true, results };
+        } catch (error) {
+          console.error("Domain scan error:", error);
+          await updateScan(input.scanId, { status: "error" } as any);
+          return { success: false, error: "Domain scan failed" };
+        }
+      }),
+
+    // Execute social media scan
+    executeSocialScan: protectedProcedure
+      .input(z.object({
+        target: z.string(),
+        scanId: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await updateScan(input.scanId, { status: "running" } as any);
+
+          const results = await simulateSocialMediaSearch(input.target);
+
+          // Store social profiles
+          if (results.success && results.results) {
+            for (const profile of results.results) {
+              await createSocialProfile({
+                scanId: input.scanId,
+                username: input.target,
+                platform: profile.platform,
+                profileUrl: profile.profileUrl,
+                displayName: profile.displayName,
+                bio: profile.bio,
+                followers: profile.followers,
+                following: profile.following,
+                profileData: JSON.stringify(profile),
+              } as any);
+            }
+          }
+
+          await updateScan(input.scanId, {
+            rawResults: JSON.stringify(results) as any,
+            status: "completed",
+          } as any);
+
+          return { success: true, results };
+        } catch (error) {
+          console.error("Social media scan error:", error);
+          await updateScan(input.scanId, { status: "error" } as any);
+          return { success: false, error: "Social media scan failed" };
+        }
       }),
   }),
 });
