@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
+import { getAPIStatus } from "./api-config";
 
 export const appRouter = router({
   system: systemRouter,
@@ -522,6 +523,18 @@ Provide the analysis in a clear, structured format suitable for security profess
         } catch (error) {
           return { success: false, error: "Credential leak search failed" };
         }
+      }),
+
+    // Get API integration status
+    getAPIStatus: publicProcedure
+      .query(async () => {
+        const status = getAPIStatus();
+        return {
+          success: true,
+          apis: status,
+          enabledCount: Object.values(status).filter(Boolean).length,
+          totalAPIs: Object.keys(status).length,
+        };
       }),
   }),
 });

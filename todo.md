@@ -209,7 +209,22 @@
 ### Testing & Validation
 - [x] Write 14 advanced OSINT unit tests (utility functions)
 - [x] All 29 tests passing (14 advanced + 14 original + 1 auth)
+- [x] Create external API integration module
+- [x] Create API configuration and key management
 - [ ] Add tRPC procedure-level tests for new scan endpoints
 - [ ] Add end-to-end integration tests
 - [ ] Test real API integrations when implemented
 - [ ] Add error handling and rate-limit tests
+
+### API Integrations Available
+- [x] HaveIBeenPwned API for breach detection
+- [x] GitHub API for repository search
+- [x] Wayback Machine API for historical data
+- [x] NVD CVE API for vulnerability search
+- [x] IPQualityScore API for IP reputation
+- [x] WHOIS API for domain information
+- [x] Google DNS API for DNS lookups
+- [x] VirusTotal API for URL/file scanning
+- [x] Shodan API for device search
+- [x] SecurityTrails API for domain intelligence
+- [x] Hunter.io API for email enumeration
