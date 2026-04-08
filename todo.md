@@ -48,7 +48,7 @@
 - [x] Create threat analysis report generation
 - [x] Implement vulnerability highlighting
 - [x] Build plain-language report display
-- [ ] Add report export functionality
+- [x] Add report export functionality
 
 ## Phase 8: Interactive Map Visualization
 - [x] Integrate Google Maps API
@@ -62,7 +62,7 @@
 - [x] Refine cyberpunk aesthetic across all pages
 - [x] Add loading states and animations
 - [x] Implement error handling and user feedback
-- [ ] Add keyboard shortcuts for power users
+- [x] Add keyboard shortcuts for power users
 - [x] Optimize performance
 - [x] Create checkpoint for deployment
 
@@ -78,3 +78,138 @@
 - [x] Final testing and QA
 - [x] Prepare documentation
 - [x] Deliver to user
+
+## Phase 12: Advanced OSINT & Penetration Testing Tools
+
+### Network Reconnaissance
+- [x] Implement advanced port scanning (simulated)
+- [x] Add service version detection (simulated)
+- [x] Implement OS fingerprinting (simulated)
+- [ ] Add UDP port scanning
+- [ ] Implement SYN stealth scanning
+- [x] Add vulnerability scanning - CVE lookup (simulated)
+- [ ] Integrate real Nmap scanner
+- [ ] Integrate real service fingerprinting tools
+
+### Domain & Web Reconnaissance
+- [x] Implement reverse DNS lookup (simulated)
+- [x] Add MX record enumeration (simulated)
+- [ ] Implement SPF/DKIM/DMARC record lookup
+- [x] Add HTTP header analysis (simulated)
+- [x] Implement SSL/TLS certificate chain analysis (simulated)
+- [ ] Add certificate transparency log search
+- [x] Implement web technology detection (simulated)
+- [ ] Add robots.txt and sitemap enumeration
+- [ ] Integrate real DNS resolver
+- [ ] Integrate real certificate chain parser
+- [ ] Integrate Wappalyzer engine
+
+### Email & User Intelligence
+- [x] Implement email verification and validation (simulated)
+- [x] Add email breach database lookup (simulated)
+- [x] Implement username enumeration across platforms (simulated)
+- [ ] Add email format pattern detection
+- [ ] Implement person search (name + location)
+- [ ] Add phone number lookup and validation
+- [ ] Integrate HaveIBeenPwned API
+- [ ] Integrate real email verification service
+
+### IP & ASN Intelligence
+- [x] Implement ASN lookup (simulated)
+- [ ] Add IP reputation scoring
+- [x] Implement reverse IP lookup (simulated)
+- [x] Add IP geolocation with ISP info
+- [ ] Implement netblock enumeration
+- [ ] Add BGP route information
+- [ ] Integrate real WHOIS service
+- [ ] Integrate real ASN database
+
+### Vulnerability & Threat Intelligence
+- [x] Implement CVE database search (simulated)
+- [ ] Add exploit database lookup
+- [ ] Implement malware hash lookup (VirusTotal)
+- [ ] Add threat feed integration
+- [ ] Implement darknet/tor monitoring
+- [x] Add credential leak database search (simulated)
+- [ ] Integrate real CVE database/API
+- [ ] Integrate real breach database API
+
+### Web Application Testing
+- [ ] Implement SQL injection detection
+- [ ] Add XSS vulnerability scanner
+- [ ] Implement CSRF detection
+- [x] Add security header analysis (simulated)
+- [ ] Implement cookie analysis
+- [ ] Add form field enumeration
+- [ ] Integrate real HTTP security scanner
+
+### Code & Repository Intelligence
+- [x] Implement GitHub repository search (simulated)
+- [ ] Add GitLab/Gitea search
+- [ ] Implement commit history analysis
+- [ ] Add secrets detection in code
+- [ ] Implement dependency vulnerability scanning
+- [ ] Add API endpoint discovery
+- [ ] Integrate GitHub API for real repository search
+
+### Metadata & File Analysis
+- [ ] Implement image EXIF data extraction
+- [ ] Add document metadata analysis
+- [ ] Implement file hash lookup
+- [ ] Add MIME type detection
+- [ ] Implement archive content scanning
+
+### Passive DNS & Historical Data
+- [ ] Implement passive DNS lookup
+- [ ] Add DNS history search
+- [ ] Implement domain registration history
+- [x] Add Wayback Machine integration (simulated)
+- [ ] Implement historical IP records
+- [ ] Integrate real Wayback Machine API
+
+### Reporting & Export
+- [ ] Add PDF report generation
+- [ ] Implement CSV export for scan results
+- [ ] Add JSON export functionality
+- [ ] Implement XLSX export
+- [ ] Add custom report templates
+- [ ] Implement scheduled reporting
+
+### Mobile App (React Native)
+- [ ] Create React Native version with all features
+- [ ] Implement offline scan result storage
+- [ ] Add mobile-optimized UI
+- [ ] Implement background scanning
+- [ ] Add push notifications for scan completion
+- [ ] Implement mobile-specific features (camera for QR codes, etc.)
+
+### API & Integration
+- [ ] Create REST API for third-party integrations
+- [ ] Add webhook support for automation
+- [ ] Implement API rate limiting
+- [ ] Add API key management
+- [ ] Implement audit logging for API access
+
+### Performance & Optimization
+- [ ] Implement scan result caching
+- [ ] Add parallel scanning for multiple targets
+- [ ] Implement scan queue management
+- [ ] Add progress tracking for long scans
+- [ ] Implement scan cancellation
+- [ ] Add bandwidth throttling options
+
+### Security & Compliance
+- [ ] Implement role-based access control (RBAC)
+- [ ] Add audit logging for all scans
+- [ ] Implement data encryption at rest
+- [ ] Add GDPR compliance features
+- [ ] Implement data retention policies
+- [ ] Add compliance report generation
+
+### Testing & Validation
+- [x] Write 14 advanced OSINT unit tests (utility functions)
+- [x] All 29 tests passing (14 advanced + 14 original + 1 auth)
+- [ ] Add tRPC procedure-level tests for new scan endpoints
+- [ ] Add end-to-end integration tests
+- [ ] Test real API integrations when implemented
+- [ ] Add error handling and rate-limit tests

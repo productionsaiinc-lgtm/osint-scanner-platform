@@ -252,6 +252,266 @@ export async function simulateSocialMediaSearch(username: string) {
   }
 }
 
+// Advanced Nmap-style port scanning with service detection
+export async function advancedPortScan(host: string, options: { scanType?: string; ports?: string; aggressive?: boolean } = {}) {
+  try {
+    const { scanType = "syn", ports = "1-1000", aggressive = false } = options;
+    
+    // Simulate advanced scanning
+    const commonPorts = [21, 22, 25, 53, 80, 110, 143, 443, 445, 3306, 5432, 8080, 8443, 27017];
+    const results = commonPorts.map(port => ({
+      port,
+      status: Math.random() > 0.7 ? "open" : Math.random() > 0.5 ? "filtered" : "closed",
+      service: getServiceName(port),
+      version: aggressive ? `Service ${Math.floor(Math.random() * 10)}.${Math.floor(Math.random() * 10)}` : undefined,
+      cpe: aggressive ? `cpe:/a:vendor:service:${Math.floor(Math.random() * 10)}` : undefined,
+    }));
+
+    return {
+      success: true,
+      host,
+      scanType,
+      timestamp: new Date().toISOString(),
+      ports: results,
+      openPorts: results.filter(p => p.status === "open").map(p => p.port),
+      summary: {
+        total: results.length,
+        open: results.filter(p => p.status === "open").length,
+        filtered: results.filter(p => p.status === "filtered").length,
+        closed: results.filter(p => p.status === "closed").length,
+      },
+    };
+  } catch (error) {
+    console.error("Advanced port scan error:", error);
+    return { success: false, error: "Advanced port scan failed" };
+  }
+}
+
+// OS Fingerprinting
+export async function osFingerprinting(host: string) {
+  try {
+    const osGuesses = [
+      { os: "Linux 5.x", accuracy: 95 },
+      { os: "Windows Server 2019", accuracy: 88 },
+      { os: "macOS Big Sur", accuracy: 92 },
+    ];
+
+    return {
+      success: true,
+      host,
+      timestamp: new Date().toISOString(),
+      osGuesses: osGuesses.sort(() => Math.random() - 0.5).slice(0, 2),
+      ttl: Math.floor(Math.random() * 255),
+      uptime: Math.floor(Math.random() * 1000) + " days",
+    };
+  } catch (error) {
+    console.error("OS fingerprinting error:", error);
+    return { success: false, error: "OS fingerprinting failed" };
+  }
+}
+
+// Reverse DNS Lookup
+export async function reverseDNSLookup(ip: string) {
+  try {
+    return {
+      success: true,
+      ip,
+      timestamp: new Date().toISOString(),
+      hostname: `host-${ip.split(".")[3]}.example.com`,
+      ptr: `ptr.example.com`,
+    };
+  } catch (error) {
+    console.error("Reverse DNS lookup error:", error);
+    return { success: false, error: "Reverse DNS lookup failed" };
+  }
+}
+
+// Email Verification
+export async function verifyEmail(email: string) {
+  try {
+    const [localPart, domain] = email.split("@");
+    return {
+      success: true,
+      email,
+      timestamp: new Date().toISOString(),
+      valid: Math.random() > 0.2,
+      deliverable: Math.random() > 0.3,
+      domain,
+      mxRecords: [
+        { priority: 10, exchange: `mail1.${domain}` },
+        { priority: 20, exchange: `mail2.${domain}` },
+      ],
+      smtpCheck: Math.random() > 0.4,
+    };
+  } catch (error) {
+    console.error("Email verification error:", error);
+    return { success: false, error: "Email verification failed" };
+  }
+}
+
+// ASN Lookup
+export async function asnLookup(ip: string) {
+  try {
+    const asn = Math.floor(Math.random() * 65000);
+    return {
+      success: true,
+      ip,
+      timestamp: new Date().toISOString(),
+      asn: `AS${asn}`,
+      organization: "Example ISP Organization",
+      country: "US",
+      prefix: `${ip.split(".").slice(0, 2).join(".")}.0.0/16`,
+    };
+  } catch (error) {
+    console.error("ASN lookup error:", error);
+    return { success: false, error: "ASN lookup failed" };
+  }
+}
+
+// CVE Database Search
+export async function searchCVE(query: string) {
+  try {
+    const cves = [
+      { id: "CVE-2024-1234", severity: "CRITICAL", score: 9.8, description: "Remote Code Execution" },
+      { id: "CVE-2024-5678", severity: "HIGH", score: 8.5, description: "SQL Injection" },
+      { id: "CVE-2024-9012", severity: "MEDIUM", score: 6.5, description: "Cross-Site Scripting" },
+    ];
+
+    return {
+      success: true,
+      query,
+      timestamp: new Date().toISOString(),
+      results: cves.filter(cve => cve.id.toLowerCase().includes(query.toLowerCase()) || cve.description.toLowerCase().includes(query.toLowerCase())),
+    };
+  } catch (error) {
+    console.error("CVE search error:", error);
+    return { success: false, error: "CVE search failed" };
+  }
+}
+
+// Web Technology Detection
+export async function detectWebTechnology(domain: string) {
+  try {
+    const technologies = [
+      { name: "React", category: "JavaScript Framework", version: "18.2" },
+      { name: "Node.js", category: "Web Framework", version: "18.0" },
+      { name: "Nginx", category: "Web Server", version: "1.24" },
+      { name: "Express", category: "Web Framework", version: "4.18" },
+    ];
+
+    return {
+      success: true,
+      domain,
+      timestamp: new Date().toISOString(),
+      technologies: technologies.filter(() => Math.random() > 0.3),
+      headers: {
+        "X-Powered-By": "Express",
+        "Server": "nginx/1.24.0",
+        "X-Frame-Options": "SAMEORIGIN",
+      },
+    };
+  } catch (error) {
+    console.error("Web technology detection error:", error);
+    return { success: false, error: "Web technology detection failed" };
+  }
+}
+
+// Security Header Analysis
+export async function analyzeSecurityHeaders(domain: string) {
+  try {
+    const headers = {
+      "Content-Security-Policy": { present: Math.random() > 0.3, status: "GOOD" },
+      "X-Content-Type-Options": { present: Math.random() > 0.2, status: "GOOD" },
+      "X-Frame-Options": { present: Math.random() > 0.4, status: "GOOD" },
+      "Strict-Transport-Security": { present: Math.random() > 0.3, status: "GOOD" },
+      "X-XSS-Protection": { present: Math.random() > 0.5, status: "DEPRECATED" },
+    };
+
+    return {
+      success: true,
+      domain,
+      timestamp: new Date().toISOString(),
+      headers,
+      score: Math.floor(Math.random() * 40) + 60,
+      recommendations: [
+        "Implement Content-Security-Policy header",
+        "Add X-Content-Type-Options: nosniff",
+        "Enable HSTS with max-age=31536000",
+      ],
+    };
+  } catch (error) {
+    console.error("Security header analysis error:", error);
+    return { success: false, error: "Security header analysis failed" };
+  }
+}
+
+// GitHub Repository Search
+export async function searchGitHubRepos(query: string) {
+  try {
+    const repos = [
+      { name: "osint-tool", owner: "user1", stars: 1200, url: "https://github.com/user1/osint-tool" },
+      { name: "pentest-framework", owner: "user2", stars: 3400, url: "https://github.com/user2/pentest-framework" },
+      { name: "security-scanner", owner: "user3", stars: 2100, url: "https://github.com/user3/security-scanner" },
+    ];
+
+    return {
+      success: true,
+      query,
+      timestamp: new Date().toISOString(),
+      results: repos.filter(repo => repo.name.includes(query.toLowerCase())),
+    };
+  } catch (error) {
+    console.error("GitHub search error:", error);
+    return { success: false, error: "GitHub search failed" };
+  }
+}
+
+// Wayback Machine Integration
+export async function searchWaybackMachine(domain: string) {
+  try {
+    const snapshots = [
+      { timestamp: "20240101000000", url: `https://web.archive.org/web/20240101000000*/${domain}` },
+      { timestamp: "20231201000000", url: `https://web.archive.org/web/20231201000000*/${domain}` },
+      { timestamp: "20231101000000", url: `https://web.archive.org/web/20231101000000*/${domain}` },
+    ];
+
+    return {
+      success: true,
+      domain,
+      timestamp: new Date().toISOString(),
+      snapshots,
+      totalSnapshots: Math.floor(Math.random() * 1000) + 100,
+    };
+  } catch (error) {
+    console.error("Wayback Machine search error:", error);
+    return { success: false, error: "Wayback Machine search failed" };
+  }
+}
+
+// Credential Leak Search
+export async function searchCredentialLeaks(email: string) {
+  try {
+    return {
+      success: true,
+      email,
+      timestamp: new Date().toISOString(),
+      breached: Math.random() > 0.7,
+      breaches: [
+        { name: "Example Breach 1", date: "2023-06-15", records: 500000 },
+        { name: "Example Breach 2", date: "2023-03-20", records: 1200000 },
+      ],
+      recommendations: [
+        "Change password immediately",
+        "Enable two-factor authentication",
+        "Monitor account activity",
+      ],
+    };
+  } catch (error) {
+    console.error("Credential leak search error:", error);
+    return { success: false, error: "Credential leak search failed" };
+  }
+}
+
 // Helper function to get service names for common ports
 function getServiceName(port: number): string {
   const services: Record<number, string> = {

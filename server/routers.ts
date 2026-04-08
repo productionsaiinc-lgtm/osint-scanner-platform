@@ -5,7 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles } from "./db";
 import { invokeLLM } from "./_core/llm";
-import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch } from "./osint";
+import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
 
 export const appRouter = router({
   system: systemRouter,
@@ -378,6 +378,149 @@ Provide the analysis in a clear, structured format suitable for security profess
           console.error("Social media scan error:", error);
           await updateScan(input.scanId, { status: "error" } as any);
           return { success: false, error: "Social media scan failed" };
+        }
+      }),
+
+    // Advanced port scan with service detection
+    advancedPortScan: protectedProcedure
+      .input(z.object({
+        target: z.string(),
+        scanId: z.number(),
+        aggressive: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          await updateScan(input.scanId, { status: "running" } as any);
+          const results = await advancedPortScan(input.target, { aggressive: input.aggressive });
+          await updateScan(input.scanId, {
+            rawResults: JSON.stringify(results) as any,
+            status: "completed",
+          } as any);
+          return { success: true, results };
+        } catch (error) {
+          console.error("Advanced port scan error:", error);
+          await updateScan(input.scanId, { status: "error" } as any);
+          return { success: false, error: "Advanced port scan failed" };
+        }
+      }),
+
+    // OS Fingerprinting
+    osFingerprint: protectedProcedure
+      .input(z.object({ target: z.string(), scanId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          const results = await osFingerprinting(input.target);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "OS fingerprinting failed" };
+        }
+      }),
+
+    // Reverse DNS Lookup
+    reverseDNS: protectedProcedure
+      .input(z.object({ target: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await reverseDNSLookup(input.target);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Reverse DNS lookup failed" };
+        }
+      }),
+
+    // Email Verification
+    verifyEmailAddress: protectedProcedure
+      .input(z.object({ email: z.string().email() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await verifyEmail(input.email);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Email verification failed" };
+        }
+      }),
+
+    // ASN Lookup
+    asnLookupScan: protectedProcedure
+      .input(z.object({ target: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await asnLookup(input.target);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "ASN lookup failed" };
+        }
+      }),
+
+    // CVE Search
+    searchCVEDatabase: protectedProcedure
+      .input(z.object({ query: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await searchCVE(input.query);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "CVE search failed" };
+        }
+      }),
+
+    // Web Technology Detection
+    detectTechnology: protectedProcedure
+      .input(z.object({ domain: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await detectWebTechnology(input.domain);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Web technology detection failed" };
+        }
+      }),
+
+    // Security Header Analysis
+    analyzeHeaders: protectedProcedure
+      .input(z.object({ domain: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await analyzeSecurityHeaders(input.domain);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Security header analysis failed" };
+        }
+      }),
+
+    // GitHub Repository Search
+    searchGitHub: protectedProcedure
+      .input(z.object({ query: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await searchGitHubRepos(input.query);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "GitHub search failed" };
+        }
+      }),
+
+    // Wayback Machine Search
+    searchWayback: protectedProcedure
+      .input(z.object({ domain: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await searchWaybackMachine(input.domain);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Wayback Machine search failed" };
+        }
+      }),
+
+    // Credential Leak Search
+    searchBreaches: protectedProcedure
+      .input(z.object({ email: z.string().email() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await searchCredentialLeaks(input.email);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: "Credential leak search failed" };
         }
       }),
   }),
