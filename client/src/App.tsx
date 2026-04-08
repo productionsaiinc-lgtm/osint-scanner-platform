@@ -4,31 +4,82 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import DashboardLayout from "./components/DashboardLayout";
 import Home from "./pages/Home";
+import NetworkScanner from "./pages/NetworkScanner";
+import DomainOsint from "./pages/DomainOsint";
+import SocialOsint from "./pages/SocialOsint";
+import MapView from "./pages/MapView";
+import ScanHistory from "./pages/ScanHistory";
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
+      <Route path={"/"} component={DashboardHome} />
+      <Route path={"/network-scanner"} component={NetworkScannerPage} />
+      <Route path={"/domain-osint"} component={DomainOsintPage} />
+      <Route path={"/social-osint"} component={SocialOsintPage} />
+      <Route path={"/map"} component={MapViewPage} />
+      <Route path={"/history"} component={ScanHistoryPage} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-// NOTE: About Theme
-// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
-//   to keep consistent foreground/background color across components
-// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
+function DashboardHome() {
+  return (
+    <DashboardLayout>
+      <Home />
+    </DashboardLayout>
+  );
+}
+
+function NetworkScannerPage() {
+  return (
+    <DashboardLayout>
+      <NetworkScanner />
+    </DashboardLayout>
+  );
+}
+
+function DomainOsintPage() {
+  return (
+    <DashboardLayout>
+      <DomainOsint />
+    </DashboardLayout>
+  );
+}
+
+function SocialOsintPage() {
+  return (
+    <DashboardLayout>
+      <SocialOsint />
+    </DashboardLayout>
+  );
+}
+
+function MapViewPage() {
+  return (
+    <DashboardLayout>
+      <MapView />
+    </DashboardLayout>
+  );
+}
+
+function ScanHistoryPage() {
+  return (
+    <DashboardLayout>
+      <ScanHistory />
+    </DashboardLayout>
+  );
+}
 
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider
-        defaultTheme="light"
-        // switchable
+        defaultTheme="dark"
       >
         <TooltipProvider>
           <Toaster />

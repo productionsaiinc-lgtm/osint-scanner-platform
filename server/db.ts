@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,89 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// Scan operations
+export async function createScan(scan: InsertScan): Promise<Scan | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(scans).values(scan);
+  const scanId = result[0].insertId;
+  const created = await db.select().from(scans).where(eq(scans.id, scanId as number)).limit(1);
+  return created.length > 0 ? created[0] : null;
+}
+
+export async function getScanById(scanId: number): Promise<Scan | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(scans).where(eq(scans.id, scanId)).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getUserScans(userId: number, limit: number = 50): Promise<Scan[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(scans).where(eq(scans.userId, userId)).orderBy(desc(scans.createdAt)).limit(limit);
+}
+
+export async function updateScan(scanId: number, updates: Partial<Scan>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(scans).set(updates).where(eq(scans.id, scanId));
+}
+
+// Discovered hosts operations
+export async function createDiscoveredHost(host: InsertDiscoveredHost): Promise<DiscoveredHost | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(discoveredHosts).values(host);
+  const hostId = result[0].insertId;
+  const created = await db.select().from(discoveredHosts).where(eq(discoveredHosts.id, hostId as number)).limit(1);
+  return created.length > 0 ? created[0] : null;
+}
+
+export async function getScanHosts(scanId: number): Promise<DiscoveredHost[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(discoveredHosts).where(eq(discoveredHosts.scanId, scanId));
+}
+
+// Domain records operations
+export async function createDomainRecord(record: InsertDomainRecord): Promise<DomainRecord | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(domainRecords).values(record);
+  const recordId = result[0].insertId;
+  const created = await db.select().from(domainRecords).where(eq(domainRecords.id, recordId as number)).limit(1);
+  return created.length > 0 ? created[0] : null;
+}
+
+export async function getScanDomains(scanId: number): Promise<DomainRecord[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(domainRecords).where(eq(domainRecords.scanId, scanId));
+}
+
+// Social media profiles operations
+export async function createSocialProfile(profile: InsertSocialMediaProfile): Promise<SocialMediaProfile | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(socialMediaProfiles).values(profile);
+  const profileId = result[0].insertId;
+  const created = await db.select().from(socialMediaProfiles).where(eq(socialMediaProfiles.id, profileId as number)).limit(1);
+  return created.length > 0 ? created[0] : null;
+}
+
+export async function getScanProfiles(scanId: number): Promise<SocialMediaProfile[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db.select().from(socialMediaProfiles).where(eq(socialMediaProfiles.scanId, scanId));
+}
