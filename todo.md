@@ -313,3 +313,25 @@
 - [ ] Test webhook handling
 - [x] Validate feature access control
 - [x] All 46 tests passing (10 subscription + 7 export + 14 advanced + 14 OSINT + 1 auth)
+
+
+## Phase 15: Bug Fixes & Payment Setup
+
+### APK Installation Fix
+- [ ] Fix APK parsing error on Android installation
+- [ ] Verify AndroidManifest.xml configuration
+- [ ] Check API level compatibility
+- [ ] Rebuild APK with proper signing
+- [ ] Test APK installation on Android device
+
+### PayPal Payout Configuration
+- [x] Set up PayPal receiver email: productions.ai.inc@gmail.com
+- [x] Configure PayPal API credentials for payouts
+- [x] Create payout database helpers (payout-db.ts)
+- [x] Add payout functions to PayPal module (createPayout, getPayoutStatus)
+- [x] Implement payout email configuration (PAYPAL_PAYOUT_EMAIL env var)
+- [ ] Create payout webhook handler
+- [ ] Implement automatic payout processing
+- [ ] Add payout history tracking
+- [ ] Create payout status dashboard
+- [ ] Test payout flow end-to-end

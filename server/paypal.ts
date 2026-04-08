@@ -7,6 +7,7 @@ import axios from "axios";
 const PAYPAL_API_BASE = process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || "";
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
+const PAYPAL_PAYOUT_EMAIL = process.env.PAYPAL_PAYOUT_EMAIL || "productions.ai.inc@gmail.com";
 
 interface PayPalTokenResponse {
   scope: string;
@@ -317,4 +318,84 @@ export function verifyWebhookSignature(
   // For now, return true (implement proper verification later)
   console.log("[PayPal] Webhook verification skipped in development mode");
   return true;
+}
+
+/**
+ * Get the configured PayPal payout email
+ */
+export function getPayoutEmail(): string {
+  return PAYPAL_PAYOUT_EMAIL;
+}
+
+/**
+ * Create a payout batch to the configured email
+ */
+export async function createPayout(
+  amount: number,
+  currency: string = "USD",
+  note: string = "OSINT Scanner Platform Revenue Payout"
+): Promise<{ batchId: string; status: string }> {
+  const accessToken = await getAccessToken();
+
+  try {
+    const response = await axios.post(
+      `${PAYPAL_API_BASE}/v1/payments/payouts`,
+      {
+        sender_batch_header: {
+          sender_batch_id: `payout-${Date.now()}`,
+          email_subject: "OSINT Scanner Platform Payout",
+          email_message: note,
+        },
+        items: [
+          {
+            recipient_type: "EMAIL",
+            amount: {
+              value: (amount / 100).toFixed(2),
+              currency_code: currency,
+            },
+            description: note,
+            sender_item_id: `item-${Date.now()}`,
+            receiver: PAYPAL_PAYOUT_EMAIL,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return {
+      batchId: response.data.batch_header.payout_batch_id,
+      status: response.data.batch_header.batch_status,
+    };
+  } catch (error) {
+    console.error("[PayPal] Failed to create payout:", error);
+    throw new Error("Failed to create PayPal payout");
+  }
+}
+
+/**
+ * Get payout batch status
+ */
+export async function getPayoutStatus(batchId: string): Promise<any> {
+  const accessToken = await getAccessToken();
+
+  try {
+    const response = await axios.get(
+      `${PAYPAL_API_BASE}/v1/payments/payouts/${batchId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error("[PayPal] Failed to get payout status:", error);
+    throw new Error("Failed to retrieve payout status");
+  }
 }
