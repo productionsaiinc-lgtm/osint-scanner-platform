@@ -15,6 +15,13 @@
       "when": 1775640074302,
       "tag": "0001_windy_bucky",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775663912194,
+      "tag": "0002_even_power_man",
+      "breakpoints": true
     }
   ]
 }

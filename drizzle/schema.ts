@@ -100,3 +100,61 @@ export const socialMediaProfiles = mysqlTable("socialMediaProfiles", {
 
 export type SocialMediaProfile = typeof socialMediaProfiles.$inferSelect;
 export type InsertSocialMediaProfile = typeof socialMediaProfiles.$inferInsert;
+
+
+/**
+ * Premium subscription plans
+ */
+export const subscriptionPlans = mysqlTable("subscriptionPlans", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(), // 'free', 'pro', 'enterprise'
+  price: int("price").notNull(), // in cents (e.g., 999 = $9.99)
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  billingCycle: mysqlEnum("billingCycle", ["monthly", "yearly"]).notNull(),
+  maxScansPerMonth: int("maxScansPerMonth").default(0), // 0 = unlimited
+  maxApiCalls: int("maxApiCalls").default(0), // 0 = unlimited
+  features: text("features"), // JSON array of feature names
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+
+/**
+ * User subscriptions
+ */
+export const userSubscriptions = mysqlTable("userSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  planId: int("planId").notNull(),
+  paypalSubscriptionId: varchar("paypalSubscriptionId", { length: 255 }),
+  status: mysqlEnum("status", ["active", "cancelled", "expired", "pending"]).default("pending").notNull(),
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate"),
+  autoRenew: int("autoRenew").default(1), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
+export type InsertUserSubscription = typeof userSubscriptions.$inferInsert;
+
+/**
+ * Payment history
+ */
+export const payments = mysqlTable("payments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  subscriptionId: int("subscriptionId"),
+  paypalTransactionId: varchar("paypalTransactionId", { length: 255 }).notNull(),
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  status: mysqlEnum("status", ["completed", "pending", "failed", "refunded"]).default("pending").notNull(),
+  paymentMethod: varchar("paymentMethod", { length: 50 }).default("paypal").notNull(),
+  invoiceNumber: varchar("invoiceNumber", { length: 100 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = typeof payments.$inferInsert;

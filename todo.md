@@ -266,3 +266,50 @@
 - [x] Add download button to sidebar below About option
 - [ ] Create getting started guide
 - [ ] Add FAQ section
+
+
+## Phase 14: Premium Features & PayPal Integration
+
+### Premium Features System
+- [x] Add subscription tiers (Free, Pro, Enterprise)
+- [x] Create premium features database schema
+- [x] Implement feature access control
+- [ ] Add premium badge/indicator to UI
+- [x] Create pricing page
+- [ ] Build subscription management dashboard
+
+### PayPal Integration
+- [x] Set up PayPal API credentials module
+- [x] Implement PayPal payment button
+- [x] Create payment processing endpoint
+- [ ] Handle payment webhooks
+- [x] Store subscription data
+- [x] Implement subscription verification
+- [x] Add payment history tracking
+- [ ] Create invoice generation
+
+### Premium OSINT Features
+- [ ] Advanced vulnerability scanning (Shodan integration)
+- [ ] Unlimited API calls to external services
+- [ ] Dark web monitoring
+- [ ] Real-time threat alerts
+- [ ] Advanced reporting with custom templates
+- [ ] Batch scanning capabilities
+- [ ] API access for integrations
+- [ ] Priority support
+
+### UI/UX Updates
+- [ ] Add pricing page to navigation
+- [ ] Create premium feature modal
+- [ ] Add upgrade prompts to free features
+- [ ] Build subscription management page
+- [ ] Add payment success/error pages
+- [ ] Create feature comparison table
+
+### Testing & Validation
+- [x] Write PayPal integration tests (10 tests)
+- [ ] Test payment flow end-to-end
+- [x] Verify subscription verification
+- [ ] Test webhook handling
+- [x] Validate feature access control
+- [x] All 46 tests passing (10 subscription + 7 export + 14 advanced + 14 OSINT + 1 auth)
