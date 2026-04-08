@@ -263,5 +263,6 @@
 - [x] Add APK download link to website
 - [x] Create mobile download section
 - [x] Add feature descriptions to navigation
+- [x] Add download button to sidebar below About option
 - [ ] Create getting started guide
 - [ ] Add FAQ section

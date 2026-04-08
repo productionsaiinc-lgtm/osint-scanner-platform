@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -35,6 +35,10 @@ const menuItems = [
   { icon: Map, label: "Map View", path: "/map" },
   { icon: History, label: "Scan History", path: "/history" },
   { icon: Info, label: "About", path: "/about" },
+];
+
+const downloadItems = [
+  { icon: Download, label: "Download Mobile APK", action: "download-apk" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -210,6 +214,32 @@ function DashboardLayoutContent({
                 );
               })}
             </SidebarMenu>
+            
+            <div className="mt-auto pt-4 border-t border-neon-pink/30">
+              <SidebarMenu className="px-2 py-2 space-y-1">
+                {downloadItems.map(item => (
+                  <SidebarMenuItem key={item.action}>
+                    <SidebarMenuButton
+                      onClick={() => {
+                        if (item.action === "download-apk") {
+                          const link = document.createElement('a');
+                          link.href = '/osint-scanner.apk';
+                          link.download = 'osint-scanner.apk';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }
+                      }}
+                      tooltip={item.label}
+                      className="h-10 transition-all font-normal text-foreground hover:bg-neon-green/10 hover:text-neon-green border border-neon-green/30 hover:border-neon-green/50"
+                    >
+                      <item.icon className="h-4 w-4 text-neon-green/70" />
+                      <span className="text-xs uppercase tracking-wider">{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </div>
           </SidebarContent>
 
           <SidebarFooter className="p-3 border-t border-neon-pink/30">
