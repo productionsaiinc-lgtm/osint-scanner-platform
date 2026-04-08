@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,13 @@ const menuItems = [
   { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
   { icon: Map, label: "Map View", path: "/map" },
   { icon: History, label: "Scan History", path: "/history" },
+  { icon: AlertTriangle, label: "Breach Search", path: "/breach-search" },
+  { icon: Code2, label: "GitHub Search", path: "/github-search" },
+  { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
+  { icon: Globe, label: "IP Reputation", path: "/ip-reputation" },
+  { icon: Mail, label: "Email Verify", path: "/email-verify" },
+  { icon: Zap, label: "Subscription", path: "/subscription" },
+  { icon: Wallet, label: "Payouts", path: "/payouts" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
 ];
