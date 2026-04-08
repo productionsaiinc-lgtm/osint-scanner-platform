@@ -24,7 +24,6 @@ export default function Pricing() {
   };
 
   const premiumFeatures = [
-    "Unlimited network scans",
     "Advanced port scanning with service detection",
     "Unlimited API calls to external services",
     "Dark web monitoring",
@@ -34,14 +33,16 @@ export default function Pricing() {
     "API access for integrations",
     "Priority email support",
     "Advanced vulnerability scanning",
+    "Dedicated account manager",
   ];
 
   const freeFeatures = [
-    "5 scans per month",
+    "Unlimited network scans",
     "Basic port scanning",
-    "Limited API calls",
+    "Limited API calls (100/month)",
     "Standard reports",
-    "Email support",
+    "Community email support",
+    "All core OSINT modules",
   ];
 
   if (isLoading) {
@@ -102,7 +103,7 @@ export default function Pricing() {
             <div className="mb-6 mt-4">
               <h2 className="text-2xl font-bold text-neon-pink mb-2">PRO</h2>
               <div className="text-3xl font-bold text-neon-green">
-                $29
+                $20
                 <span className="text-lg text-gray-400">/month</span>
               </div>
               <p className="text-gray-400 text-sm mt-2">Billed monthly or yearly</p>

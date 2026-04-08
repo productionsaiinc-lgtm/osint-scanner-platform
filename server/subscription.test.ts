@@ -82,18 +82,18 @@ describe("Subscription Management", () => {
   it("should validate subscription plan pricing", () => {
     const plans = [
       { id: 1, name: "Free", price: 0, billingCycle: "monthly" as const },
-      { id: 2, name: "Pro", price: 29, billingCycle: "monthly" as const },
-      { id: 3, name: "Pro Yearly", price: 290, billingCycle: "yearly" as const },
+      { id: 2, name: "Pro", price: 20, billingCycle: "monthly" as const },
+      { id: 3, name: "Pro Yearly", price: 200, billingCycle: "yearly" as const },
     ];
 
     const proPlan = plans.find((p) => p.name === "Pro");
-    expect(proPlan?.price).toBe(29);
+    expect(proPlan?.price).toBe(20);
     expect(proPlan?.billingCycle).toBe("monthly");
   });
 
   it("should calculate yearly discount", () => {
-    const monthlyPrice = 29;
-    const yearlyPrice = 290;
+    const monthlyPrice = 20;
+    const yearlyPrice = 200;
     const monthlyTotal = monthlyPrice * 12;
     const discount = ((monthlyTotal - yearlyPrice) / monthlyTotal) * 100;
 
