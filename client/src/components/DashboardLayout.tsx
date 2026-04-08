@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -34,6 +34,7 @@ const menuItems = [
   { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
   { icon: Map, label: "Map View", path: "/map" },
   { icon: History, label: "Scan History", path: "/history" },
+  { icon: Info, label: "About", path: "/about" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";

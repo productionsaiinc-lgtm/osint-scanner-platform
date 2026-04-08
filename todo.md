@@ -228,3 +228,40 @@
 - [x] Shodan API for device search
 - [x] SecurityTrails API for domain intelligence
 - [x] Hunter.io API for email enumeration
+
+
+## Phase 13: Additional Features - User Requests
+
+### Frontend UI for Advanced Scans
+- [ ] Create UI for HaveIBeenPwned breach search
+- [ ] Create UI for GitHub repository search
+- [ ] Create UI for CVE database search
+- [ ] Create UI for IP reputation check
+- [ ] Create UI for email verification
+- [ ] Create UI for domain intelligence (SecurityTrails)
+- [ ] Create UI for device search (Shodan)
+- [ ] Create UI for email enumeration (Hunter.io)
+
+### Export & Reporting
+- [x] Implement PDF report generation (template)
+- [x] Implement CSV export functionality
+- [x] Implement JSON export functionality
+- [x] Implement XLSX export functionality
+- [ ] Add custom report templates
+- [ ] Add scheduled reporting
+
+### Mobile App (React Native)
+- [ ] Build complete React Native UI matching web version
+- [ ] Implement offline scan result storage
+- [ ] Add mobile-optimized layouts
+- [ ] Implement background scanning
+- [ ] Add push notifications
+- [ ] Build and generate APK file
+
+### New User-Requested Features
+- [x] Create About/Info page describing platform capabilities
+- [x] Add APK download link to website
+- [x] Create mobile download section
+- [x] Add feature descriptions to navigation
+- [ ] Create getting started guide
+- [ ] Add FAQ section

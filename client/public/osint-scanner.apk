@@ -1,0 +1,4 @@
+This is a placeholder APK file. 
+To build the actual APK, use Flutter or React Native build commands.
+For Flutter: flutter build apk --release
+For React Native: eas build --platform android

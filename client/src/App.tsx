@@ -11,6 +11,7 @@ import DomainOsint from "./pages/DomainOsint";
 import SocialOsint from "./pages/SocialOsint";
 import MapView from "./pages/MapView";
 import ScanHistory from "./pages/ScanHistory";
+import About from "./pages/About";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
       <Route path={"/history"} component={ScanHistoryPage} />
+      <Route path={"/about"} component={AboutPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -71,6 +73,14 @@ function ScanHistoryPage() {
   return (
     <DashboardLayout>
       <ScanHistory />
+    </DashboardLayout>
+  );
+}
+
+function AboutPage() {
+  return (
+    <DashboardLayout>
+      <About />
     </DashboardLayout>
   );
 }
