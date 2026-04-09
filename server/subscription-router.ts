@@ -23,6 +23,11 @@ import {
   getSubscription,
   cancelSubscription,
 } from "./paypal";
+import Stripe from "stripe";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2026-03-25.dahlia" as any,
+});
 
 export const subscriptionRouter = router({
   // Get all available subscription plans
@@ -112,6 +117,48 @@ export const subscriptionRouter = router({
       } catch (error) {
         console.error("[Subscription] Error creating PayPal subscription:", error);
         throw new Error("Failed to create subscription");
+      }
+    }),
+
+  // Create Stripe checkout session for one-time payment
+  createCheckout: protectedProcedure
+    .input(z.object({ priceId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          mode: "payment",
+          customer_email: ctx.user.email || undefined,
+          client_reference_id: ctx.user.id.toString(),
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: "OSINT Scanner Premium",
+                  description: "Unlock unlimited scans and advanced tools",
+                },
+                unit_amount: 2000,
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: `${ctx.req.headers.origin}/subscription?success=true`,
+          cancel_url: `${ctx.req.headers.origin}/subscription?cancelled=true`,
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || "",
+            customer_name: ctx.user.name || "",
+          },
+        });
+
+        return {
+          checkoutUrl: session.url,
+          sessionId: session.id,
+        };
+      } catch (error) {
+        console.error("[Stripe] Error creating checkout session:", error);
+        throw new Error("Failed to create checkout session");
       }
     }),
 

@@ -407,3 +407,18 @@
 - [x] Create VPN recommendations based on use case (recommended providers)
 - [x] Add affiliate links for VPN providers
 - [ ] Write tests for VPN service functionality
+
+
+## Phase 18: Premium Purchase Integration
+
+### Stripe Payment Integration
+- [x] Set up Stripe API keys and configuration (auto-injected via webdev_add_feature)
+- [x] Create Stripe checkout session endpoint (createCheckout mutation)
+- [x] Implement $20 premium purchase button (SubscriptionManagement.tsx)
+- [ ] Add payment success/failure handling
+- [ ] Create webhook for payment confirmation
+- [ ] Update user subscription status after payment
+- [ ] Add payment history tracking
+- [ ] Implement refund functionality
+- [ ] Add payment receipt generation
+- [ ] Create payment confirmation email

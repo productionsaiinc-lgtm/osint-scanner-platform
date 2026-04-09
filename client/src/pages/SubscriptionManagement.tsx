@@ -1,21 +1,49 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CreditCard, Crown, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { CreditCard, Crown, CheckCircle, AlertCircle, Loader2, Zap } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 
 export function SubscriptionManagement() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const { data: plans } = trpc.subscription.plans.useQuery();
   const { data: hasPremium } = trpc.subscription.hasPremium.useQuery();
+  const createCheckout = trpc.subscription.createCheckout.useMutation();
+
+  const handlePremiumPurchase = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
+      if (result.checkoutUrl) {
+        window.open(result.checkoutUrl, '_blank');
+      } else {
+        setError('Failed to create checkout session. Please try again.');
+      }
+    } catch (err) {
+      setError('Payment error. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleUpgrade = async (planId: number) => {
     setIsLoading(true);
+    setError('');
     try {
-      // Redirect to checkout or payment page
-      window.location.href = '/pricing';
+      const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
+      if (result.checkoutUrl) {
+        window.open(result.checkoutUrl, '_blank');
+      } else {
+        setError('Failed to create checkout session. Please try again.');
+      }
+    } catch (err) {
+      setError('Payment error. Please try again.');
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -30,6 +58,48 @@ export function SubscriptionManagement() {
         </h1>
         <p className="text-gray-400 mt-2">Manage your OSINT Scanner subscription and billing</p>
       </div>
+
+      {/* Premium Purchase CTA */}
+      {!hasPremium && (
+        <Card className="border-l-4 border-l-neon-green border-gray-600/30 bg-gradient-to-r from-neon-green/10 to-transparent">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <Zap className="w-8 h-8 text-neon-green flex-shrink-0" />
+                <div>
+                  <div className="text-lg font-bold text-neon-green">Unlock Premium Features</div>
+                  <div className="text-sm text-gray-400 mt-1">Get unlimited scans, advanced tools, and priority support</div>
+                </div>
+              </div>
+              <Button
+                onClick={handlePremiumPurchase}
+                disabled={isLoading}
+                className="bg-neon-green hover:bg-neon-green/80 text-black font-bold text-lg px-8 py-6 h-auto whitespace-nowrap flex-shrink-0"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5 mr-2" />
+                    Upgrade for $20
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error Alert */}
+      {error && (
+        <Alert className="border-red-500/30 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-400">{error}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Current Subscription */}
       <Card className="border-cyan-500/30 bg-black/40">
@@ -135,15 +205,18 @@ export function SubscriptionManagement() {
                     <Button
                       onClick={() => handleUpgrade(plan.id)}
                       disabled={isLoading}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                      className="w-full bg-neon-purple hover:bg-neon-purple/80 text-black font-semibold"
                     >
                       {isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Upgrading...
+                          Processing...
                         </>
                       ) : (
-                        'Upgrade to ' + plan.name.charAt(0).toUpperCase() + plan.name.slice(1)
+                        <>
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Upgrade for $20
+                        </>
                       )}
                     </Button>
                   )}
@@ -168,9 +241,10 @@ export function SubscriptionManagement() {
               </AlertDescription>
             </Alert>
             <div className="p-3 border border-pink-500/30 rounded bg-pink-500/5">
-              <div className="text-xs text-gray-400">Payment Method</div>
-              <div className="text-sm font-mono text-pink-400 mt-1">
-                PayPal - productions.ai.inc@gmail.com
+              <div className="text-xs text-gray-400">Payment Methods</div>
+              <div className="text-sm text-pink-400 mt-2 space-y-1">
+                <div>💳 Credit Card (Stripe)</div>
+                <div>🏦 PayPal - productions.ai.inc@gmail.com</div>
               </div>
             </div>
           </div>
@@ -193,13 +267,19 @@ export function SubscriptionManagement() {
             <div>
               <div className="text-sm font-bold text-orange-400">What payment methods do you accept?</div>
               <div className="text-xs text-gray-400 mt-1">
-                We accept PayPal for all subscription payments. Your payment is processed securely.
+                We accept Stripe (credit cards) and PayPal for all subscription payments. Your payment is processed securely.
               </div>
             </div>
             <div>
               <div className="text-sm font-bold text-orange-400">Is there a free trial?</div>
               <div className="text-xs text-gray-400 mt-1">
-                Yes! Start with our Free plan to explore all features, then upgrade to Pro when you need advanced capabilities.
+                No, but you can use our Free plan indefinitely to explore basic features before upgrading.
+              </div>
+            </div>
+            <div>
+              <div className="text-sm font-bold text-orange-400">How do I get a refund?</div>
+              <div className="text-xs text-gray-400 mt-1">
+                Contact our support team within 30 days of purchase for a full refund. No questions asked.
               </div>
             </div>
           </div>
