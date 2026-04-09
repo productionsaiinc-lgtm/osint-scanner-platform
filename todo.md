@@ -355,3 +355,24 @@
 - [x] Add notification frequency controls (immediate, daily digest, weekly)
 - [x] Implement notification sound/vibration options
 - [ ] Add notification scheduling
+
+
+## Phase 16: Bug Fixes and New OSINT Tools
+
+### Sidebar Layout Fixes
+- [x] Fix overlapping download APK button in sidebar (adjusted flex layout)
+- [x] Adjust sidebar spacing and padding (flex-1 overflow-y-auto)
+- [x] Ensure all menu items have proper vertical spacing (flex-shrink-0)
+- [ ] Test sidebar responsiveness on mobile
+
+### New OSINT Tools
+- [x] Create Phone Number Lookup UI component (PhoneLookup.tsx)
+- [x] Create IMEI Checker UI component (IMEIChecker.tsx)
+- [x] Add phone number validation and formatting
+- [x] Add IMEI validation and checksum verification (Luhn algorithm)
+- [ ] Integrate phone lookup with tRPC procedures
+- [ ] Integrate IMEI checker with tRPC procedures
+- [x] Add phone number lookup to sidebar menu
+- [x] Add IMEI checker to sidebar menu
+- [ ] Write tests for phone number lookup
+- [ ] Write tests for IMEI checker

@@ -24,6 +24,8 @@ import { SecurityTrails } from "./pages/SecurityTrails";
 import { ShodanSearch } from "./pages/ShodanSearch";
 import { HunterSearch } from "./pages/HunterSearch";
 import { NotificationCenter } from "./pages/NotificationCenter";
+import { PhoneLookup } from "./pages/PhoneLookup";
+import { IMEIChecker } from "./pages/IMEIChecker";
 
 function Router() {
   return (
@@ -47,6 +49,8 @@ function Router() {
       <Route path={"/shodan"} component={ShodanSearchPage} />
       <Route path={"/hunter"} component={HunterSearchPage} />
       <Route path={"/notifications"} component={NotificationCenterPage} />
+      <Route path={"/phone-lookup"} component={PhoneLookupPage} />
+      <Route path={"/imei-checker"} component={IMEICheckerPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -201,6 +205,22 @@ function NotificationCenterPage() {
   return (
     <DashboardLayout>
       <NotificationCenter />
+    </DashboardLayout>
+  );
+}
+
+function PhoneLookupPage() {
+  return (
+    <DashboardLayout>
+      <PhoneLookup />
+    </DashboardLayout>
+  );
+}
+
+function IMEICheckerPage() {
+  return (
+    <DashboardLayout>
+      <IMEIChecker />
     </DashboardLayout>
   );
 }
