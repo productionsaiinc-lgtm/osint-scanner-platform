@@ -9,11 +9,13 @@ import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, s
 import { getAPIStatus } from "./api-config";
 import { subscriptionRouter } from "./subscription-router";
 import { vpnRouter } from "./vpn-router";
+import { vpnConnectionRouter } from "./vpn-connection-router";
 
 export const appRouter = router({
   system: systemRouter,
   subscription: subscriptionRouter,
   vpn: vpnRouter,
+  vpnConnection: vpnConnectionRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

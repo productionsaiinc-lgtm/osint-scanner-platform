@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -46,6 +46,7 @@ const menuItems = [
   { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
   { icon: Network, label: "Nmap Scanner", path: "/nmap-scanner" },
   { icon: Lock, label: "VPN Service", path: "/vpn-service" },
+  { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
   { icon: Shield, label: "SecurityTrails", path: "/security-trails" },
   { icon: Cpu, label: "Shodan", path: "/shodan" },
   { icon: Search, label: "Hunter.io", path: "/hunter" },
