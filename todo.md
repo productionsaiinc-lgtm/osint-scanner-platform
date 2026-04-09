@@ -376,3 +376,34 @@
 - [x] Add IMEI checker to sidebar menu
 - [ ] Write tests for phone number lookup
 - [ ] Write tests for IMEI checker
+
+
+## Phase 17: Online Nmap Scanner & VPN Service
+
+### Online Nmap Scanner
+- [x] Create Nmap Scanner UI component (NmapScanner.tsx)
+- [x] Implement port range scanning interface
+- [x] Add service detection and version identification
+- [x] Implement OS fingerprinting display
+- [x] Add scan timing options (paranoid, sneaky, polite, normal, aggressive)
+- [x] Create scan results display with color-coded severity
+- [x] Add export scan results functionality
+- [ ] Implement scan history for Nmap scans
+- [ ] Add real-time scan progress tracking
+- [x] Create advanced options panel (UDP, ping sweep, etc.)
+- [ ] Write tests for Nmap scanner functionality
+
+### VPN Service Integration
+- [x] Create VPN Service UI component (VPNService.tsx)
+- [x] Display list of VPN providers with ratings
+- [x] Show VPN server locations and connection speeds
+- [x] Implement IP masking/anonymity checker (current IP display)
+- [x] Add current IP display and location
+- [x] Show VPN connection status indicators
+- [x] Create VPN provider comparison table
+- [x] Add VPN protocol support information
+- [x] Implement encryption level display
+- [x] Add privacy policy and logging information (logging status)
+- [x] Create VPN recommendations based on use case (recommended providers)
+- [x] Add affiliate links for VPN providers
+- [ ] Write tests for VPN service functionality

@@ -26,6 +26,8 @@ import { HunterSearch } from "./pages/HunterSearch";
 import { NotificationCenter } from "./pages/NotificationCenter";
 import { PhoneLookup } from "./pages/PhoneLookup";
 import { IMEIChecker } from "./pages/IMEIChecker";
+import { NmapScanner } from "./pages/NmapScanner";
+import { VPNService } from "./pages/VPNService";
 
 function Router() {
   return (
@@ -51,6 +53,8 @@ function Router() {
       <Route path={"/notifications"} component={NotificationCenterPage} />
       <Route path={"/phone-lookup"} component={PhoneLookupPage} />
       <Route path={"/imei-checker"} component={IMEICheckerPage} />
+      <Route path={"/nmap-scanner"} component={NmapScannerPage} />
+      <Route path={"/vpn-service"} component={VPNServicePage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -221,6 +225,22 @@ function IMEICheckerPage() {
   return (
     <DashboardLayout>
       <IMEIChecker />
+    </DashboardLayout>
+  );
+}
+
+function NmapScannerPage() {
+  return (
+    <DashboardLayout>
+      <NmapScanner />
+    </DashboardLayout>
+  );
+}
+
+function VPNServicePage() {
+  return (
+    <DashboardLayout>
+      <VPNService />
     </DashboardLayout>
   );
 }
