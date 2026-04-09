@@ -8,10 +8,12 @@ import { invokeLLM } from "./_core/llm";
 import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
 import { getAPIStatus } from "./api-config";
 import { subscriptionRouter } from "./subscription-router";
+import { vpnRouter } from "./vpn-router";
 
 export const appRouter = router({
   system: systemRouter,
   subscription: subscriptionRouter,
+  vpn: vpnRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
