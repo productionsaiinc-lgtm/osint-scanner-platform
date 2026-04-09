@@ -20,6 +20,10 @@ import { IPReputation } from "./pages/IPReputation";
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
+import { SecurityTrails } from "./pages/SecurityTrails";
+import { ShodanSearch } from "./pages/ShodanSearch";
+import { HunterSearch } from "./pages/HunterSearch";
+import { NotificationCenter } from "./pages/NotificationCenter";
 
 function Router() {
   return (
@@ -39,6 +43,10 @@ function Router() {
       <Route path={"/email-verify"} component={EmailVerifyPage} />
       <Route path={"/subscription"} component={SubscriptionManagementPage} />
       <Route path={"/payouts"} component={PayoutDashboardPage} />
+      <Route path={"/security-trails"} component={SecurityTrailsPage} />
+      <Route path={"/shodan"} component={ShodanSearchPage} />
+      <Route path={"/hunter"} component={HunterSearchPage} />
+      <Route path={"/notifications"} component={NotificationCenterPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -161,6 +169,38 @@ function PayoutDashboardPage() {
   return (
     <DashboardLayout>
       <PayoutDashboard />
+    </DashboardLayout>
+  );
+}
+
+function SecurityTrailsPage() {
+  return (
+    <DashboardLayout>
+      <SecurityTrails />
+    </DashboardLayout>
+  );
+}
+
+function ShodanSearchPage() {
+  return (
+    <DashboardLayout>
+      <ShodanSearch />
+    </DashboardLayout>
+  );
+}
+
+function HunterSearchPage() {
+  return (
+    <DashboardLayout>
+      <HunterSearch />
+    </DashboardLayout>
+  );
+}
+
+function NotificationCenterPage() {
+  return (
+    <DashboardLayout>
+      <NotificationCenter />
     </DashboardLayout>
   );
 }

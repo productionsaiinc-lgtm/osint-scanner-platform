@@ -238,9 +238,9 @@
 - [x] Create UI for CVE database search
 - [x] Create UI for IP reputation check
 - [x] Create UI for email verification
-- [ ] Create UI for domain intelligence (SecurityTrails)
-- [ ] Create UI for device search (Shodan)
-- [ ] Create UI for email enumeration (Hunter.io)
+- [x] Create UI for domain intelligence (SecurityTrails)
+- [x] Create UI for device search (Shodan)
+- [x] Create UI for email enumeration (Hunter.io)
 
 ### Export & Reporting
 - [x] Implement PDF report generation (template)
@@ -264,8 +264,8 @@
 - [x] Create mobile download section
 - [x] Add feature descriptions to navigation
 - [x] Add download button to sidebar below About option
-- [ ] Create getting started guide
-- [ ] Add FAQ section
+- [x] Create getting started guide (GETTING_STARTED.md)
+- [x] Add FAQ section (FAQ.md)
 
 
 ## Phase 14: Premium Features & PayPal Integration
@@ -335,3 +335,23 @@
 - [x] Add payout history tracking (via subscription.paymentHistory)
 - [x] Create payout status dashboard (PayoutDashboard.tsx)
 - [ ] Test payout flow end-to-end
+
+
+## Phase 15: Custom Notification System
+
+### Notification System Features
+- [x] Create notification database schema (notifications table)
+- [x] Create notification types (scan_complete, vulnerability_found, subscription_update, payout_received, etc.)
+- [x] Implement notification preferences UI
+- [x] Create notification center/inbox page (NotificationCenter.tsx)
+- [ ] Add real-time notification updates
+- [ ] Implement email notification integration
+- [ ] Add push notification support
+- [x] Create notification templates
+- [x] Add notification filtering and search
+- [x] Implement notification read/unread status
+- [x] Add notification deletion and archiving
+- [x] Create notification settings dashboard
+- [x] Add notification frequency controls (immediate, daily digest, weekly)
+- [x] Implement notification sound/vibration options
+- [ ] Add notification scheduling

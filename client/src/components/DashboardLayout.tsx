@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -41,6 +41,10 @@ const menuItems = [
   { icon: Mail, label: "Email Verify", path: "/email-verify" },
   { icon: Zap, label: "Subscription", path: "/subscription" },
   { icon: Wallet, label: "Payouts", path: "/payouts" },
+  { icon: Bell, label: "Notifications", path: "/notifications" },
+  { icon: Shield, label: "SecurityTrails", path: "/security-trails" },
+  { icon: Cpu, label: "Shodan", path: "/shodan" },
+  { icon: Search, label: "Hunter.io", path: "/hunter" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
 ];
