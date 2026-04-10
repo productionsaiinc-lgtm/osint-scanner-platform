@@ -519,9 +519,9 @@
 ### New Tools Implementation
 - [x] Create Web Scraper UI component (WebScraper.tsx)
 - [x] Create Credit Card Checker UI component (CreditCardChecker.tsx)
-- [x] Create Social Media Scraper UI component (SocialMediaScraper.tsx)
 - [x] Create Ontario License Plate Lookup UI component (OntarioLicensePlate.tsx)
-- [x] Add all 4 tools to App.tsx routes
-- [x] Add all 4 tools to DashboardLayout menu
+- [x] Add tools to App.tsx routes
+- [x] Add tools to DashboardLayout menu
+- [x] Merge Social Media Scraper with Social Media OSINT (combined into SocialOsint.tsx)
 - [ ] Create backend procedures for each tool
 - [ ] Write tests for new tools

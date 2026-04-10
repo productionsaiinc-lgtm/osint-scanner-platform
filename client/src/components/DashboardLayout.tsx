@@ -50,7 +50,6 @@ const menuItems = [
   { icon: Search, label: "Hunter.io", path: "/hunter" },
   { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
   { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
-  { icon: Users, label: "Social Media Scraper", path: "/social-media-scraper" },
   { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },

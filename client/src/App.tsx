@@ -31,7 +31,6 @@ import { VPNService } from "./pages/VPNService";
 import { VPNConnection } from "./pages/VPNConnection";
 import WebScraper from "./pages/WebScraper";
 import CreditCardChecker from "./pages/CreditCardChecker";
-import SocialMediaScraper from "./pages/SocialMediaScraper";
 import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 
 function Router() {
@@ -63,7 +62,6 @@ function Router() {
       <Route path={"/vpn-connection"} component={VPNConnectionPage} />
       <Route path={"/web-scraper"} component={WebScraperPage} />
       <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
-      <Route path={"/social-media-scraper"} component={SocialMediaScraperPage} />
       <Route path={"/ontario-license-plate"} component={OntarioLicensePlatePage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
@@ -275,14 +273,6 @@ function CreditCardCheckerPage() {
   return (
     <DashboardLayout>
       <CreditCardChecker />
-    </DashboardLayout>
-  );
-}
-
-function SocialMediaScraperPage() {
-  return (
-    <DashboardLayout>
-      <SocialMediaScraper />
     </DashboardLayout>
   );
 }
