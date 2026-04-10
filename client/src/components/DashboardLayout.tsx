@@ -39,8 +39,6 @@ const menuItems = [
   { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
   { icon: Globe, label: "IP Reputation", path: "/ip-reputation" },
   { icon: Mail, label: "Email Verify", path: "/email-verify" },
-  { icon: Zap, label: "Subscription", path: "/subscription" },
-  { icon: Wallet, label: "Payouts", path: "/payouts" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
   { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
@@ -52,6 +50,8 @@ const menuItems = [
   { icon: Search, label: "Hunter.io", path: "/hunter" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
+  { icon: Zap, label: "Subscription", path: "/subscription" },
+  { icon: Wallet, label: "Payouts", path: "/payouts" },
 ];
 
 const downloadItems = [

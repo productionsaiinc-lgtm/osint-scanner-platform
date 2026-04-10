@@ -480,3 +480,35 @@
 - [ ] Implement SSL/TLS vulnerability detection
 - [ ] Add authentication bypass detection
 - [ ] Create security header recommendations
+
+
+## Phase 20: APK Build and Installation Fix
+
+### APK Build Process
+- [ ] Verify Flutter project configuration (build.gradle.kts, AndroidManifest.xml)
+- [ ] Test GitHub Actions workflow for APK building
+- [ ] Generate release APK via GitHub Actions
+- [ ] Download and verify APK file integrity
+- [ ] Test APK installation on Android device
+- [ ] Verify app functionality after installation
+- [ ] Create APK distribution mechanism
+- [ ] Set up automatic APK builds on releases
+
+### APK Installation Support
+- [ ] Create APK installation guide (APK_BUILD_INSTALLATION_GUIDE.md) ✓
+- [ ] Document troubleshooting steps
+- [ ] Provide ADB installation instructions
+- [ ] Add device compatibility information
+- [ ] Create video tutorial for installation
+- [ ] Set up APK download page on website
+- [ ] Implement in-app update checker
+- [ ] Create rollback procedure for broken APKs
+
+
+## Phase 21: UI Layout Reorganization
+
+### Dashboard Navigation Reorganization
+- [x] Move Subscriptions menu item below Pricing
+- [x] Move Payouts menu item below Subscriptions
+- [x] Reorganize sidebar menu structure for better UX
+- [ ] Test navigation flow after reorganization
