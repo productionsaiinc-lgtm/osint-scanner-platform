@@ -13,16 +13,13 @@ import MapView from "./pages/MapView";
 import ScanHistory from "./pages/ScanHistory";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
-import { BreachSearch } from "./pages/BreachSearch";
 import { GitHubSearch } from "./pages/GitHubSearch";
 import { CVESearch } from "./pages/CVESearch";
 
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
-import { SecurityTrails } from "./pages/SecurityTrails";
 import { ShodanSearch } from "./pages/ShodanSearch";
-import { HunterSearch } from "./pages/HunterSearch";
 import { NotificationCenter } from "./pages/NotificationCenter";
 import { PhoneLookup } from "./pages/PhoneLookup";
 import { IMEIChecker } from "./pages/IMEIChecker";
@@ -44,20 +41,16 @@ function Router() {
       <Route path={"/history"} component={ScanHistoryPage} />
       <Route path={"/about"} component={AboutPage} />
       <Route path={"/pricing"} component={PricingPage} />
-      <Route path={"/breach-search"} component={BreachSearchPage} />
       <Route path={"/github-search"} component={GitHubSearchPage} />
       <Route path={"/cve-search"} component={CVESearchPage} />
       <Route path={"/email-verify"} component={EmailVerifyPage} />
       <Route path={"/subscription"} component={SubscriptionManagementPage} />
       <Route path={"/payouts"} component={PayoutDashboardPage} />
-      <Route path={"/security-trails"} component={SecurityTrailsPage} />
       <Route path={"/shodan"} component={ShodanSearchPage} />
-      <Route path={"/hunter"} component={HunterSearchPage} />
       <Route path={"/notifications"} component={NotificationCenterPage} />
       <Route path={"/phone-lookup"} component={PhoneLookupPage} />
       <Route path={"/imei-checker"} component={IMEICheckerPage} />
       <Route path={"/nmap-scanner"} component={NmapScannerPage} />
-      <Route path={"/vpn-service"} component={VPNServicePage} />
       <Route path={"/vpn-connection"} component={VPNConnectionPage} />
       <Route path={"/web-scraper"} component={WebScraperPage} />
       <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
@@ -132,14 +125,6 @@ function PricingPage() {
   );
 }
 
-function BreachSearchPage() {
-  return (
-    <DashboardLayout>
-      <BreachSearch />
-    </DashboardLayout>
-  );
-}
-
 function GitHubSearchPage() {
   return (
     <DashboardLayout>
@@ -180,26 +165,10 @@ function PayoutDashboardPage() {
   );
 }
 
-function SecurityTrailsPage() {
-  return (
-    <DashboardLayout>
-      <SecurityTrails />
-    </DashboardLayout>
-  );
-}
-
 function ShodanSearchPage() {
   return (
     <DashboardLayout>
       <ShodanSearch />
-    </DashboardLayout>
-  );
-}
-
-function HunterSearchPage() {
-  return (
-    <DashboardLayout>
-      <HunterSearch />
     </DashboardLayout>
   );
 }
@@ -232,14 +201,6 @@ function NmapScannerPage() {
   return (
     <DashboardLayout>
       <NmapScanner />
-    </DashboardLayout>
-  );
-}
-
-function VPNServicePage() {
-  return (
-    <DashboardLayout>
-      <VPNService />
     </DashboardLayout>
   );
 }

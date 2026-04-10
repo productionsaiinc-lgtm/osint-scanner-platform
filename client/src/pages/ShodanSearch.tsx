@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Cpu, Search, Loader2, AlertCircle, Wifi, Server, MapPin } from 'lucide-react';
+import { Cpu, Search, Loader2, AlertCircle, Wifi, Server, MapPin, Shield, Globe, Lock, TrendingUp } from 'lucide-react';
 
 export function ShodanSearch() {
   const [query, setQuery] = useState('');
+  const [domain, setDomain] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState('shodan');
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -15,215 +17,339 @@ export function ShodanSearch() {
     setTimeout(() => setIsSearching(false), 2000);
   };
 
+  const handleDomainSearch = async () => {
+    if (!domain.trim()) return;
+    setIsSearching(true);
+    setTimeout(() => setIsSearching(false), 2000);
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div>
-        <h1 className="text-3xl font-bold text-cyan-400 flex items-center gap-2">
+        <h1 className="text-3xl font-bold neon-cyan-glow flex items-center gap-2">
           <Cpu className="w-8 h-8" />
-          Device Search (Shodan)
+          Device & Domain Intelligence
         </h1>
-        <p className="text-gray-400 mt-2">Search for internet-connected devices and services</p>
+        <p className="text-gray-400 mt-2">Combined Shodan device search and SecurityTrails domain reconnaissance</p>
       </div>
 
-      {/* Search Section */}
-      <Card className="border-cyan-500/30 bg-black/40">
-        <CardHeader>
-          <CardTitle className="text-cyan-400">Shodan Query</CardTitle>
-          <CardDescription>Search for devices by IP, port, service, or vulnerability</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                placeholder="e.g., port:22, product:Apache, country:US"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="border-cyan-500/30 bg-black/40 text-cyan-400 placeholder:text-gray-600"
-              />
-              <Button
-                onClick={handleSearch}
-                disabled={isSearching || !query.trim()}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
-              >
-                {isSearching ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Searching...
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4 mr-2" />
-                    Search
-                  </>
-                )}
-              </Button>
-            </div>
-            <div className="text-xs text-gray-400">
-              <strong>Examples:</strong> port:80, product:nginx, country:US, os:Linux, http.title:admin
-            </div>
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-cyan-500/30">
+        <button
+          onClick={() => setActiveTab('shodan')}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === 'shodan'
+              ? 'text-neon-cyan border-b-2 border-neon-cyan'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Cpu className="w-4 h-4 inline mr-2" />
+          Shodan Devices
+        </button>
+        <button
+          onClick={() => setActiveTab('securitytrails')}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === 'securitytrails'
+              ? 'text-neon-cyan border-b-2 border-neon-cyan'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Shield className="w-4 h-4 inline mr-2" />
+          SecurityTrails
+        </button>
+      </div>
+
+      {/* Shodan Tab */}
+      {activeTab === 'shodan' && (
+        <>
+          {/* Search Section */}
+          <Card className="border-cyan-500/30 bg-black/40">
+            <CardHeader>
+              <CardTitle className="text-cyan-400">Shodan Query</CardTitle>
+              <CardDescription>Search for devices by IP, port, service, or vulnerability</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="e.g., port:22, product:Apache, country:US"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                    className="border-cyan-500/30 bg-black/40 text-cyan-400 placeholder:text-gray-600"
+                  />
+                  <Button
+                    onClick={handleSearch}
+                    disabled={isSearching || !query.trim()}
+                    className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  >
+                    {isSearching ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Searching
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4 mr-2" />
+                        Search
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Results Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Device Results */}
+            <Card className="border-cyan-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-cyan-400 flex items-center gap-2">
+                  <Server className="w-5 h-5" />
+                  Device Results
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
+                    <div className="text-xs text-gray-400">IP Address</div>
+                    <div className="text-sm font-mono text-cyan-400 mt-1">192.168.1.100</div>
+                  </div>
+                  <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
+                    <div className="text-xs text-gray-400">Port</div>
+                    <div className="text-sm font-mono text-cyan-400 mt-1">22 (SSH)</div>
+                  </div>
+                  <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
+                    <div className="text-xs text-gray-400">Service</div>
+                    <div className="text-sm font-mono text-cyan-400 mt-1">OpenSSH 7.4</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Vulnerability Info */}
+            <Card className="border-red-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-red-400 flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5" />
+                  Vulnerabilities
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Alert className="border-red-500/30 bg-red-500/5">
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                    <AlertDescription className="text-red-400 ml-2">
+                      CVE-2018-15473: OpenSSH Username Enumeration
+                    </AlertDescription>
+                  </Alert>
+                  <Alert className="border-yellow-500/30 bg-yellow-500/5">
+                    <AlertCircle className="h-4 w-4 text-yellow-400" />
+                    <AlertDescription className="text-yellow-400 ml-2">
+                      Weak SSH Key Exchange Algorithm Detected
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Location Info */}
+            <Card className="border-green-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <MapPin className="w-5 h-5" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-green-500/30 rounded bg-green-500/5">
+                    <div className="text-xs text-gray-400">Country</div>
+                    <div className="text-sm font-mono text-green-400 mt-1">United States</div>
+                  </div>
+                  <div className="p-3 border border-green-500/30 rounded bg-green-500/5">
+                    <div className="text-xs text-gray-400">City</div>
+                    <div className="text-sm font-mono text-green-400 mt-1">San Francisco</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* ISP Info */}
+            <Card className="border-purple-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-purple-400 flex items-center gap-2">
+                  <Wifi className="w-5 h-5" />
+                  ISP Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-purple-500/30 rounded bg-purple-500/5">
+                    <div className="text-xs text-gray-400">Organization</div>
+                    <div className="text-sm font-mono text-purple-400 mt-1">Example ISP Inc.</div>
+                  </div>
+                  <div className="p-3 border border-purple-500/30 rounded bg-purple-500/5">
+                    <div className="text-xs text-gray-400">ASN</div>
+                    <div className="text-sm font-mono text-purple-400 mt-1">AS12345</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </>
+      )}
 
-      {/* Search Results */}
-      <div className="grid grid-cols-1 gap-4">
-        {/* Result 1 */}
-        <Card className="border-purple-500/30 bg-black/40">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Server className="w-5 h-5 text-purple-400" />
-                <div>
-                  <CardTitle className="text-purple-400">192.168.1.100</CardTitle>
-                  <CardDescription>Apache HTTP Server</CardDescription>
+      {/* SecurityTrails Tab */}
+      {activeTab === 'securitytrails' && (
+        <>
+          {/* Search Section */}
+          <Card className="border-cyan-500/30 bg-black/40">
+            <CardHeader>
+              <CardTitle className="text-cyan-400">Domain Search</CardTitle>
+              <CardDescription>Enter a domain to analyze its infrastructure and history</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="example.com"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleDomainSearch()}
+                  className="border-cyan-500/30 bg-black/40 text-cyan-400 placeholder:text-gray-600"
+                />
+                <Button
+                  onClick={handleDomainSearch}
+                  disabled={isSearching || !domain.trim()}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Searching
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Search
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Results Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Domain Information */}
+            <Card className="border-purple-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-purple-400 flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Domain Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-purple-500/30 rounded bg-purple-500/5">
+                    <div className="text-xs text-gray-400">Domain</div>
+                    <div className="text-sm font-mono text-purple-400 mt-1">example.com</div>
+                  </div>
+                  <div className="p-3 border border-purple-500/30 rounded bg-purple-500/5">
+                    <div className="text-xs text-gray-400">Registrar</div>
+                    <div className="text-sm font-mono text-purple-400 mt-1">GoDaddy</div>
+                  </div>
+                  <div className="p-3 border border-purple-500/30 rounded bg-purple-500/5">
+                    <div className="text-xs text-gray-400">Created</div>
+                    <div className="text-sm font-mono text-purple-400 mt-1">2010-01-15</div>
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">Active</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-2 border border-purple-500/30 rounded bg-purple-500/5">
-                <div className="text-xs text-gray-400">Port</div>
-                <div className="text-sm font-mono text-purple-400 mt-1">80</div>
-              </div>
-              <div className="p-2 border border-purple-500/30 rounded bg-purple-500/5">
-                <div className="text-xs text-gray-400">Service</div>
-                <div className="text-sm font-mono text-purple-400 mt-1">HTTP</div>
-              </div>
-              <div className="p-2 border border-purple-500/30 rounded bg-purple-500/5">
-                <div className="text-xs text-gray-400">OS</div>
-                <div className="text-sm font-mono text-purple-400 mt-1">Linux</div>
-              </div>
-              <div className="p-2 border border-purple-500/30 rounded bg-purple-500/5">
-                <div className="text-xs text-gray-400">Version</div>
-                <div className="text-sm font-mono text-purple-400 mt-1">2.4.41</div>
-              </div>
-            </div>
-            <div className="mt-3 p-2 border border-purple-500/30 rounded bg-purple-500/5">
-              <div className="text-xs text-gray-400">Banner</div>
-              <div className="text-xs font-mono text-purple-400 mt-1 break-all">
-                HTTP/1.1 200 OK | Server: Apache/2.4.41 (Ubuntu)
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Result 2 */}
-        <Card className="border-green-500/30 bg-black/40">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Wifi className="w-5 h-5 text-green-400" />
-                <div>
-                  <CardTitle className="text-green-400">203.0.113.45</CardTitle>
-                  <CardDescription>Nginx Web Server</CardDescription>
+            {/* DNS Records */}
+            <Card className="border-blue-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-blue-400 flex items-center gap-2">
+                  <Lock className="w-5 h-5" />
+                  DNS Records
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-blue-500/30 rounded bg-blue-500/5">
+                    <div className="text-xs text-gray-400">A Record</div>
+                    <div className="text-sm font-mono text-blue-400 mt-1">93.184.216.34</div>
+                  </div>
+                  <div className="p-3 border border-blue-500/30 rounded bg-blue-500/5">
+                    <div className="text-xs text-gray-400">MX Record</div>
+                    <div className="text-sm font-mono text-blue-400 mt-1">mail.example.com</div>
+                  </div>
+                  <div className="p-3 border border-blue-500/30 rounded bg-blue-500/5">
+                    <div className="text-xs text-gray-400">NS Record</div>
+                    <div className="text-sm font-mono text-blue-400 mt-1">ns1.example.com</div>
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">Active</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-2 border border-green-500/30 rounded bg-green-500/5">
-                <div className="text-xs text-gray-400">Port</div>
-                <div className="text-sm font-mono text-green-400 mt-1">443</div>
-              </div>
-              <div className="p-2 border border-green-500/30 rounded bg-green-500/5">
-                <div className="text-xs text-gray-400">Service</div>
-                <div className="text-sm font-mono text-green-400 mt-1">HTTPS</div>
-              </div>
-              <div className="p-2 border border-green-500/30 rounded bg-green-500/5">
-                <div className="text-xs text-gray-400">OS</div>
-                <div className="text-sm font-mono text-green-400 mt-1">Linux</div>
-              </div>
-              <div className="p-2 border border-green-500/30 rounded bg-green-500/5">
-                <div className="text-xs text-gray-400">Version</div>
-                <div className="text-sm font-mono text-green-400 mt-1">1.21.0</div>
-              </div>
-            </div>
-            <div className="mt-3 p-2 border border-green-500/30 rounded bg-green-500/5">
-              <div className="text-xs text-gray-400">SSL Certificate</div>
-              <div className="text-xs font-mono text-green-400 mt-1 break-all">
-                CN=example.com, Issuer=Let's Encrypt
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Result 3 */}
-        <Card className="border-pink-500/30 bg-black/40">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-pink-400" />
-                <div>
-                  <CardTitle className="text-pink-400">198.51.100.78</CardTitle>
-                  <CardDescription>SSH Server</CardDescription>
+            {/* Subdomains */}
+            <Card className="border-green-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5" />
+                  Subdomains
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="p-2 border border-green-500/30 rounded bg-green-500/5 text-xs font-mono text-green-400">
+                    www.example.com
+                  </div>
+                  <div className="p-2 border border-green-500/30 rounded bg-green-500/5 text-xs font-mono text-green-400">
+                    mail.example.com
+                  </div>
+                  <div className="p-2 border border-green-500/30 rounded bg-green-500/5 text-xs font-mono text-green-400">
+                    api.example.com
+                  </div>
+                  <div className="p-2 border border-green-500/30 rounded bg-green-500/5 text-xs font-mono text-green-400">
+                    admin.example.com
+                  </div>
                 </div>
-              </div>
-              <span className="text-xs px-2 py-1 rounded bg-yellow-500/20 text-yellow-400">Caution</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-2 border border-pink-500/30 rounded bg-pink-500/5">
-                <div className="text-xs text-gray-400">Port</div>
-                <div className="text-sm font-mono text-pink-400 mt-1">22</div>
-              </div>
-              <div className="p-2 border border-pink-500/30 rounded bg-pink-500/5">
-                <div className="text-xs text-gray-400">Service</div>
-                <div className="text-sm font-mono text-pink-400 mt-1">SSH</div>
-              </div>
-              <div className="p-2 border border-pink-500/30 rounded bg-pink-500/5">
-                <div className="text-xs text-gray-400">OS</div>
-                <div className="text-sm font-mono text-pink-400 mt-1">Linux</div>
-              </div>
-              <div className="p-2 border border-pink-500/30 rounded bg-pink-500/5">
-                <div className="text-xs text-gray-400">Version</div>
-                <div className="text-sm font-mono text-pink-400 mt-1">7.4</div>
-              </div>
-            </div>
-            <div className="mt-3 p-2 border border-pink-500/30 rounded bg-pink-500/5">
-              <div className="text-xs text-gray-400">Banner</div>
-              <div className="text-xs font-mono text-pink-400 mt-1 break-all">
-                SSH-2.0-OpenSSH_7.4 (Outdated version detected)
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="border-cyan-500/30 bg-black/40">
-          <CardContent className="pt-6">
-            <div className="text-xs text-gray-400">Total Results</div>
-            <div className="text-2xl font-bold text-cyan-400 mt-2">3</div>
-          </CardContent>
-        </Card>
-        <Card className="border-green-500/30 bg-black/40">
-          <CardContent className="pt-6">
-            <div className="text-xs text-gray-400">Active Devices</div>
-            <div className="text-2xl font-bold text-green-400 mt-2">3</div>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow-500/30 bg-black/40">
-          <CardContent className="pt-6">
-            <div className="text-xs text-gray-400">Vulnerabilities</div>
-            <div className="text-2xl font-bold text-yellow-400 mt-2">1</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Info Alert */}
-      <Alert className="border-blue-500/30 bg-blue-500/10">
-        <AlertCircle className="h-4 w-4 text-blue-500" />
-        <AlertDescription className="text-blue-400">
-          Shodan searches the internet for internet-connected devices. Use responsibly and only for authorized reconnaissance.
-        </AlertDescription>
-      </Alert>
+            {/* SSL Certificates */}
+            <Card className="border-yellow-500/30 bg-black/40">
+              <CardHeader>
+                <CardTitle className="text-yellow-400 flex items-center gap-2">
+                  <Lock className="w-5 h-5" />
+                  SSL Certificates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-3 border border-yellow-500/30 rounded bg-yellow-500/5">
+                    <div className="text-xs text-gray-400">Issuer</div>
+                    <div className="text-sm font-mono text-yellow-400 mt-1">Let's Encrypt</div>
+                  </div>
+                  <div className="p-3 border border-yellow-500/30 rounded bg-yellow-500/5">
+                    <div className="text-xs text-gray-400">Expires</div>
+                    <div className="text-sm font-mono text-yellow-400 mt-1">2025-06-15</div>
+                  </div>
+                  <div className="p-3 border border-yellow-500/30 rounded bg-yellow-500/5">
+                    <div className="text-xs text-gray-400">Algorithm</div>
+                    <div className="text-sm font-mono text-yellow-400 mt-1">SHA-256 RSA</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
+export default ShodanSearch;
