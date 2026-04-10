@@ -1,15 +1,55 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Shield, Globe, Power, RefreshCw, AlertTriangle, CheckCircle2, Clock, Download, Upload, Activity, Lock, Zap, Trash2, Loader2 } from 'lucide-react';
+import { Shield, Globe, Power, RefreshCw, AlertTriangle, CheckCircle2, Clock, Download, Upload, Activity, Lock, Zap, Trash2, Loader2, Star, ExternalLink, MapPin, Gauge, Server, FileText, Eye, EyeOff } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+
+interface VPNProvider {
+  id: string;
+  name: string;
+  rating: number;
+  reviews: number;
+  price: string;
+  servers: number;
+  countries: number;
+  protocols: string[];
+  encryption: string;
+  logging: 'None' | 'Minimal' | 'Full';
+  speed: 'Excellent' | 'Very Good' | 'Good' | 'Fair';
+  jurisdiction: string;
+  features: string[];
+  affiliateLink: string;
+  recommended: boolean;
+}
+
+interface CurrentIP {
+  ip: string;
+  country: string;
+  city: string;
+  isp: string;
+  isVPN: boolean;
+  latitude: number;
+  longitude: number;
+}
 
 export function VPNConnection() {
   const [selectedProvider, setSelectedProvider] = useState<string>('protonvpn');
   const [selectedLocation, setSelectedLocation] = useState<string>('New York');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [activeTab, setActiveTab] = useState('connection');
+  const [showIPDetails, setShowIPDetails] = useState(false);
 
-  // VPN Connection mutations and queries
+  const [currentIP, setCurrentIP] = useState<CurrentIP>({
+    ip: '203.0.113.42',
+    country: 'United States',
+    city: 'San Francisco',
+    isp: 'Comcast Cable',
+    isVPN: false,
+    latitude: 37.7749,
+    longitude: -122.4194,
+  });
+
+  // VPN Connection queries
   const { data: status, isLoading: statusLoading, refetch: refetchStatus } = trpc.vpnConnection.status.useQuery(
     undefined,
     { refetchInterval: autoRefresh ? 2000 : false }
@@ -76,347 +116,441 @@ export function VPNConnection() {
     }
   };
 
-  const vpnProviders = ['protonvpn', 'expressvpn', 'nordvpn', 'surfshark', 'mullvad'];
+  const vpnProviders: VPNProvider[] = [
+    {
+      id: 'protonvpn',
+      name: 'ProtonVPN',
+      rating: 4.8,
+      reviews: 2543,
+      price: '$4.99/mo',
+      servers: 3000,
+      countries: 91,
+      protocols: ['IKEv2', 'OpenVPN', 'WireGuard'],
+      encryption: 'AES-256',
+      logging: 'None',
+      speed: 'Excellent',
+      jurisdiction: 'Switzerland',
+      features: ['No logs', 'Kill switch', 'Split tunneling', 'Streaming', 'P2P allowed'],
+      affiliateLink: 'https://protonvpn.com',
+      recommended: true,
+    },
+    {
+      id: 'expressvpn',
+      name: 'ExpressVPN',
+      rating: 4.7,
+      reviews: 3102,
+      price: '$6.67/mo',
+      servers: 3000,
+      countries: 94,
+      protocols: ['Lightway', 'OpenVPN', 'IKEv2'],
+      encryption: 'AES-256',
+      logging: 'None',
+      speed: 'Excellent',
+      jurisdiction: 'British Virgin Islands',
+      features: ['No logs', 'Kill switch', 'Split tunneling', 'Streaming', 'Fastest speeds'],
+      affiliateLink: 'https://expressvpn.com',
+      recommended: true,
+    },
+    {
+      id: 'nordvpn',
+      name: 'NordVPN',
+      rating: 4.6,
+      reviews: 2891,
+      price: '$3.99/mo',
+      servers: 5000,
+      countries: 111,
+      protocols: ['NordLynx', 'OpenVPN', 'IKEv2'],
+      encryption: 'AES-256',
+      logging: 'None',
+      speed: 'Very Good',
+      jurisdiction: 'Panama',
+      features: ['No logs', 'Kill switch', 'Double VPN', 'Streaming', 'Onion over VPN'],
+      affiliateLink: 'https://nordvpn.com',
+      recommended: true,
+    },
+    {
+      id: 'surfshark',
+      name: 'Surfshark',
+      rating: 4.5,
+      reviews: 1987,
+      price: '$2.49/mo',
+      servers: 3200,
+      countries: 100,
+      protocols: ['WireGuard', 'OpenVPN', 'IKEv2'],
+      encryption: 'AES-256',
+      logging: 'None',
+      speed: 'Good',
+      jurisdiction: 'British Virgin Islands',
+      features: ['No logs', 'Kill switch', 'Unlimited simultaneous connections', 'Streaming'],
+      affiliateLink: 'https://surfshark.com',
+      recommended: false,
+    },
+    {
+      id: 'mullvad',
+      name: 'Mullvad',
+      rating: 4.4,
+      reviews: 1543,
+      price: '$5.52/mo',
+      servers: 800,
+      countries: 42,
+      protocols: ['WireGuard', 'OpenVPN'],
+      encryption: 'AES-256',
+      logging: 'None',
+      speed: 'Good',
+      jurisdiction: 'Sweden',
+      features: ['No logs', 'No account needed', 'Kill switch', 'Open source', 'Privacy focused'],
+      affiliateLink: 'https://mullvad.net',
+      recommended: false,
+    },
+  ];
+
+  const vpnLocations = ['protonvpn', 'expressvpn', 'nordvpn', 'surfshark', 'mullvad'];
   const locations = ['New York', 'Los Angeles', 'London', 'Amsterdam', 'Tokyo', 'Sydney', 'Toronto', 'Berlin'];
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold text-neon-green flex items-center gap-2">
-          <Power className="w-8 h-8" />
-          VPN Connection Manager
-        </h1>
-        <p className="text-gray-400 mt-2">Connect, manage, and monitor your VPN connection</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold neon-cyan-glow">VPN MANAGEMENT SUITE</h1>
+        <p className="text-gray-400">Combined VPN connection management and provider directory</p>
       </div>
 
-      {/* Connection Status */}
-      <Card className={`border-2 ${status?.isConnected ? 'border-green-500/50 bg-green-500/5' : 'border-yellow-500/50 bg-yellow-500/5'}`}>
-        <CardHeader>
-          <CardTitle className={status?.isConnected ? 'text-green-400' : 'text-yellow-400'}>
-            Connection Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {status?.isConnected ? (
-                <>
-                  <CheckCircle2 className="w-8 h-8 text-green-400 animate-pulse" />
-                  <div>
-                    <div className="text-lg font-bold text-green-400">Connected</div>
-                    <div className="text-sm text-gray-400">{status?.status?.serverLocation}</div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <AlertTriangle className="w-8 h-8 text-yellow-400" />
-                  <div>
-                    <div className="text-lg font-bold text-yellow-400">Disconnected</div>
-                    <div className="text-sm text-gray-400">Not protected</div>
-                  </div>
-                </>
-              )}
-            </div>
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-cyan-500/30">
+        <button
+          onClick={() => setActiveTab('connection')}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === 'connection'
+              ? 'text-neon-cyan border-b-2 border-neon-cyan'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Power className="w-4 h-4 inline mr-2" />
+          Connection
+        </button>
+        <button
+          onClick={() => setActiveTab('providers')}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === 'providers'
+              ? 'text-neon-cyan border-b-2 border-neon-cyan'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Globe className="w-4 h-4 inline mr-2" />
+          Providers
+        </button>
+        <button
+          onClick={() => setActiveTab('ip')}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === 'ip'
+              ? 'text-neon-cyan border-b-2 border-neon-cyan'
+              : 'text-gray-400 hover:text-gray-300'
+          }`}
+        >
+          <Shield className="w-4 h-4 inline mr-2" />
+          IP Check
+        </button>
+      </div>
 
-            {status?.isConnected && status?.status?.connectionTimeFormatted && (
-              <div className="text-right">
-                <div className="flex items-center gap-1 text-cyan-400">
-                  <Clock className="w-4 h-4" />
-                  <span className="font-mono">{status.status.connectionTimeFormatted}</span>
+      {/* Connection Tab */}
+      {activeTab === 'connection' && (
+        <div className="space-y-6">
+          {/* Connection Status */}
+          <Card className="hud-frame p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold neon-cyan">CONNECTION STATUS</h2>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setAutoRefresh(!autoRefresh)}
+                    className={`p-2 rounded transition-colors ${
+                      autoRefresh ? 'bg-green-500/30 text-green-400' : 'bg-gray-800 text-gray-400'
+                    }`}
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Connection Details */}
-          {status?.isConnected && status?.status && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 border-t border-green-500/20">
-              <div className="p-2">
-                <div className="text-xs text-gray-400">VPN IP</div>
-                <div className="text-sm font-mono text-green-400 mt-1">{status.status.ipAddress}</div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Status</p>
+                  <p className="text-lg font-bold neon-cyan">{status?.isConnected ? 'CONNECTED' : 'DISCONNECTED'}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-pink-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Provider</p>
+                  <p className="text-lg font-bold neon-pink">{status?.status?.providerId || 'None'}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Data Used</p>
+                  <p className="text-lg font-bold text-green-400">{status?.status?.dataUsedFormatted || 'N/A'}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-yellow-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Connection Time</p>
+                  <p className="text-lg font-bold text-yellow-400">{status?.status?.connectionTimeFormatted || '0h'}</p>
+                </div>
               </div>
-              <div className="p-2">
-                <div className="text-xs text-gray-400">Protocol</div>
-                <div className="text-sm font-semibold text-green-400 mt-1">{status.status.protocol}</div>
-              </div>
-              <div className="p-2">
-                <div className="text-xs text-gray-400">Ping</div>
-                <div className="text-sm font-semibold text-green-400 mt-1">{status.status.ping.toFixed(0)} ms</div>
-              </div>
-              <div className="p-2">
-                <div className="text-xs text-gray-400">Data Used</div>
-                <div className="text-sm font-semibold text-green-400 mt-1">{status.status.dataUsedFormatted}</div>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Connection Controls */}
-      <Card className="border-cyan-500/30 bg-black/40">
-        <CardHeader>
-          <CardTitle className="text-cyan-400">Connection Controls</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Provider Selection */}
-            <div>
-              <label className="text-sm text-gray-400 mb-2 block">VPN Provider</label>
-              <select
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value)}
-                disabled={status?.isConnected}
-                className="w-full p-2 border border-cyan-500/30 rounded bg-black text-cyan-400 disabled:opacity-50"
-              >
-                {vpnProviders.map((provider) => (
-                  <option key={provider} value={provider} className="bg-black text-cyan-400">
-                    {provider.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Location Selection */}
-            <div>
-              <label className="text-sm text-gray-400 mb-2 block">Server Location</label>
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                disabled={status?.isConnected}
-                className="w-full p-2 border border-cyan-500/30 rounded bg-black text-cyan-400 disabled:opacity-50"
-              >
-                {locations.map((location) => (
-                  <option key={location} value={location} className="bg-black text-cyan-400">
-                    {location}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-4">
-            {!status?.isConnected ? (
-              <Button
-                onClick={handleConnect}
-                disabled={connectMutation.isPending}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold col-span-2 md:col-span-1"
-              >
-                {connectMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Power className="w-4 h-4 mr-2" />
-                    Connect
-                  </>
-                )}
-              </Button>
-            ) : (
-              <>
+              {/* Connection Controls */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleConnect}
+                  disabled={status?.isConnected || connectMutation.isPending}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {connectMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Power className="w-4 h-4 mr-2" />}
+                  CONNECT
+                </Button>
                 <Button
                   onClick={handleDisconnect}
-                  disabled={disconnectMutation.isPending}
-                  className="bg-red-500 hover:bg-red-600 text-black font-bold"
+                  disabled={!status?.isConnected || disconnectMutation.isPending}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white"
                 >
-                  {disconnectMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Disconnecting...
-                    </>
-                  ) : (
-                    <>
-                      <Power className="w-4 h-4 mr-2" />
-                      Disconnect
-                    </>
-                  )}
+                  {disconnectMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Power className="w-4 h-4 mr-2" />}
+                  DISCONNECT
                 </Button>
-
                 <Button
                   onClick={handleReconnect}
                   disabled={reconnectMutation.isPending}
-                  className="bg-orange-500 hover:bg-orange-600 text-black font-bold"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {reconnectMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Reconnecting...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Reconnect
-                    </>
-                  )}
+                  {reconnectMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                  RECONNECT
                 </Button>
+              </div>
 
-                <Button
-                  onClick={() => handleKillSwitch(!status?.status?.killSwitchEnabled)}
-                  className={status?.status?.killSwitchEnabled ? 'bg-neon-green hover:bg-neon-green/80 text-black' : 'bg-gray-600 hover:bg-gray-700 text-white'}
-                >
-                  <Lock className="w-4 h-4 mr-2" />
-                  Kill Switch
-                </Button>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Speed & Performance */}
-      {status?.isConnected && status?.status && (
-        <Card className="border-orange-500/30 bg-black/40">
-          <CardHeader>
-            <CardTitle className="text-orange-400 flex items-center gap-2">
-              <Activity className="w-5 h-5" />
-              Speed & Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="p-3 border border-orange-500/30 rounded bg-orange-500/5">
-                <div className="flex items-center gap-2 text-orange-400 mb-2">
-                  <Download className="w-4 h-4" />
-                  <span className="text-xs">Download</span>
+              {/* Provider & Location Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium neon-cyan">Provider</label>
+                  <select
+                    value={selectedProvider}
+                    onChange={(e) => setSelectedProvider(e.target.value)}
+                    className="w-full bg-[#0a0e27] border border-cyan-500/30 text-white p-2 rounded"
+                  >
+                    {vpnProviders.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="text-2xl font-bold text-orange-400">{status.status.downloadSpeed.toFixed(1)}</div>
-                <div className="text-xs text-gray-400">Mbps</div>
-              </div>
-
-              <div className="p-3 border border-orange-500/30 rounded bg-orange-500/5">
-                <div className="flex items-center gap-2 text-orange-400 mb-2">
-                  <Upload className="w-4 h-4" />
-                  <span className="text-xs">Upload</span>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium neon-green">Location</label>
+                  <select
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                    className="w-full bg-[#0a0e27] border border-green-500/30 text-white p-2 rounded"
+                  >
+                    {locations.map((loc) => (
+                      <option key={loc} value={loc}>
+                        {loc}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="text-2xl font-bold text-orange-400">{status.status.uploadSpeed.toFixed(1)}</div>
-                <div className="text-xs text-gray-400">Mbps</div>
               </div>
 
-              <div className="p-3 border border-orange-500/30 rounded bg-orange-500/5">
-                <div className="flex items-center gap-2 text-orange-400 mb-2">
-                  <Zap className="w-4 h-4" />
-                  <span className="text-xs">Ping</span>
+              {/* Connection Info */}
+              <div className="flex items-center justify-between bg-[#0a0e27] p-4 rounded border border-purple-500/30">
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-5 h-5 text-purple-400" />
+                    <span className="font-mono text-sm">CONNECTION INFO</span>
+                  </div>
+                  <span className="text-xs text-gray-400">Status: {status?.isConnected ? 'Active' : 'Inactive'}</span>
                 </div>
-                <div className="text-2xl font-bold text-orange-400">{status.status.ping.toFixed(0)}</div>
-                <div className="text-xs text-gray-400">ms</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Security Status */}
-      {leakStatus && (
-        <Card className={`border-2 ${leakStatus.hasLeak ? 'border-red-500/50 bg-red-500/5' : 'border-green-500/50 bg-green-500/5'}`}>
-          <CardHeader>
-            <CardTitle className={leakStatus.hasLeak ? 'text-red-400' : 'text-green-400'}>
-              Security Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-start gap-3">
-              {leakStatus.hasLeak ? (
-                <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
-              ) : (
-                <CheckCircle2 className="w-6 h-6 text-green-400 flex-shrink-0 mt-1" />
-              )}
-              <div>
-                <div className={`font-semibold ${leakStatus.hasLeak ? 'text-red-400' : 'text-green-400'}`}>
-                  {leakStatus.hasLeak ? 'Leak Detected' : 'No Leaks Detected'}
-                </div>
-                <div className="text-sm text-gray-400 mt-1">{leakStatus.details}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Statistics */}
-      {stats && (
-        <Card className="border-purple-500/30 bg-black/40">
-          <CardHeader>
-            <CardTitle className="text-purple-400">Statistics</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-3 border border-purple-500/20 rounded">
-                <div className="text-xs text-gray-400">Total Connections</div>
-                <div className="text-2xl font-bold text-purple-400 mt-2">{stats.totalConnections}</div>
-              </div>
-              <div className="p-3 border border-purple-500/20 rounded">
-                <div className="text-xs text-gray-400">Total Data Used</div>
-                <div className="text-lg font-bold text-purple-400 mt-2">{stats.totalDataUsedFormatted}</div>
-              </div>
-              <div className="p-3 border border-purple-500/20 rounded">
-                <div className="text-xs text-gray-400">Average Ping</div>
-                <div className="text-2xl font-bold text-purple-400 mt-2">{stats.averagePing.toFixed(0)} ms</div>
-              </div>
-              <div className="p-3 border border-purple-500/20 rounded">
-                <div className="text-xs text-gray-400">Connection Time</div>
-                <div className="text-lg font-bold text-purple-400 mt-2">{stats.connectionTimeFormatted || 'N/A'}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Connection Logs */}
-      {logs && logs.length > 0 && (
-        <Card className="border-blue-500/30 bg-black/40">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-blue-400">Connection Logs</CardTitle>
-            <Button
-              onClick={handleClearLogs}
-              variant="outline"
-              size="sm"
-              className="text-blue-400 border-blue-500/30 hover:bg-blue-500/10"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {logs.map((log) => (
-                <div key={log.id} className={`p-3 border rounded text-sm ${
-                  log.status === 'success' ? 'border-green-500/20 bg-green-500/5' :
-                  log.status === 'warning' ? 'border-yellow-500/20 bg-yellow-500/5' :
-                  'border-red-500/20 bg-red-500/5'
-                }`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className={`font-semibold capitalize ${
-                        log.status === 'success' ? 'text-green-400' :
-                        log.status === 'warning' ? 'text-yellow-400' :
-                        'text-red-400'
-                      }`}>
-                        {log.action.replace(/_/g, ' ')}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-1">{log.details}</div>
+              {/* Speed Stats */}
+              {stats && (
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Download className="w-4 h-4 text-cyan-400" />
+                      <span className="text-xs text-gray-400">Data Used</span>
                     </div>
-                    <div className="text-xs text-gray-500 whitespace-nowrap ml-2">
-                      {new Date(log.timestamp).toLocaleTimeString()}
+                    <p className="text-lg font-bold neon-cyan">{stats.totalDataUsedFormatted}</p>
+                  </div>
+                  <div className="bg-[#0a0e27] p-4 rounded border border-pink-500/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-pink-400" />
+                      <span className="text-xs text-gray-400">Connection Time</span>
                     </div>
+                    <p className="text-lg font-bold neon-pink">{stats.connectionTimeFormatted || 'N/A'}</p>
+                  </div>
+                  <div className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Activity className="w-4 h-4 text-green-400" />
+                      <span className="text-xs text-gray-400">Avg Ping</span>
+                    </div>
+                    <p className="text-lg font-bold text-green-400">{stats.averagePing} ms</p>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Leak Status */}
+              {leakStatus && (
+                <div className={`p-4 rounded border ${leakStatus.hasLeak ? 'border-red-500/30 bg-red-500/10' : 'border-green-500/30 bg-green-500/10'}`}>
+                  <div className="flex items-center gap-2">
+                    {leakStatus.hasLeak ? (
+                      <AlertTriangle className="w-5 h-5 text-red-400" />
+                    ) : (
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    )}
+                    <span className={leakStatus.hasLeak ? 'text-red-400' : 'text-green-400'}>
+                      {leakStatus.hasLeak ? 'LEAKS DETECTED' : 'NO LEAKS DETECTED'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Connection Logs */}
+              {logs && logs.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold neon-cyan">CONNECTION LOGS</h3>
+                    <Button
+                      onClick={handleClearLogs}
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
+                  <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30 max-h-48 overflow-y-auto">
+                    {logs.map((log: any, idx: number) => (
+                      <div key={idx} className="text-xs text-gray-400 font-mono mb-1">
+                        [{log.timestamp}] {log.message}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
       )}
 
-      {/* Auto Refresh Toggle */}
-      <div className="flex items-center gap-2 p-4 border border-gray-500/20 rounded bg-gray-500/5">
-        <input
-          type="checkbox"
-          checked={autoRefresh}
-          onChange={(e) => setAutoRefresh(e.target.checked)}
-          className="w-4 h-4 cursor-pointer"
-        />
-        <label className="text-sm text-gray-400 cursor-pointer">Auto-refresh status every 2 seconds</label>
-      </div>
+      {/* Providers Tab */}
+      {activeTab === 'providers' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vpnProviders.map((provider) => (
+              <Card key={provider.id} className={`hud-frame p-6 ${provider.recommended ? 'border-green-500/50' : ''}`}>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold neon-cyan">{provider.name}</h3>
+                      {provider.recommended && (
+                        <span className="text-xs bg-green-500/30 text-green-300 px-2 py-1 rounded inline-block mt-1">
+                          ★ RECOMMENDED
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                        <span className="font-bold text-yellow-400">{provider.rating}</span>
+                      </div>
+                      <p className="text-xs text-gray-400">{provider.reviews} reviews</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-400 text-xs">Price</p>
+                      <p className="font-bold neon-pink">{provider.price}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Servers</p>
+                      <p className="font-bold text-green-400">{provider.servers}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Countries</p>
+                      <p className="font-bold text-purple-400">{provider.countries}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-400 text-xs">Speed</p>
+                      <p className="font-bold text-cyan-400">{provider.speed}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-400 uppercase">Protocols</p>
+                    <div className="flex flex-wrap gap-1">
+                      {provider.protocols.map((proto) => (
+                        <span key={proto} className="text-xs bg-cyan-500/20 text-cyan-300 px-2 py-1 rounded">
+                          {proto}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-400 uppercase">Features</p>
+                    <ul className="text-xs space-y-1">
+                      {provider.features.slice(0, 3).map((feature) => (
+                        <li key={feature} className="text-gray-300">✓ {feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button
+                    onClick={() => window.open(provider.affiliateLink, '_blank')}
+                    className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    VISIT PROVIDER
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* IP Check Tab */}
+      {activeTab === 'ip' && (
+        <Card className="hud-frame p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold neon-cyan">CURRENT IP INFORMATION</h2>
+            <button
+              onClick={() => setShowIPDetails(!showIPDetails)}
+              className="p-2 hover:bg-cyan-500/20 rounded transition-colors"
+            >
+              {showIPDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
+              <p className="text-xs text-gray-400 uppercase">IP Address</p>
+              <p className="text-lg font-bold neon-cyan font-mono">{showIPDetails ? currentIP.ip : '***.***.***.**'}</p>
+            </div>
+            <div className="bg-[#0a0e27] p-4 rounded border border-pink-500/30">
+              <p className="text-xs text-gray-400 uppercase">Country</p>
+              <p className="text-lg font-bold neon-pink">{currentIP.country}</p>
+            </div>
+            <div className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
+              <p className="text-xs text-gray-400 uppercase">City</p>
+              <p className="text-lg font-bold text-green-400">{currentIP.city}</p>
+            </div>
+            <div className={`bg-[#0a0e27] p-4 rounded border ${currentIP.isVPN ? 'border-green-500/30' : 'border-red-500/30'}`}>
+              <p className="text-xs text-gray-400 uppercase">VPN Status</p>
+              <p className={`text-lg font-bold ${currentIP.isVPN ? 'text-green-400' : 'text-red-400'}`}>
+                {currentIP.isVPN ? 'PROTECTED' : 'EXPOSED'}
+              </p>
+            </div>
+          </div>
+
+          {showIPDetails && (
+            <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30 space-y-2">
+              <p className="text-sm"><span className="text-gray-400">ISP:</span> <span className="text-cyan-400">{currentIP.isp}</span></p>
+              <p className="text-sm"><span className="text-gray-400">Latitude:</span> <span className="text-cyan-400">{currentIP.latitude}</span></p>
+              <p className="text-sm"><span className="text-gray-400">Longitude:</span> <span className="text-cyan-400">{currentIP.longitude}</span></p>
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

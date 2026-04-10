@@ -525,3 +525,15 @@
 - [x] Merge Social Media Scraper with Social Media OSINT (combined into SocialOsint.tsx)
 - [ ] Create backend procedures for each tool
 - [ ] Write tests for new tools
+
+
+## Phase 23: Tool Consolidation - User Requested
+
+### Menu Item Consolidation
+- [ ] Merge VPN Service into VPN Connection
+- [ ] Merge Hunter.io into Shodan
+- [ ] Merge Email Verify into Social Media OSINT
+- [ ] Merge Domain OSINT into Network Scanner
+- [ ] Remove consolidated menu items
+- [ ] Update routes in App.tsx
+- [ ] Test all merged tools
