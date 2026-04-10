@@ -57,6 +57,9 @@ export default function Home() {
           OSINT SCANNER PLATFORM
         </h1>
         <p className="text-foreground/70 text-sm uppercase tracking-widest">
+          developed by nate.c
+        </p>
+        <p className="text-foreground/70 text-sm uppercase tracking-widest">
           Welcome, {user?.name || "Operative"}. Ready to begin reconnaissance.
         </p>
       </div>
