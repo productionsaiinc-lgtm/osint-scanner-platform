@@ -16,7 +16,7 @@ import Pricing from "./pages/Pricing";
 import { BreachSearch } from "./pages/BreachSearch";
 import { GitHubSearch } from "./pages/GitHubSearch";
 import { CVESearch } from "./pages/CVESearch";
-import { IPReputation } from "./pages/IPReputation";
+
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
@@ -47,7 +47,6 @@ function Router() {
       <Route path={"/breach-search"} component={BreachSearchPage} />
       <Route path={"/github-search"} component={GitHubSearchPage} />
       <Route path={"/cve-search"} component={CVESearchPage} />
-      <Route path={"/ip-reputation"} component={IPReputationPage} />
       <Route path={"/email-verify"} component={EmailVerifyPage} />
       <Route path={"/subscription"} component={SubscriptionManagementPage} />
       <Route path={"/payouts"} component={PayoutDashboardPage} />
@@ -153,14 +152,6 @@ function CVESearchPage() {
   return (
     <DashboardLayout>
       <CVESearch />
-    </DashboardLayout>
-  );
-}
-
-function IPReputationPage() {
-  return (
-    <DashboardLayout>
-      <IPReputation />
     </DashboardLayout>
   );
 }

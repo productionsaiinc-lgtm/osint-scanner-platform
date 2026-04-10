@@ -37,7 +37,6 @@ const menuItems = [
   { icon: AlertTriangle, label: "Breach Search", path: "/breach-search" },
   { icon: Code2, label: "GitHub Search", path: "/github-search" },
   { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
-  { icon: Globe, label: "IP Reputation", path: "/ip-reputation" },
   { icon: Mail, label: "Email Verify", path: "/email-verify" },
   { icon: Bell, label: "Notifications", path: "/notifications" },
   { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },

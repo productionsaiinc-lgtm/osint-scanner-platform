@@ -236,7 +236,7 @@
 - [x] Create UI for HaveIBeenPwned breach search
 - [x] Create UI for GitHub repository search
 - [x] Create UI for CVE database search
-- [x] Create UI for IP reputation check
+- [x] Create UI for IP reputation check (merged into Network Scanner)
 - [x] Create UI for email verification
 - [x] Create UI for domain intelligence (SecurityTrails)
 - [x] Create UI for device search (Shodan)

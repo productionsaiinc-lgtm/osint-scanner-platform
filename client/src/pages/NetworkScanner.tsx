@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Network, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Network, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ export default function NetworkScanner() {
   const [target, setTarget] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResults, setScanResults] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("network");
 
   const createScanMutation = trpc.scans.create.useMutation();
   const executeNetworkScanMutation = trpc.scans.executeNetworkScan.useMutation();
@@ -38,32 +39,67 @@ export default function NetworkScanner() {
 
       if (result.success) {
         setScanResults(result.results);
-        toast.success("Network scan completed successfully!");
+        toast.success(`${activeTab === "network" ? "Network" : "IP Reputation"} check completed successfully!`);
       } else {
         toast.error(result.error || "Scan failed");
       }
     } catch (error) {
       console.error("Scan error:", error);
-      toast.error("Failed to execute network scan");
+      toast.error(`Failed to execute ${activeTab === "network" ? "network" : "IP reputation"} scan`);
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const getRiskColor = (riskScore: number) => {
+    if (riskScore >= 75) return "text-red-400 border-red-500/30";
+    if (riskScore >= 50) return "text-orange-400 border-orange-500/30";
+    if (riskScore >= 25) return "text-yellow-400 border-yellow-500/30";
+    return "text-green-400 border-green-500/30";
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold neon-cyan-glow">NETWORK SCANNER</h1>
-        <p className="text-gray-400">Port scanning, ping, traceroute, and IP geolocation</p>
+        <h1 className="text-3xl font-bold neon-cyan-glow">NETWORK & IP INTELLIGENCE</h1>
+        <p className="text-gray-400">Combined network scanning and IP reputation analysis</p>
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-cyan-500/30">
+        <button
+          onClick={() => setActiveTab("network")}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === "network"
+              ? "text-neon-cyan border-b-2 border-neon-cyan"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          <Network className="w-4 h-4 inline mr-2" />
+          Network Scanner
+        </button>
+        <button
+          onClick={() => setActiveTab("reputation")}
+          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+            activeTab === "reputation"
+              ? "text-neon-cyan border-b-2 border-neon-cyan"
+              : "text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          <Globe className="w-4 h-4 inline mr-2" />
+          IP Reputation
+        </button>
       </div>
 
       {/* Input Section */}
       <Card className="hud-frame p-6 space-y-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium neon-pink">Target IP or Hostname</label>
+          <label className="block text-sm font-medium neon-pink">
+            {activeTab === "network" ? "Target IP or Hostname" : "IP Address"}
+          </label>
           <Input
-            placeholder="e.g., 8.8.8.8 or example.com"
+            placeholder={activeTab === "network" ? "e.g., 8.8.8.8 or example.com" : "e.g., 8.8.8.8"}
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleScan()}
@@ -78,149 +114,126 @@ export default function NetworkScanner() {
         >
           {isScanning ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              SCANNING...
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {activeTab === "network" ? "SCANNING..." : "CHECKING..."}
             </>
           ) : (
             <>
-              <Network className="mr-2 h-4 w-4" />
-              START SCAN
+              {activeTab === "network" ? "SCAN NETWORK" : "CHECK REPUTATION"}
             </>
           )}
         </Button>
       </Card>
 
-      {/* Results Section */}
+      {/* Results */}
       {scanResults && (
-        <div className="space-y-4">
-          {/* Geolocation Results */}
-          {scanResults.geolocation?.success && (
-            <Card className="hud-frame p-6 space-y-3">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="h-5 w-5 text-[#39ff14]" />
-                <h2 className="text-lg font-bold neon-green">GEOLOCATION</h2>
-              </div>
-              <div className="bg-[#0a0e27]/50 border border-[#00f5ff]/20 rounded p-4 font-mono text-sm text-[#00f5ff]">
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-[#ff006e]">IP:</span> {scanResults.geolocation.ip}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Country:</span> {scanResults.geolocation.country}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">City:</span> {scanResults.geolocation.city}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Region:</span> {scanResults.geolocation.region}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Latitude:</span> {scanResults.geolocation.latitude}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Longitude:</span> {scanResults.geolocation.longitude}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">ISP:</span> {scanResults.geolocation.isp}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Organization:</span> {scanResults.geolocation.organization}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
+        <Card className="hud-frame p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+            <h2 className="text-lg font-bold neon-green">
+              {activeTab === "network" ? "NETWORK SCAN RESULTS" : "IP REPUTATION ANALYSIS"}
+            </h2>
+          </div>
 
-          {/* Port Scan Results */}
-          {scanResults.ports?.success && (
-            <Card className="hud-frame p-6 space-y-3">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="h-5 w-5 text-[#39ff14]" />
-                <h2 className="text-lg font-bold neon-green">PORT SCAN</h2>
-              </div>
-              <div className="bg-[#0a0e27]/50 border border-[#ff006e]/20 rounded p-4 font-mono text-sm">
-                <div className="mb-3">
-                  <span className="text-[#00f5ff]">Open Ports:</span>{" "}
-                  <span className="text-[#39ff14]">{scanResults.ports.openPorts.join(", ") || "None"}</span>
+          {activeTab === "network" ? (
+            <>
+              {/* Network Scanner Results */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Target</p>
+                  <p className="text-lg font-bold neon-cyan">{scanResults.target}</p>
                 </div>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {scanResults.ports.ports.map((port: any) => (
-                    <div key={port.port} className={port.status === "open" ? "text-[#39ff14]" : "text-gray-500"}>
-                      <span className="text-[#ff006e]">Port {port.port}:</span> {port.status.toUpperCase()} ({port.service})
+                <div className="bg-[#0a0e27] p-4 rounded border border-pink-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Ports Open</p>
+                  <p className="text-lg font-bold neon-pink">{scanResults.openPorts || 0}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-yellow-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Services</p>
+                  <p className="text-lg font-bold text-yellow-400">{scanResults.services || 0}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-purple-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Latency</p>
+                  <p className="text-lg font-bold text-purple-400">{scanResults.latency || "N/A"}</p>
+                </div>
+              </div>
+
+              {scanResults.ports && scanResults.ports.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="font-bold neon-cyan">OPEN PORTS</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {scanResults.ports.map((port: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-[#0a0e27] p-3 rounded border border-cyan-500/30 text-sm"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-mono font-bold text-cyan-400">Port {port.port}</span>
+                          <span className="text-xs bg-green-500/30 text-green-300 px-2 py-1 rounded">
+                            {port.state}
+                          </span>
+                        </div>
+                        <p className="text-gray-400 text-xs mt-1">{port.service || "Unknown"}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* IP Reputation Results */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
+                  <p className="text-xs text-gray-400 uppercase">IP Address</p>
+                  <p className="text-lg font-bold neon-cyan">{scanResults.ip}</p>
+                </div>
+                <div className={`bg-[#0a0e27] p-4 rounded border ${getRiskColor(scanResults.riskScore || 0)}`}>
+                  <p className="text-xs text-gray-400 uppercase">Risk Score</p>
+                  <p className="text-lg font-bold">{scanResults.riskScore || 0}/100</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-purple-500/30">
+                  <p className="text-xs text-gray-400 uppercase">Country</p>
+                  <p className="text-lg font-bold text-purple-400">{scanResults.country || "Unknown"}</p>
+                </div>
+                <div className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
+                  <p className="text-xs text-gray-400 uppercase">ISP</p>
+                  <p className="text-lg font-bold text-green-400">{scanResults.isp || "Unknown"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold neon-cyan">REPUTATION DETAILS</h3>
+                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30 space-y-2 text-sm">
+                  {scanResults.blacklisted && (
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-400" />
+                      <span className="text-red-400">Blacklisted: Yes</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Ping Results */}
-          {scanResults.ping?.success && (
-            <Card className="hud-frame p-6 space-y-3">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="h-5 w-5 text-[#39ff14]" />
-                <h2 className="text-lg font-bold neon-green">PING</h2>
-              </div>
-              <div className="bg-[#0a0e27]/50 border border-[#b537f2]/20 rounded p-4 font-mono text-sm text-[#b537f2]">
-                <div className="space-y-2">
-                  <div>
-                    <span className="text-[#ff006e]">Host:</span> {scanResults.ping.host}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Packets Sent:</span> {scanResults.ping.packets.sent}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Packets Received:</span> {scanResults.ping.packets.received}
-                  </div>
-                  <div>
-                    <span className="text-[#ff006e]">Min/Avg/Max:</span> {scanResults.ping.min}/{scanResults.ping.avg}/{scanResults.ping.max} ms
-                  </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Traceroute Results */}
-          {scanResults.traceroute?.success && (
-            <Card className="hud-frame p-6 space-y-3">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 className="h-5 w-5 text-[#39ff14]" />
-                <h2 className="text-lg font-bold neon-green">TRACEROUTE</h2>
-              </div>
-              <div className="bg-[#0a0e27]/50 border border-[#00f5ff]/20 rounded p-4 font-mono text-sm text-[#00f5ff]">
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {scanResults.traceroute.hops.map((hop: any) => (
-                    <div key={hop.hop}>
-                      <span className="text-[#ff006e]">Hop {hop.hop}:</span> {hop.ip} ({hop.hostname}) - {hop.time}ms
+                  )}
+                  {scanResults.threats && (
+                    <div>
+                      <p className="text-gray-400">Threats Detected:</p>
+                      <p className="text-yellow-400 ml-4">{scanResults.threats.join(", ")}</p>
                     </div>
-                  ))}
+                  )}
+                  {scanResults.abuseReports && (
+                    <div>
+                      <p className="text-gray-400">Abuse Reports: <span className="text-orange-400">{scanResults.abuseReports}</span></p>
+                    </div>
+                  )}
+                  {scanResults.lastSeen && (
+                    <div>
+                      <p className="text-gray-400">Last Seen: <span className="text-green-400">{scanResults.lastSeen}</span></p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </Card>
+            </>
           )}
 
-          {/* Error Messages */}
-          {(scanResults.geolocation?.error || scanResults.ports?.error || scanResults.ping?.error) && (
-            <Card className="hud-frame p-6 space-y-3 border-[#ff006e]">
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-[#ff006e]" />
-                <h2 className="text-lg font-bold neon-pink">ERRORS</h2>
-              </div>
-              <div className="bg-[#0a0e27]/50 border border-[#ff006e]/20 rounded p-4 font-mono text-sm text-[#ff006e]">
-                {scanResults.geolocation?.error && <div>Geolocation: {scanResults.geolocation.error}</div>}
-                {scanResults.ports?.error && <div>Port Scan: {scanResults.ports.error}</div>}
-                {scanResults.ping?.error && <div>Ping: {scanResults.ping.error}</div>}
-              </div>
-            </Card>
-          )}
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!scanResults && !isScanning && (
-        <Card className="hud-frame p-12 text-center">
-          <Network className="h-16 w-16 mx-auto mb-4 text-[#00f5ff]/50" />
-          <p className="text-gray-400">Enter a target IP address or hostname to begin scanning</p>
+          <div className="text-xs text-gray-500 text-right">
+            Scanned at: {new Date().toLocaleString()}
+          </div>
         </Card>
       )}
     </div>
