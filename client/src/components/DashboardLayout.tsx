@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -48,6 +48,10 @@ const menuItems = [
   { icon: Shield, label: "SecurityTrails", path: "/security-trails" },
   { icon: Cpu, label: "Shodan", path: "/shodan" },
   { icon: Search, label: "Hunter.io", path: "/hunter" },
+  { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
+  { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
+  { icon: Users, label: "Social Media Scraper", path: "/social-media-scraper" },
+  { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
   { icon: Zap, label: "Subscription", path: "/subscription" },

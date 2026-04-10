@@ -512,3 +512,16 @@
 - [x] Move Payouts menu item below Subscriptions
 - [x] Reorganize sidebar menu structure for better UX
 - [ ] Test navigation flow after reorganization
+
+
+## Phase 22: New OSINT Tools - User Requested
+
+### New Tools Implementation
+- [x] Create Web Scraper UI component (WebScraper.tsx)
+- [x] Create Credit Card Checker UI component (CreditCardChecker.tsx)
+- [x] Create Social Media Scraper UI component (SocialMediaScraper.tsx)
+- [x] Create Ontario License Plate Lookup UI component (OntarioLicensePlate.tsx)
+- [x] Add all 4 tools to App.tsx routes
+- [x] Add all 4 tools to DashboardLayout menu
+- [ ] Create backend procedures for each tool
+- [ ] Write tests for new tools

@@ -29,6 +29,10 @@ import { IMEIChecker } from "./pages/IMEIChecker";
 import { NmapScanner } from "./pages/NmapScanner";
 import { VPNService } from "./pages/VPNService";
 import { VPNConnection } from "./pages/VPNConnection";
+import WebScraper from "./pages/WebScraper";
+import CreditCardChecker from "./pages/CreditCardChecker";
+import SocialMediaScraper from "./pages/SocialMediaScraper";
+import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 
 function Router() {
   return (
@@ -57,6 +61,10 @@ function Router() {
       <Route path={"/nmap-scanner"} component={NmapScannerPage} />
       <Route path={"/vpn-service"} component={VPNServicePage} />
       <Route path={"/vpn-connection"} component={VPNConnectionPage} />
+      <Route path={"/web-scraper"} component={WebScraperPage} />
+      <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
+      <Route path={"/social-media-scraper"} component={SocialMediaScraperPage} />
+      <Route path={"/ontario-license-plate"} component={OntarioLicensePlatePage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -251,6 +259,38 @@ function VPNConnectionPage() {
   return (
     <DashboardLayout>
       <VPNConnection />
+    </DashboardLayout>
+  );
+}
+
+function WebScraperPage() {
+  return (
+    <DashboardLayout>
+      <WebScraper />
+    </DashboardLayout>
+  );
+}
+
+function CreditCardCheckerPage() {
+  return (
+    <DashboardLayout>
+      <CreditCardChecker />
+    </DashboardLayout>
+  );
+}
+
+function SocialMediaScraperPage() {
+  return (
+    <DashboardLayout>
+      <SocialMediaScraper />
+    </DashboardLayout>
+  );
+}
+
+function OntarioLicensePlatePage() {
+  return (
+    <DashboardLayout>
+      <OntarioLicensePlate />
     </DashboardLayout>
   );
 }
