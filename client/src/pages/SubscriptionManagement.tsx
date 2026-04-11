@@ -11,7 +11,9 @@ export function SubscriptionManagement() {
 
   const { data: plans } = trpc.subscription.plans.useQuery();
   const { data: hasPremium } = trpc.subscription.hasPremium.useQuery();
+  const { data: paymentHistory } = trpc.subscription.paymentHistory.useQuery();
   const createCheckout = trpc.subscription.createCheckout.useMutation();
+  const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
   const handlePremiumPurchase = async () => {
     setIsLoading(true);
@@ -250,6 +252,48 @@ export function SubscriptionManagement() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Payment History */}
+      {paymentHistory && paymentHistory.length > 0 && (
+        <Card className="border-green-500/30 bg-black/40">
+          <CardHeader>
+            <CardTitle className="text-green-400 flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Payment History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {paymentHistory.map((payment: any) => (
+                <div
+                  key={payment.id}
+                  className="p-3 border border-green-500/20 rounded bg-green-500/5 hover:bg-green-500/10 cursor-pointer transition"
+                  onClick={() => setSelectedPaymentId(payment.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-green-400">
+                        ${(payment.amount / 100).toFixed(2)} {payment.currency}
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {new Date(payment.createdAt).toLocaleDateString()} - {payment.paymentMethod.toUpperCase()}
+                      </div>
+                    </div>
+                    <div className={`text-xs px-2 py-1 rounded font-semibold ${
+                      payment.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                      payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                      payment.status === 'failed' ? 'bg-red-500/20 text-red-400' :
+                      'bg-gray-500/20 text-gray-400'
+                    }`}>
+                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* FAQ */}
       <Card className="border-orange-500/30 bg-black/40">

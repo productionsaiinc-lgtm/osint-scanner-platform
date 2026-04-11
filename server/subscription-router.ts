@@ -16,7 +16,12 @@ import {
   hasActivePremiumSubscription,
   getUserSubscriptionFeatures,
   canUserAccessFeature,
+  getPaymentByTransactionId,
 } from "./subscription-db";
+import { createReceiptData, generateHTMLReceipt, generateTextReceipt } from "./receipt-generator";
+import { getDb } from "./db";
+import { payments } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import {
   createProduct,
   createPlan,
@@ -143,8 +148,8 @@ export const subscriptionRouter = router({
               quantity: 1,
             },
           ],
-          success_url: `${ctx.req.headers.origin}/subscription?success=true`,
-          cancel_url: `${ctx.req.headers.origin}/subscription?cancelled=true`,
+          success_url: `${ctx.req.headers.origin}/payment-success`,
+          cancel_url: `${ctx.req.headers.origin}/payment-cancel?reason=user`,
           metadata: {
             user_id: ctx.user.id.toString(),
             customer_email: ctx.user.email || "",
@@ -159,6 +164,50 @@ export const subscriptionRouter = router({
       } catch (error) {
         console.error("[Stripe] Error creating checkout session:", error);
         throw new Error("Failed to create checkout session");
+      }
+    }),
+
+  // Get receipt for payment
+  getReceipt: protectedProcedure
+    .input(z.object({ paymentId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+
+        // Get payment from database
+        const paymentRecords = await db
+          .select()
+          .from(payments)
+          .where(eq(payments.id, input.paymentId));
+
+        if (paymentRecords.length === 0) {
+          throw new Error("Payment not found");
+        }
+
+        const payment = paymentRecords[0];
+
+        // Verify user owns this payment
+        if (payment.userId !== ctx.user.id) {
+          throw new Error("Unauthorized");
+        }
+
+        // Create receipt data
+        const receiptData = createReceiptData(
+          payment,
+          ctx.user.email || "",
+          ctx.user.name || undefined,
+          "OSINT Scanner Premium"
+        );
+
+        return {
+          html: generateHTMLReceipt(receiptData),
+          text: generateTextReceipt(receiptData),
+          receiptNumber: receiptData.receiptNumber,
+        };
+      } catch (error) {
+        console.error("[Subscription] Error generating receipt:", error);
+        throw new Error("Failed to generate receipt");
       }
     }),
 

@@ -30,6 +30,8 @@ import WebScraper from "./pages/WebScraper";
 import CreditCardChecker from "./pages/CreditCardChecker";
 import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 import SimSwapLookup from "./pages/SimSwapLookup";
+import { PaymentSuccess } from "./pages/PaymentSuccess";
+import { PaymentCancel } from "./pages/PaymentCancel";
 
 function Router() {
   return (
@@ -57,6 +59,8 @@ function Router() {
       <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
       <Route path={"/ontario-license-plate"} component={OntarioLicensePlatePage} />
       <Route path={"/sim-swap-lookup"} component={SimSwapLookupPage} />
+      <Route path={"/payment-success"} component={PaymentSuccess} />
+      <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
