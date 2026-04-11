@@ -10,12 +10,14 @@ import { getAPIStatus } from "./api-config";
 import { subscriptionRouter } from "./subscription-router";
 import { vpnRouter } from "./vpn-router";
 import { vpnConnectionRouter } from "./vpn-connection-router";
+import { phoneImeiRouter } from "./phone-imei-router";
 
 export const appRouter = router({
   system: systemRouter,
   subscription: subscriptionRouter,
   vpn: vpnRouter,
   vpnConnection: vpnConnectionRouter,
+  phoneImei: phoneImeiRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

@@ -370,8 +370,9 @@
 - [x] Create IMEI Checker UI component (IMEIChecker.tsx)
 - [x] Add phone number validation and formatting
 - [x] Add IMEI validation and checksum verification (Luhn algorithm)
-- [ ] Integrate phone lookup with tRPC procedures
-- [ ] Integrate IMEI checker with tRPC procedures
+- [x] Create backend tRPC procedures (phone-imei-router.ts created)
+- [ ] Update PhoneLookup.tsx to call trpc.phoneImei.lookupPhone
+- [ ] Update IMEIChecker.tsx to call trpc.phoneImei.checkImei
 - [x] Add phone number lookup to sidebar menu
 - [x] Add IMEI checker to sidebar menu
 - [ ] Write tests for phone number lookup
@@ -531,23 +532,23 @@
 
 ### Menu Item Consolidation
 - [x] Merge VPN Service into VPN Connection (3-tab interface)
-- [ ] Merge Hunter.io into Shodan
-- [ ] Merge Email Verify into Social Media OSINT
-- [ ] Merge Domain OSINT into Network Scanner
-- [ ] Remove consolidated menu items
-- [ ] Update routes in App.tsx
-- [ ] Test all merged tools
+- [x] Merge Hunter.io into Shodan (2-tab interface with SecurityTrails)
+- [x] Merge Email Verify into Social Media OSINT (3-tab interface with Breach Search)
+- [x] Merge Domain OSINT into Network Scanner (2-tab interface with IP Reputation)
+- [x] Remove consolidated menu items (22 items total)
+- [x] Update routes in App.tsx
+- [x] Test all merged tools
 
 
 ## Phase 24: SIM Swap Lookup Tool
 
 ### SIM Swap Lookup Implementation
-- [ ] Create SIM Swap Lookup UI component (SimSwapLookup.tsx)
-- [ ] Add SIM swap vulnerability assessment
-- [ ] Integrate phone number validation
-- [ ] Add carrier SIM swap protection status
-- [ ] Create risk assessment display
-- [ ] Add recommendations for protection
-- [ ] Add SIM Swap Lookup to App.tsx routes
-- [ ] Add SIM Swap Lookup to DashboardLayout menu
+- [x] Create SIM Swap Lookup UI component (SimSwapLookup.tsx)
+- [x] Add SIM swap vulnerability assessment
+- [x] Integrate phone number validation
+- [x] Add carrier SIM swap protection status
+- [x] Create risk assessment display
+- [x] Add recommendations for protection
+- [x] Add SIM Swap Lookup to App.tsx routes
+- [x] Add SIM Swap Lookup to DashboardLayout menu
 - [ ] Write tests for SIM Swap Lookup
