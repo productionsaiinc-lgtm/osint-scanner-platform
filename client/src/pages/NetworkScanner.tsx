@@ -14,10 +14,11 @@ export default function NetworkScanner() {
 
   const createScanMutation = trpc.scans.create.useMutation();
   const executeNetworkScanMutation = trpc.scans.executeNetworkScan.useMutation();
+  const executeDomainScanMutation = trpc.scans.executeDomainScan.useMutation();
 
   const handleScan = async () => {
     if (!target.trim()) {
-      toast.error("Please enter a target IP or hostname");
+      toast.error(`Please enter a ${activeTab === "network" ? "target IP or hostname" : "domain name"}`);
       return;
     }
 
@@ -25,70 +26,92 @@ export default function NetworkScanner() {
       setIsScanning(true);
       setScanResults(null);
 
-      // Create scan record
-      const scan = await createScanMutation.mutateAsync({
-        scanType: "network",
-        target: target.trim(),
-      });
+      if (activeTab === "network") {
+        // Network scan
+        const scan = await createScanMutation.mutateAsync({
+          scanType: "network",
+          target: target.trim(),
+        });
 
-      // Execute the scan
-      const result = await executeNetworkScanMutation.mutateAsync({
-        target: target.trim(),
-        scanId: scan.id,
-      });
+        const result = await executeNetworkScanMutation.mutateAsync({
+          target: target.trim(),
+          scanId: scan.id,
+        });
 
-      if (result.success) {
-        setScanResults(result.results);
-        toast.success(`${activeTab === "network" ? "Network" : "IP Reputation"} check completed successfully!`);
+        if (result.success) {
+          setScanResults(result.results);
+          toast.success("Network scan completed successfully!");
+        } else {
+          toast.error(result.error || "Scan failed");
+        }
       } else {
-        toast.error(result.error || "Scan failed");
+        // Domain scan
+        const scan = await createScanMutation.mutateAsync({
+          scanType: "domain",
+          target: target.trim(),
+        });
+
+        const result = await executeDomainScanMutation.mutateAsync({
+          target: target.trim(),
+          scanId: scan.id,
+        });
+
+        if (result.success) {
+          setScanResults(result.results);
+          toast.success("Domain scan completed successfully!");
+        } else {
+          toast.error(result.error || "Scan failed");
+        }
       }
     } catch (error) {
       console.error("Scan error:", error);
-      toast.error(`Failed to execute ${activeTab === "network" ? "network" : "IP reputation"} scan`);
+      toast.error(`Failed to execute ${activeTab === "network" ? "network" : "domain"} scan`);
     } finally {
       setIsScanning(false);
     }
-  };
-
-  const getRiskColor = (riskScore: number) => {
-    if (riskScore >= 75) return "text-red-400 border-red-500/30";
-    if (riskScore >= 50) return "text-orange-400 border-orange-500/30";
-    if (riskScore >= 25) return "text-yellow-400 border-yellow-500/30";
-    return "text-green-400 border-green-500/30";
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold neon-cyan-glow">NETWORK & IP INTELLIGENCE</h1>
-        <p className="text-gray-400">Combined network scanning and IP reputation analysis</p>
+        <h1 className="text-3xl font-bold neon-cyan-glow">NETWORK & DOMAIN SCANNER</h1>
+        <p className="text-gray-400">Port scanning, IP reputation, WHOIS, DNS records, and SSL certificates</p>
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 border-b border-cyan-500/30">
+      <div className="flex gap-2 border-b border-neon-cyan/30">
         <button
-          onClick={() => setActiveTab("network")}
-          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
+          onClick={() => {
+            setActiveTab("network");
+            setScanResults(null);
+          }}
+          className={`px-4 py-2 font-semibold transition-all ${
             activeTab === "network"
               ? "text-neon-cyan border-b-2 border-neon-cyan"
-              : "text-gray-400 hover:text-gray-300"
+              : "text-gray-400 hover:text-neon-cyan"
           }`}
         >
-          <Network className="w-4 h-4 inline mr-2" />
-          Network Scanner
+          <div className="flex items-center gap-2">
+            <Network className="w-4 h-4" />
+            Network Scanner
+          </div>
         </button>
         <button
-          onClick={() => setActiveTab("reputation")}
-          className={`px-4 py-2 font-mono text-sm uppercase transition-colors ${
-            activeTab === "reputation"
+          onClick={() => {
+            setActiveTab("domain");
+            setScanResults(null);
+          }}
+          className={`px-4 py-2 font-semibold transition-all ${
+            activeTab === "domain"
               ? "text-neon-cyan border-b-2 border-neon-cyan"
-              : "text-gray-400 hover:text-gray-300"
+              : "text-gray-400 hover:text-neon-cyan"
           }`}
         >
-          <Globe className="w-4 h-4 inline mr-2" />
-          IP Reputation
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Domain OSINT
+          </div>
         </button>
       </div>
 
@@ -96,10 +119,10 @@ export default function NetworkScanner() {
       <Card className="hud-frame p-6 space-y-4">
         <div className="space-y-2">
           <label className="block text-sm font-medium neon-pink">
-            {activeTab === "network" ? "Target IP or Hostname" : "IP Address"}
+            {activeTab === "network" ? "Target IP or Hostname" : "Target Domain"}
           </label>
           <Input
-            placeholder={activeTab === "network" ? "e.g., 8.8.8.8 or example.com" : "e.g., 8.8.8.8"}
+            placeholder={activeTab === "network" ? "e.g., 192.168.1.1 or example.com" : "e.g., example.com"}
             value={target}
             onChange={(e) => setTarget(e.target.value)}
             onKeyPress={(e) => e.key === "Enter" && handleScan()}
@@ -110,130 +133,184 @@ export default function NetworkScanner() {
         <Button
           onClick={handleScan}
           disabled={isScanning || !target.trim()}
-          className="w-full bg-gradient-to-r from-[#ff006e] to-[#b537f2] hover:from-[#ff1493] hover:to-[#d946ef] text-white font-bold"
+          className="w-full bg-gradient-to-r from-[#00f5ff] to-[#39ff14] hover:from-[#00d9ff] hover:to-[#4dff1a] text-black font-bold"
         >
           {isScanning ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              {activeTab === "network" ? "SCANNING..." : "CHECKING..."}
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Scanning...
             </>
           ) : (
             <>
-              {activeTab === "network" ? "SCAN NETWORK" : "CHECK REPUTATION"}
+              <Network className="mr-2 h-4 w-4" />
+              {activeTab === "network" ? "Scan Network" : "Scan Domain"}
             </>
           )}
         </Button>
       </Card>
 
-      {/* Results */}
+      {/* Results Section */}
       {scanResults && (
         <Card className="hud-frame p-6 space-y-4">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-400" />
-            <h2 className="text-lg font-bold neon-green">
-              {activeTab === "network" ? "NETWORK SCAN RESULTS" : "IP REPUTATION ANALYSIS"}
+            <CheckCircle2 className="w-5 h-5 text-neon-green" />
+            <h2 className="text-xl font-bold neon-green-glow">
+              {activeTab === "network" ? "Network Scan Results" : "Domain Information"}
             </h2>
           </div>
 
           {activeTab === "network" ? (
-            <>
-              {/* Network Scanner Results */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
-                  <p className="text-xs text-gray-400 uppercase">Target</p>
-                  <p className="text-lg font-bold neon-cyan">{scanResults.target}</p>
-                </div>
-                <div className="bg-[#0a0e27] p-4 rounded border border-pink-500/30">
-                  <p className="text-xs text-gray-400 uppercase">Ports Open</p>
-                  <p className="text-lg font-bold neon-pink">{scanResults.openPorts || 0}</p>
-                </div>
-                <div className="bg-[#0a0e27] p-4 rounded border border-yellow-500/30">
-                  <p className="text-xs text-gray-400 uppercase">Services</p>
-                  <p className="text-lg font-bold text-yellow-400">{scanResults.services || 0}</p>
-                </div>
-                <div className="bg-[#0a0e27] p-4 rounded border border-purple-500/30">
-                  <p className="text-xs text-gray-400 uppercase">Latency</p>
-                  <p className="text-lg font-bold text-purple-400">{scanResults.latency || "N/A"}</p>
-                </div>
-              </div>
-
-              {scanResults.ports && scanResults.ports.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="font-bold neon-cyan">OPEN PORTS</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            // Network scan results
+            <div className="space-y-4">
+              {scanResults.ports && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">Open Ports</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {scanResults.ports.map((port: any, idx: number) => (
                       <div
                         key={idx}
-                        className="bg-[#0a0e27] p-3 rounded border border-cyan-500/30 text-sm"
+                        className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm"
                       >
                         <div className="flex justify-between items-center">
-                          <span className="font-mono font-bold text-cyan-400">Port {port.port}</span>
-                          <span className="text-xs bg-green-500/30 text-green-300 px-2 py-1 rounded">
-                            {port.state}
-                          </span>
+                          <span className="font-mono text-neon-cyan">Port {port.port}</span>
+                          <span className="text-neon-green text-xs">OPEN</span>
                         </div>
-                        <p className="text-gray-400 text-xs mt-1">{port.service || "Unknown"}</p>
+                        <div className="text-gray-400 text-xs mt-1">{port.service || "Unknown"}</div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </>
+
+              {scanResults.hostInfo && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">Host Information</h3>
+                  <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
+                    <div>
+                      <span className="text-gray-400">Hostname:</span>
+                      <span className="ml-2 text-neon-cyan font-mono">{scanResults.hostInfo.hostname}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">OS:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.hostInfo.os}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Latency:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.hostInfo.latency}ms</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {scanResults.riskScore !== undefined && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">Risk Assessment</h3>
+                  <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Risk Score</span>
+                      <span
+                        className={`font-bold text-lg ${
+                          scanResults.riskScore > 70
+                            ? "text-neon-pink"
+                            : scanResults.riskScore > 40
+                              ? "text-neon-yellow"
+                              : "text-neon-green"
+                        }`}
+                      >
+                        {scanResults.riskScore}/100
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
-              {/* IP Reputation Results */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30">
-                  <p className="text-xs text-gray-400 uppercase">IP Address</p>
-                  <p className="text-lg font-bold neon-cyan">{scanResults.ip}</p>
+            // Domain scan results
+            <div className="space-y-4">
+              {scanResults.whois && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">WHOIS Information</h3>
+                  <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
+                    <div>
+                      <span className="text-gray-400">Registrar:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.whois.registrar}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Created:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.whois.created}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Expires:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.whois.expires}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className={`bg-[#0a0e27] p-4 rounded border ${getRiskColor(scanResults.riskScore || 0)}`}>
-                  <p className="text-xs text-gray-400 uppercase">Risk Score</p>
-                  <p className="text-lg font-bold">{scanResults.riskScore || 0}/100</p>
-                </div>
-                <div className="bg-[#0a0e27] p-4 rounded border border-purple-500/30">
-                  <p className="text-xs text-gray-400 uppercase">Country</p>
-                  <p className="text-lg font-bold text-purple-400">{scanResults.country || "Unknown"}</p>
-                </div>
-                <div className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
-                  <p className="text-xs text-gray-400 uppercase">ISP</p>
-                  <p className="text-lg font-bold text-green-400">{scanResults.isp || "Unknown"}</p>
-                </div>
-              </div>
+              )}
 
-              <div className="space-y-3">
-                <h3 className="font-bold neon-cyan">REPUTATION DETAILS</h3>
-                <div className="bg-[#0a0e27] p-4 rounded border border-cyan-500/30 space-y-2 text-sm">
-                  {scanResults.blacklisted && (
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-400" />
-                      <span className="text-red-400">Blacklisted: Yes</span>
-                    </div>
-                  )}
-                  {scanResults.threats && (
-                    <div>
-                      <p className="text-gray-400">Threats Detected:</p>
-                      <p className="text-yellow-400 ml-4">{scanResults.threats.join(", ")}</p>
-                    </div>
-                  )}
-                  {scanResults.abuseReports && (
-                    <div>
-                      <p className="text-gray-400">Abuse Reports: <span className="text-orange-400">{scanResults.abuseReports}</span></p>
-                    </div>
-                  )}
-                  {scanResults.lastSeen && (
-                    <div>
-                      <p className="text-gray-400">Last Seen: <span className="text-green-400">{scanResults.lastSeen}</span></p>
-                    </div>
-                  )}
+              {scanResults.dns && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">DNS Records</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {scanResults.dns.map((record: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm"
+                      >
+                        <div className="font-mono text-neon-cyan">{record.type}</div>
+                        <div className="text-gray-400 text-xs mt-1 break-all">{record.value}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </>
+              )}
+
+              {scanResults.subdomains && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">Subdomains Found</h3>
+                  <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
+                    <div className="flex flex-wrap gap-2">
+                      {scanResults.subdomains.map((sub: string, idx: number) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-xs text-neon-cyan font-mono"
+                        >
+                          {sub}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {scanResults.ssl && (
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-neon-cyan">SSL Certificate</h3>
+                  <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
+                    <div>
+                      <span className="text-gray-400">Issuer:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.issuer}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Valid Until:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.validUntil}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
+        </Card>
+      )}
 
-          <div className="text-xs text-gray-500 text-right">
-            Scanned at: {new Date().toLocaleString()}
-          </div>
+      {/* No Results State */}
+      {!scanResults && !isScanning && (
+        <Card className="hud-frame p-12 text-center space-y-4">
+          <AlertCircle className="w-12 h-12 mx-auto text-neon-cyan/50" />
+          <p className="text-gray-400">
+            {activeTab === "network"
+              ? "Enter an IP address or hostname to begin network scanning"
+              : "Enter a domain name to retrieve WHOIS, DNS, and SSL information"}
+          </p>
         </Card>
       )}
     </div>

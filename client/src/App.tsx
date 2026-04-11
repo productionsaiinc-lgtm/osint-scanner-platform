@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import Home from "./pages/Home";
 import NetworkScanner from "./pages/NetworkScanner";
-import DomainOsint from "./pages/DomainOsint";
+
 import SocialOsint from "./pages/SocialOsint";
 import MapView from "./pages/MapView";
 import ScanHistory from "./pages/ScanHistory";
@@ -35,7 +35,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={DashboardHome} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
-      <Route path={"/domain-osint"} component={DomainOsintPage} />
+
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
       <Route path={"/history"} component={ScanHistoryPage} />
@@ -77,13 +77,6 @@ function NetworkScannerPage() {
   );
 }
 
-function DomainOsintPage() {
-  return (
-    <DashboardLayout>
-      <DomainOsint />
-    </DashboardLayout>
-  );
-}
 
 function SocialOsintPage() {
   return (

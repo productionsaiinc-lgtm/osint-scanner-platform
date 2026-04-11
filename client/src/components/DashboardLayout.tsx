@@ -30,7 +30,7 @@ import { Button } from "./ui/button";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
   { icon: Radar, label: "Network Scanner", path: "/network-scanner" },
-  { icon: Globe, label: "Domain OSINT", path: "/domain-osint" },
+
   { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
   { icon: Map, label: "Map View", path: "/map" },
   { icon: History, label: "Scan History", path: "/history" },
