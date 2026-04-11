@@ -2,13 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Smartphone, Loader2, AlertTriangle, CheckCircle2, Shield, AlertCircle } from "lucide-react";
+import { Smartphone, Loader2, AlertTriangle, CheckCircle2, Shield, AlertCircle, TrendingUp, Database, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 export default function SimSwapLookup() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResults, setScanResults] = useState<any>(null);
+
+  const detectMutation = trpc.simSwap.detectSimSwap.useMutation();
 
   const handleScan = async () => {
     if (!phoneNumber.trim()) {
@@ -20,54 +23,18 @@ export default function SimSwapLookup() {
       setIsScanning(true);
       setScanResults(null);
 
-      // Simulate SIM swap vulnerability check
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock results
-      const riskLevel = Math.random() > 0.5 ? "high" : "low";
-      const isVulnerable = riskLevel === "high";
-
-      setScanResults({
+      const result = await detectMutation.mutateAsync({
         phoneNumber: phoneNumber.trim(),
-        carrier: ["Verizon", "AT&T", "T-Mobile", "Sprint"][Math.floor(Math.random() * 4)],
-        vulnerability: isVulnerable,
-        riskLevel: riskLevel,
-        riskScore: isVulnerable ? Math.floor(Math.random() * 40) + 60 : Math.floor(Math.random() * 40) + 20,
-        simSwapProtection: {
-          enabled: !isVulnerable,
-          status: isVulnerable ? "Not Enabled" : "Enabled",
-          type: isVulnerable ? "None" : "PIN Protection",
-        },
-        vulnerabilities: isVulnerable
-          ? [
-              "No SIM swap protection enabled",
-              "Account vulnerable to SIM swap attacks",
-              "Recommended: Enable carrier SIM swap protection",
-              "Consider using authenticator apps instead of SMS",
-            ]
-          : [
-              "SIM swap protection is enabled",
-              "Account has PIN protection",
-              "Strong security posture",
-            ],
-        recommendations: [
-          "Enable SIM swap protection with your carrier",
-          "Use authenticator apps (Google Authenticator, Authy) instead of SMS 2FA",
-          "Add trusted devices to your account",
-          "Monitor account activity regularly",
-          "Use strong, unique passwords",
-          "Enable biometric authentication where available",
-        ],
-        carrierInfo: {
-          name: ["Verizon", "AT&T", "T-Mobile", "Sprint"][Math.floor(Math.random() * 4)],
-          country: "United States",
-          type: "Mobile Network Operator",
-          simSwapProtectionAvailable: true,
-          protectionMethod: "PIN-based verification",
-        },
       });
 
-      toast.success("SIM swap vulnerability check completed!");
+      if (result.success) {
+        setScanResults(result.data);
+        if (result.data.isSwapped) {
+          toast.error("⚠️ CRITICAL: SIM swap detected!");
+        } else {
+          toast.success("Number appears to be safe");
+        }
+      }
     } catch (error) {
       console.error("Scan error:", error);
       toast.error("Failed to execute SIM swap check");
@@ -80,8 +47,8 @@ export default function SimSwapLookup() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold neon-pink-glow">SIM SWAP LOOKUP</h1>
-        <p className="text-gray-400">Check if your phone number is vulnerable to SIM swap attacks</p>
+        <h1 className="text-3xl font-bold neon-pink-glow">SIM SWAP DETECTION</h1>
+        <p className="text-gray-400">Advanced detection to identify if a phone number has been SIM swapped</p>
       </div>
 
       {/* Input Section */}
@@ -105,12 +72,12 @@ export default function SimSwapLookup() {
           {isScanning ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Checking...
+              Analyzing...
             </>
           ) : (
             <>
               <Smartphone className="mr-2 h-4 w-4" />
-              Check SIM Swap Vulnerability
+              Detect SIM Swap
             </>
           )}
         </Button>
@@ -123,13 +90,13 @@ export default function SimSwapLookup() {
           <Card className="hud-frame p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                {scanResults.vulnerability ? (
-                  <AlertTriangle className="w-5 h-5 text-neon-pink" />
+                {scanResults.isSwapped ? (
+                  <AlertTriangle className="w-5 h-5 text-neon-pink animate-pulse" />
                 ) : (
                   <CheckCircle2 className="w-5 h-5 text-neon-green" />
                 )}
-                <h2 className={`text-xl font-bold ${scanResults.vulnerability ? "neon-pink-glow" : "neon-green-glow"}`}>
-                  {scanResults.vulnerability ? "VULNERABLE" : "PROTECTED"}
+                <h2 className={`text-xl font-bold ${scanResults.isSwapped ? "neon-pink-glow" : "neon-green-glow"}`}>
+                  {scanResults.isSwapped ? "🚨 SIM SWAP DETECTED" : "✓ SAFE - NO SIM SWAP DETECTED"}
                 </h2>
               </div>
               <div className={`text-2xl font-bold ${
@@ -141,6 +108,9 @@ export default function SimSwapLookup() {
               }`}>
                 {scanResults.riskScore}/100
               </div>
+            </div>
+            <div className="text-xs text-gray-400">
+              Confidence: {scanResults.confidence}% | Detection Method: {scanResults.detectionMethod}
             </div>
           </Card>
 
@@ -154,7 +124,64 @@ export default function SimSwapLookup() {
               </div>
               <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
                 <div className="text-gray-400 text-xs">Carrier</div>
-                <div className="text-neon-cyan font-mono mt-1">{scanResults.carrier}</div>
+                <div className="text-neon-cyan font-mono mt-1">{scanResults.carrierIndicators?.name || "Unknown"}</div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Detection Methods */}
+          <Card className="hud-frame p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-neon-cyan" />
+              <h3 className="font-semibold text-neon-cyan">Detection Analysis</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Breach Database */}
+              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Database className="w-4 h-4 text-neon-cyan" />
+                  <div className="text-gray-400 text-xs font-semibold">Breach Database</div>
+                </div>
+                <div className="text-neon-cyan font-bold text-lg">
+                  {scanResults.breachIndicators?.length || 0} hits
+                </div>
+                <div className="text-gray-500 text-xs mt-1">
+                  {scanResults.breachIndicators?.length === 0
+                    ? "No breaches found"
+                    : "Potential exposure detected"}
+                </div>
+              </div>
+
+              {/* Carrier Status */}
+              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="w-4 h-4 text-neon-cyan" />
+                  <div className="text-gray-400 text-xs font-semibold">Protection</div>
+                </div>
+                <div className={`font-bold text-lg ${scanResults.simSwapProtectionEnabled ? "text-neon-green" : "text-neon-pink"}`}>
+                  {scanResults.simSwapProtectionEnabled ? "Enabled" : "Disabled"}
+                </div>
+                <div className="text-gray-500 text-xs mt-1">
+                  {scanResults.protectionType || "Unknown"}
+                </div>
+              </div>
+
+              {/* Pattern Analysis */}
+              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-4 h-4 text-neon-cyan" />
+                  <div className="text-gray-400 text-xs font-semibold">Patterns</div>
+                </div>
+                <div className={`font-bold text-lg ${
+                  (scanResults.patternIndicators?.suspiciousPatterns?.length || 0) > 0
+                    ? "text-neon-pink"
+                    : "text-neon-green"
+                }`}>
+                  {scanResults.patternIndicators?.suspiciousPatterns?.length || 0} detected
+                </div>
+                <div className="text-gray-500 text-xs mt-1">
+                  Suspicious activity patterns
+                </div>
               </div>
             </div>
           </Card>
@@ -167,19 +194,25 @@ export default function SimSwapLookup() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
-                <div className="text-gray-400 text-xs">Status</div>
-                <div className={`font-bold mt-1 ${scanResults.simSwapProtection.enabled ? "text-neon-green" : "text-neon-pink"}`}>
-                  {scanResults.simSwapProtection.status}
+                <div className="text-gray-400 text-xs">Protection Status</div>
+                <div className={`font-bold mt-1 ${scanResults.simSwapProtectionEnabled ? "text-neon-green" : "text-neon-pink"}`}>
+                  {scanResults.simSwapProtectionEnabled ? "✓ Enabled" : "✗ Disabled"}
                 </div>
               </div>
               <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
                 <div className="text-gray-400 text-xs">Protection Type</div>
-                <div className="text-neon-cyan font-mono mt-1 text-sm">{scanResults.simSwapProtection.type}</div>
+                <div className="text-neon-cyan font-mono mt-1 text-sm">{scanResults.protectionType}</div>
               </div>
               <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
                 <div className="text-gray-400 text-xs">Risk Level</div>
                 <div className={`font-bold mt-1 uppercase text-sm ${
-                  scanResults.riskLevel === "high" ? "text-neon-pink" : "text-neon-green"
+                  scanResults.riskLevel === "critical"
+                    ? "text-neon-pink"
+                    : scanResults.riskLevel === "high"
+                      ? "text-neon-yellow"
+                      : scanResults.riskLevel === "medium"
+                        ? "text-neon-yellow"
+                        : "text-neon-green"
                 }`}>
                   {scanResults.riskLevel}
                 </div>
@@ -187,18 +220,67 @@ export default function SimSwapLookup() {
             </div>
           </Card>
 
-          {/* Vulnerabilities */}
-          {scanResults.vulnerabilities.length > 0 && (
+          {/* Suspicious Activities */}
+          {scanResults.suspiciousActivities?.length > 0 && (
             <Card className="hud-frame p-6 space-y-4">
               <div className="flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-neon-yellow" />
-                <h3 className="font-semibold text-neon-yellow">Security Assessment</h3>
+                <AlertCircle className="w-5 h-5 text-neon-pink" />
+                <h3 className="font-semibold text-neon-pink">Suspicious Activities Detected</h3>
               </div>
               <div className="space-y-2">
-                {scanResults.vulnerabilities.map((vuln: string, idx: number) => (
+                {scanResults.suspiciousActivities.map((activity: string, idx: number) => (
+                  <div key={idx} className="flex items-start gap-2 bg-[#0a0e27] border border-neon-pink/30 rounded p-3">
+                    <AlertTriangle className="w-4 h-4 text-neon-pink mt-0.5 flex-shrink-0" />
+                    <div className="text-gray-300 text-sm">{activity}</div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Breach Details */}
+          {scanResults.breachIndicators?.length > 0 && (
+            <Card className="hud-frame p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <Database className="w-5 h-5 text-neon-yellow" />
+                <h3 className="font-semibold text-neon-yellow">Breach Database Findings</h3>
+              </div>
+              <div className="space-y-2">
+                {scanResults.breachIndicators.map((breach: any, idx: number) => (
+                  <div key={idx} className="bg-[#0a0e27] border border-neon-yellow/30 rounded p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="text-neon-yellow font-semibold text-sm">{breach.source}</div>
+                        <div className="text-gray-400 text-xs mt-1">Type: {breach.type}</div>
+                      </div>
+                      <div className={`text-xs font-bold px-2 py-1 rounded ${
+                        breach.severity === "critical"
+                          ? "bg-neon-pink/20 text-neon-pink"
+                          : breach.severity === "high"
+                            ? "bg-neon-yellow/20 text-neon-yellow"
+                            : "bg-neon-cyan/20 text-neon-cyan"
+                      }`}>
+                        {breach.severity}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Pattern Details */}
+          {scanResults.patternIndicators?.suspiciousPatterns?.length > 0 && (
+            <Card className="hud-frame p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-neon-yellow" />
+                <h3 className="font-semibold text-neon-yellow">Pattern Analysis Details</h3>
+              </div>
+              <div className="space-y-2">
+                {scanResults.patternIndicators.suspiciousPatterns.map((pattern: string, idx: number) => (
                   <div key={idx} className="flex items-start gap-2 bg-[#0a0e27] border border-neon-yellow/30 rounded p-3">
                     <div className="text-neon-yellow mt-0.5">•</div>
-                    <div className="text-gray-300 text-sm">{vuln}</div>
+                    <div className="text-gray-300 text-sm">{pattern}</div>
                   </div>
                 ))}
               </div>
@@ -209,7 +291,7 @@ export default function SimSwapLookup() {
           <Card className="hud-frame p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-neon-green" />
-              <h3 className="font-semibold text-neon-green">Protection Recommendations</h3>
+              <h3 className="font-semibold text-neon-green">Security Recommendations</h3>
             </div>
             <div className="space-y-2">
               {scanResults.recommendations.map((rec: string, idx: number) => (
@@ -220,31 +302,6 @@ export default function SimSwapLookup() {
               ))}
             </div>
           </Card>
-
-          {/* Carrier Information */}
-          <Card className="hud-frame p-6 space-y-4">
-            <h3 className="font-semibold text-neon-cyan">Carrier Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
-                <div className="text-gray-400 text-xs">Provider Name</div>
-                <div className="text-neon-cyan font-mono mt-1">{scanResults.carrierInfo.name}</div>
-              </div>
-              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
-                <div className="text-gray-400 text-xs">Type</div>
-                <div className="text-neon-cyan font-mono mt-1">{scanResults.carrierInfo.type}</div>
-              </div>
-              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
-                <div className="text-gray-400 text-xs">Country</div>
-                <div className="text-neon-cyan font-mono mt-1">{scanResults.carrierInfo.country}</div>
-              </div>
-              <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
-                <div className="text-gray-400 text-xs">Protection Available</div>
-                <div className={`font-bold mt-1 ${scanResults.carrierInfo.simSwapProtectionAvailable ? "text-neon-green" : "text-neon-pink"}`}>
-                  {scanResults.carrierInfo.simSwapProtectionAvailable ? "Yes" : "No"}
-                </div>
-              </div>
-            </div>
-          </Card>
         </div>
       )}
 
@@ -253,7 +310,10 @@ export default function SimSwapLookup() {
         <Card className="hud-frame p-12 text-center space-y-4">
           <Smartphone className="w-12 h-12 mx-auto text-neon-pink/50" />
           <p className="text-gray-400">
-            Enter a phone number to check if it's vulnerable to SIM swap attacks
+            Enter a phone number to check if it has been SIM swapped using advanced detection methods
+          </p>
+          <p className="text-gray-500 text-sm">
+            Our system analyzes breach databases, carrier status, and suspicious patterns to detect SIM swap attacks
           </p>
         </Card>
       )}

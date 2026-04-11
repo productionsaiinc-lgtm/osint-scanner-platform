@@ -158,3 +158,166 @@ export const payments = mysqlTable("payments", {
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = typeof payments.$inferInsert;
+
+/**
+ * Notifications for users
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", [
+    "scan_complete",
+    "scan_error",
+    "payment_success",
+    "payment_failed",
+    "subscription_update",
+    "subscription_expiring",
+    "vulnerability_found",
+    "payout_received",
+    "payout_failed",
+    "security_alert",
+    "system_update",
+    "custom"
+  ]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  data: text("data"), // JSON with additional context (scanId, paymentId, etc.)
+  status: mysqlEnum("status", ["unread", "read", "archived"]).default("unread").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  actionUrl: varchar("actionUrl", { length: 500 }), // Link to related resource
+  emailSent: int("emailSent").default(0), // boolean as int
+  pushSent: int("pushSent").default(0), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+/**
+ * User notification preferences
+ */
+export const notificationPreferences = mysqlTable("notificationPreferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  emailNotifications: int("emailNotifications").default(1), // boolean as int
+  pushNotifications: int("pushNotifications").default(1), // boolean as int
+  inAppNotifications: int("inAppNotifications").default(1), // boolean as int
+  scanCompleteNotifications: int("scanCompleteNotifications").default(1),
+  paymentNotifications: int("paymentNotifications").default(1),
+  subscriptionNotifications: int("subscriptionNotifications").default(1),
+  securityAlertNotifications: int("securityAlertNotifications").default(1),
+  emailFrequency: mysqlEnum("emailFrequency", ["immediate", "daily", "weekly", "never"]).default("daily").notNull(),
+  notificationSound: int("notificationSound").default(1), // boolean as int
+  notificationVibration: int("notificationVibration").default(1), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type NotificationPreference = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreference = typeof notificationPreferences.$inferInsert;
+
+/**
+ * Push notification subscriptions for browser
+ */
+export const pushSubscriptions = mysqlTable("pushSubscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  endpoint: varchar("endpoint", { length: 500 }).notNull(),
+  auth: varchar("auth", { length: 255 }).notNull(),
+  p256dh: varchar("p256dh", { length: 255 }).notNull(),
+  userAgent: varchar("userAgent", { length: 500 }),
+  isActive: int("isActive").default(1), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type InsertPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+/**
+ * SIM Swap detection history and results
+ */
+export const simSwapRecords = mysqlTable("simSwapRecords", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  carrier: varchar("carrier", { length: 100 }),
+  isSwapped: int("isSwapped").default(0), // boolean as int - actual detection result
+  riskScore: int("riskScore").default(0), // 0-100
+  riskLevel: mysqlEnum("riskLevel", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  detectionMethod: varchar("detectionMethod", { length: 100 }), // 'breach_db', 'carrier_check', 'pattern_analysis', 'hybrid'
+  breachIndicators: text("breachIndicators"), // JSON array of breach database hits
+  carrierIndicators: text("carrierIndicators"), // JSON with carrier-specific findings
+  patternIndicators: text("patternIndicators"), // JSON with suspicious patterns
+  simSwapProtectionEnabled: int("simSwapProtectionEnabled").default(0), // boolean as int
+  protectionType: varchar("protectionType", { length: 100 }), // 'pin', 'biometric', 'none'
+  lastActivityChange: timestamp("lastActivityChange"), // Last time account activity changed
+  suspiciousActivities: text("suspiciousActivities"), // JSON array of suspicious activities
+  confidence: int("confidence").default(0), // 0-100 confidence level in detection
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SimSwapRecord = typeof simSwapRecords.$inferSelect;
+export type InsertSimSwapRecord = typeof simSwapRecords.$inferInsert;
+
+/**
+ * Breach database entries for SIM swap detection
+ */
+export const breachDatabaseEntries = mysqlTable("breachDatabaseEntries", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  breachSource: varchar("breachSource", { length: 100 }).notNull(), // 'haveibeenpwned', 'credentialstuffing', 'darkweb', 'leaked_lists'
+  breachDate: timestamp("breachDate"),
+  breachType: varchar("breachType", { length: 100 }), // 'credentials', 'phone_list', 'carrier_data', 'sim_swap_attempt'
+  dataExposed: text("dataExposed"), // JSON with what was exposed
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  verified: int("verified").default(0), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BreachDatabaseEntry = typeof breachDatabaseEntries.$inferSelect;
+export type InsertBreachDatabaseEntry = typeof breachDatabaseEntries.$inferInsert;
+
+/**
+ * Carrier SIM swap protection status
+ */
+export const carrierSimSwapStatus = mysqlTable("carrierSimSwapStatus", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull().unique(),
+  carrier: varchar("carrier", { length: 100 }).notNull(),
+  protectionEnabled: int("protectionEnabled").default(0), // boolean as int
+  protectionType: varchar("protectionType", { length: 100 }), // 'pin', 'biometric', 'security_questions', 'none'
+  lastVerified: timestamp("lastVerified"),
+  verificationMethod: varchar("verificationMethod", { length: 100 }), // 'api', 'manual', 'automated'
+  accountStatus: mysqlEnum("accountStatus", ["active", "suspended", "flagged", "unknown"]).default("unknown").notNull(),
+  suspiciousActivityCount: int("suspiciousActivityCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CarrierSimSwapStatus = typeof carrierSimSwapStatus.$inferSelect;
+export type InsertCarrierSimSwapStatus = typeof carrierSimSwapStatus.$inferInsert;
+
+/**
+ * SIM swap detection patterns and heuristics
+ */
+export const simSwapPatterns = mysqlTable("simSwapPatterns", {
+  id: int("id").autoincrement().primaryKey(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  multipleCarrierChanges: int("multipleCarrierChanges").default(0), // boolean - multiple carrier switches in short time
+  frequentPorting: int("frequentPorting").default(0), // boolean - frequent number porting
+  suspiciousLoginAttempts: int("suspiciousLoginAttempts").default(0), // boolean - unusual login attempts
+  accountRecoveryAttempts: int("accountRecoveryAttempts").default(0), // count of recovery attempts
+  passwordResetAttempts: int("passwordResetAttempts").default(0), // count of password resets
+  smsVerificationFails: int("smsVerificationFails").default(0), // count of failed SMS verifications
+  unusualGeoLocation: int("unusualGeoLocation").default(0), // boolean - login from unusual location
+  deviceChanges: int("deviceChanges").default(0), // count of device changes
+  riskScore: int("riskScore").default(0), // 0-100 based on patterns
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SimSwapPattern = typeof simSwapPatterns.$inferSelect;
+export type InsertSimSwapPattern = typeof simSwapPatterns.$inferInsert;
