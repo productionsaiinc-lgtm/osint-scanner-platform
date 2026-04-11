@@ -375,8 +375,8 @@
 - [ ] Update IMEIChecker.tsx to call trpc.phoneImei.checkImei
 - [x] Add phone number lookup to sidebar menu
 - [x] Add IMEI checker to sidebar menu
-- [ ] Write tests for phone number lookup
-- [ ] Write tests for IMEI checker
+- [x] Write tests for phone number lookup (phone-imei.test.ts)
+- [x] Write tests for IMEI checker (phone-imei.test.ts)
 
 
 ## Phase 17: Online Nmap Scanner & VPN Service
