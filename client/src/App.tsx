@@ -29,6 +29,7 @@ import { VPNConnection } from "./pages/VPNConnection";
 import WebScraper from "./pages/WebScraper";
 import CreditCardChecker from "./pages/CreditCardChecker";
 import OntarioLicensePlate from "./pages/OntarioLicensePlate";
+import SimSwapLookup from "./pages/SimSwapLookup";
 
 function Router() {
   return (
@@ -55,6 +56,7 @@ function Router() {
       <Route path={"/web-scraper"} component={WebScraperPage} />
       <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
       <Route path={"/ontario-license-plate"} component={OntarioLicensePlatePage} />
+      <Route path={"/sim-swap-lookup"} component={SimSwapLookupPage} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -226,6 +228,14 @@ function OntarioLicensePlatePage() {
   return (
     <DashboardLayout>
       <OntarioLicensePlate />
+    </DashboardLayout>
+  );
+}
+
+function SimSwapLookupPage() {
+  return (
+    <DashboardLayout>
+      <SimSwapLookup />
     </DashboardLayout>
   );
 }

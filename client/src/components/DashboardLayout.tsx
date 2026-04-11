@@ -45,6 +45,7 @@ const menuItems = [
   { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
   { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
   { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
+  { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
   { icon: Zap, label: "Subscription", path: "/subscription" },

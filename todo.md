@@ -537,3 +537,17 @@
 - [ ] Remove consolidated menu items
 - [ ] Update routes in App.tsx
 - [ ] Test all merged tools
+
+
+## Phase 24: SIM Swap Lookup Tool
+
+### SIM Swap Lookup Implementation
+- [ ] Create SIM Swap Lookup UI component (SimSwapLookup.tsx)
+- [ ] Add SIM swap vulnerability assessment
+- [ ] Integrate phone number validation
+- [ ] Add carrier SIM swap protection status
+- [ ] Create risk assessment display
+- [ ] Add recommendations for protection
+- [ ] Add SIM Swap Lookup to App.tsx routes
+- [ ] Add SIM Swap Lookup to DashboardLayout menu
+- [ ] Write tests for SIM Swap Lookup
