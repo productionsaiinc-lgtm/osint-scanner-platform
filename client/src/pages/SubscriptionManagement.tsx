@@ -8,11 +8,13 @@ import { trpc } from '@/lib/trpc';
 export function SubscriptionManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const { data: plans } = trpc.subscription.plans.useQuery();
   const { data: hasPremium } = trpc.subscription.hasPremium.useQuery();
   const { data: paymentHistory } = trpc.subscription.paymentHistory.useQuery();
   const createCheckout = trpc.subscription.createCheckout.useMutation();
+  const capturePayPalOrder = trpc.subscription.capturePayPalOrder.useMutation();
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
   const handlePremiumPurchase = async () => {
@@ -20,13 +22,44 @@ export function SubscriptionManagement() {
     setError('');
     try {
       const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
-      if (result.checkoutUrl) {
-        window.open(result.checkoutUrl, '_blank');
+      if (result.checkoutUrl && result.orderId) {
+        setOrderId(result.orderId);
+        // Open PayPal checkout in new window
+        const paypalWindow = window.open(result.checkoutUrl, 'paypal_checkout', 'width=800,height=600');
+        
+        // Check if user returned from PayPal
+        const checkInterval = setInterval(() => {
+          if (paypalWindow?.closed) {
+            clearInterval(checkInterval);
+            // Attempt to capture the order
+            handleCapturePayPalOrder(result.orderId);
+          }
+        }, 1000);
       } else {
-        setError('Failed to create checkout session. Please try again.');
+        setError('Failed to create PayPal order. Please try again.');
       }
     } catch (err) {
       setError('Payment error. Please try again.');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCapturePayPalOrder = async (id: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await capturePayPalOrder.mutateAsync({ orderId: id });
+      if (result.success) {
+        setOrderId(null);
+        // Refresh subscription status
+        window.location.reload();
+      } else {
+        setError('Failed to capture payment. Please try again.');
+      }
+    } catch (err) {
+      setError('Payment capture error. Please try again.');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -38,10 +71,18 @@ export function SubscriptionManagement() {
     setError('');
     try {
       const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
-      if (result.checkoutUrl) {
-        window.open(result.checkoutUrl, '_blank');
+      if (result.checkoutUrl && result.orderId) {
+        setOrderId(result.orderId);
+        const paypalWindow = window.open(result.checkoutUrl, 'paypal_checkout', 'width=800,height=600');
+        
+        const checkInterval = setInterval(() => {
+          if (paypalWindow?.closed) {
+            clearInterval(checkInterval);
+            handleCapturePayPalOrder(result.orderId);
+          }
+        }, 1000);
       } else {
-        setError('Failed to create checkout session. Please try again.');
+        setError('Failed to create PayPal order. Please try again.');
       }
     } catch (err) {
       setError('Payment error. Please try again.');
@@ -86,7 +127,7 @@ export function SubscriptionManagement() {
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Upgrade for $20
+                    Upgrade for $20 (PayPal)
                   </>
                 )}
               </Button>
@@ -217,7 +258,7 @@ export function SubscriptionManagement() {
                       ) : (
                         <>
                           <CreditCard className="w-4 h-4 mr-2" />
-                          Upgrade for $20
+                          Upgrade for $20 (PayPal)
                         </>
                       )}
                     </Button>
@@ -239,14 +280,14 @@ export function SubscriptionManagement() {
             <Alert className="border-blue-500/30 bg-blue-500/10">
               <AlertCircle className="h-4 w-4 text-blue-500" />
               <AlertDescription className="text-blue-400">
-                Invoices and receipts are sent to your email address. Manage your payment methods in account settings.
+                Invoices and receipts are sent to your email address. Payments are processed via PayPal.
               </AlertDescription>
             </Alert>
             <div className="p-3 border border-pink-500/30 rounded bg-pink-500/5">
-              <div className="text-xs text-gray-400">Payment Methods</div>
+              <div className="text-xs text-gray-400">Payment Method</div>
               <div className="text-sm text-pink-400 mt-2 space-y-1">
-                <div>💳 Credit Card (Stripe)</div>
                 <div>🏦 PayPal - productions.ai.inc@gmail.com</div>
+                <div className="text-xs text-gray-500 mt-2">Secure payment processing via PayPal</div>
               </div>
             </div>
           </div>
@@ -275,17 +316,20 @@ export function SubscriptionManagement() {
                       <div className="text-sm font-semibold text-green-400">
                         ${(payment.amount / 100).toFixed(2)} {payment.currency}
                       </div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {new Date(payment.createdAt).toLocaleDateString()} - {payment.paymentMethod.toUpperCase()}
+                      <div className="text-xs text-gray-500">
+                        {new Date(payment.createdAt).toLocaleDateString()}
                       </div>
                     </div>
-                    <div className={`text-xs px-2 py-1 rounded font-semibold ${
-                      payment.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                      payment.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                      payment.status === 'failed' ? 'bg-red-500/20 text-red-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        payment.status === 'completed'
+                          ? 'bg-green-500/20 text-green-400'
+                          : payment.status === 'pending'
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-red-500/20 text-red-400'
+                      }`}>
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -294,41 +338,6 @@ export function SubscriptionManagement() {
           </CardContent>
         </Card>
       )}
-
-      {/* FAQ */}
-      <Card className="border-orange-500/30 bg-black/40">
-        <CardHeader>
-          <CardTitle className="text-orange-400">Subscription FAQ</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <div className="text-sm font-bold text-orange-400">Can I cancel anytime?</div>
-              <div className="text-xs text-gray-400 mt-1">
-                Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.
-              </div>
-            </div>
-            <div>
-              <div className="text-sm font-bold text-orange-400">What payment methods do you accept?</div>
-              <div className="text-xs text-gray-400 mt-1">
-                We accept Stripe (credit cards) and PayPal for all subscription payments. Your payment is processed securely.
-              </div>
-            </div>
-            <div>
-              <div className="text-sm font-bold text-orange-400">Is there a free trial?</div>
-              <div className="text-xs text-gray-400 mt-1">
-                No, but you can use our Free plan indefinitely to explore basic features before upgrading.
-              </div>
-            </div>
-            <div>
-              <div className="text-sm font-bold text-orange-400">How do I get a refund?</div>
-              <div className="text-xs text-gray-400 mt-1">
-                Contact our support team within 30 days of purchase for a full refund. No questions asked.
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

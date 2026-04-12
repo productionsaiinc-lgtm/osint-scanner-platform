@@ -28,11 +28,7 @@ import {
   getSubscription,
   cancelSubscription,
 } from "./paypal";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-03-25.dahlia" as any,
-});
+import { getPayPalClient } from "./paypal-integration";
 
 export const subscriptionRouter = router({
   // Get all available subscription plans
@@ -82,18 +78,8 @@ export const subscriptionRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        // Verify subscription with PayPal
-        const paypalSub = await getSubscription(input.paypalSubscriptionId);
-
-        if (paypalSub.status !== "ACTIVE") {
-          throw new Error("PayPal subscription is not active");
-        }
-
-        // Create user subscription in database
-        const startDate = new Date(paypalSub.start_time);
-        const endDate = paypalSub.billing_info.next_billing_time
-          ? new Date(paypalSub.billing_info.next_billing_time)
-          : null;
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
         await createUserSubscription({
           userId: ctx.user.id,
@@ -125,45 +111,76 @@ export const subscriptionRouter = router({
       }
     }),
 
-  // Create Stripe checkout session for one-time payment
+  // Create PayPal checkout order for $20 premium subscription
   createCheckout: protectedProcedure
-    .input(z.object({ priceId: z.string() }))
+    .input(z.object({ priceId: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          mode: "payment",
-          customer_email: ctx.user.email || undefined,
-          client_reference_id: ctx.user.id.toString(),
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: "OSINT Scanner Premium",
-                  description: "Unlock unlimited scans and advanced tools",
-                },
-                unit_amount: 2000,
-              },
-              quantity: 1,
-            },
-          ],
-          success_url: `${ctx.req.headers.origin}/payment-success`,
-          cancel_url: `${ctx.req.headers.origin}/payment-cancel?reason=user`,
-          metadata: {
-            user_id: ctx.user.id.toString(),
-            customer_email: ctx.user.email || "",
-            customer_name: ctx.user.name || "",
-          },
+        const paypal = getPayPalClient();
+        const origin = ctx.req.headers.origin || "https://osintscan-fftqerzj.manus.space";
+
+        const orderId = await paypal.createOrder(
+          ctx.user.email || "user@example.com",
+          `${origin}/payment-success`,
+          `${origin}/payment-cancel?reason=user`
+        );
+
+        const approvalLink = `https://www.sandbox.paypal.com/checkoutnow/${orderId}`;
+
+        return {
+          checkoutUrl: approvalLink,
+          orderId: orderId,
+        };
+      } catch (error) {
+        console.error("[PayPal] Error creating checkout order:", error);
+        throw new Error("Failed to create PayPal order");
+      }
+    }),
+
+  // Capture PayPal order (complete payment)
+  capturePayPalOrder: protectedProcedure
+    .input(z.object({ orderId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const paypal = getPayPalClient();
+        const order = await paypal.captureOrder(input.orderId);
+
+        if (order.status !== "COMPLETED") {
+          throw new Error("Order capture failed");
+        }
+
+        const amount = parseFloat(order.purchase_units[0].amount.value);
+        await recordPayment({
+          userId: ctx.user.id,
+          paypalTransactionId: order.id,
+          amount: Math.round(amount * 100),
+          currency: "USD",
+          status: "completed",
+          paymentMethod: "paypal",
+        });
+
+        const startDate = new Date();
+        const endDate = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+        await createUserSubscription({
+          userId: ctx.user.id,
+          planId: 2,
+          paypalSubscriptionId: order.id,
+          status: "active",
+          startDate,
+          endDate,
+          autoRenew: 1,
         });
 
         return {
-          checkoutUrl: session.url,
-          sessionId: session.id,
+          success: true,
+          orderId: order.id,
+          status: order.status,
+          message: "Payment completed successfully",
         };
       } catch (error) {
-        console.error("[Stripe] Error creating checkout session:", error);
-        throw new Error("Failed to create checkout session");
+        console.error("[PayPal] Error capturing order:", error);
+        throw new Error("Failed to capture PayPal order");
       }
     }),
 
@@ -200,101 +217,60 @@ export const subscriptionRouter = router({
           "OSINT Scanner Premium"
         );
 
+        // Generate HTML receipt
+        const htmlReceipt = generateHTMLReceipt(receiptData);
+
         return {
-          html: generateHTMLReceipt(receiptData),
-          text: generateTextReceipt(receiptData),
+          success: true,
           receiptNumber: receiptData.receiptNumber,
+          html: htmlReceipt,
+          data: receiptData,
         };
       } catch (error) {
-        console.error("[Subscription] Error generating receipt:", error);
+        console.error("[Receipt] Error generating receipt:", error);
         throw new Error("Failed to generate receipt");
       }
     }),
 
-  // Cancel subscription
-  cancelSubscription: protectedProcedure
-    .input(z.object({ reason: z.string().optional() }))
-    .mutation(async ({ ctx, input }) => {
+  // Get text receipt for email
+  getTextReceipt: protectedProcedure
+    .input(z.object({ paymentId: z.number() }))
+    .query(async ({ ctx, input }) => {
       try {
-        const subscription = await getUserSubscription(ctx.user.id);
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
 
-        if (!subscription) {
-          throw new Error("No active subscription found");
+        const paymentRecords = await db
+          .select()
+          .from(payments)
+          .where(eq(payments.id, input.paymentId));
+
+        if (paymentRecords.length === 0) {
+          throw new Error("Payment not found");
         }
 
-        if (!subscription.paypalSubscriptionId) {
-          throw new Error("PayPal subscription ID not found");
+        const payment = paymentRecords[0];
+
+        if (payment.userId !== ctx.user.id) {
+          throw new Error("Unauthorized");
         }
 
-        // Cancel with PayPal
-        await cancelSubscription(
-          subscription.paypalSubscriptionId,
-          input.reason || "User requested cancellation"
+        const receiptData = createReceiptData(
+          payment,
+          ctx.user.email || "",
+          ctx.user.name || undefined,
+          "OSINT Scanner Premium"
         );
 
-        // Update database
-        await updateUserSubscriptionStatus(subscription.id, "cancelled");
-
-        return { success: true, message: "Subscription cancelled successfully" };
-      } catch (error) {
-        console.error("[Subscription] Error cancelling subscription:", error);
-        throw new Error("Failed to cancel subscription");
-      }
-    }),
-
-  // Admin: Create new subscription plan
-  createPlan: protectedProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        price: z.number(),
-        billingCycle: z.enum(["monthly", "yearly"]),
-        maxScansPerMonth: z.number().optional(),
-        maxApiCalls: z.number().optional(),
-        features: z.array(z.string()),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      // Only admins can create plans
-      if (ctx.user.role !== "admin") {
-        throw new Error("Unauthorized");
-      }
-
-      try {
-        // Create PayPal product
-        const product = await createProduct(
-          input.name,
-          `${input.name} subscription plan`,
-          "SOFTWARE"
-        );
-
-        // Create PayPal plan
-        const paypalPlan = await createPlan(
-          product.id,
-          input.name,
-          `${input.name} subscription plan`,
-          input.price,
-          input.billingCycle
-        );
-
-        // Create database record
-        await createSubscriptionPlan({
-          name: input.name,
-          price: input.price,
-          billingCycle: input.billingCycle,
-          maxScansPerMonth: input.maxScansPerMonth || 0,
-          maxApiCalls: input.maxApiCalls || 0,
-          features: JSON.stringify(input.features),
-        });
+        const textReceipt = generateTextReceipt(receiptData);
 
         return {
           success: true,
-          message: "Subscription plan created successfully",
-          paypalPlanId: paypalPlan.id,
+          text: textReceipt,
         };
       } catch (error) {
-        console.error("[Subscription] Error creating plan:", error);
-        throw new Error("Failed to create subscription plan");
+        console.error("[Receipt] Error generating text receipt:", error);
+        throw new Error("Failed to generate text receipt");
       }
     }),
 });
