@@ -31,6 +31,7 @@ import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 import SimSwapLookup from "./pages/SimSwapLookup";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
+import { DownloadAPK } from "./pages/DownloadAPK";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -49,6 +50,7 @@ function Router() {
         <Route path={"/"} component={PublicLanding} />
         <Route path={"/about"} component={PublicLanding} />
         <Route path={"/pricing"} component={PublicLanding} />
+        <Route path={"/download"} component={DownloadAPK} />
         <Route path={"/payment-success"} component={PaymentSuccess} />
         <Route path={"/payment-cancel"} component={PaymentCancel} />
         <Route component={PublicLanding} />
@@ -81,6 +83,7 @@ function Router() {
       <Route path={"/credit-card-checker"} component={CreditCardCheckerPage} />
       <Route path={"/ontario-license-plate"} component={OntarioLicensePlatePage} />
       <Route path={"/sim-swap-lookup"} component={SimSwapLookupPage} />
+      <Route path={"/download"} component={DownloadAPKPage} />
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/404"} component={NotFound} />
@@ -261,6 +264,14 @@ function SimSwapLookupPage() {
   return (
     <DashboardLayout>
       <SimSwapLookup />
+    </DashboardLayout>
+  );
+}
+
+function DownloadAPKPage() {
+  return (
+    <DashboardLayout>
+      <DownloadAPK />
     </DashboardLayout>
   );
 }

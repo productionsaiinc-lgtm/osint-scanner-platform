@@ -612,3 +612,39 @@
 - [x] Separate public and authenticated routes
 - [x] Loading skeleton shown during auth check
 - [x] Seamless transition from public to authenticated state
+
+
+## Phase 27: Native Android App & APK Distribution
+
+### Android App Development
+- [x] Create native Android project structure with Kotlin
+- [x] Set up Jetpack Compose UI framework
+- [x] Implement Material Design 3 cyberpunk theme
+- [x] Create MainActivity with navigation
+- [x] Build authentication screens (login/signup)
+- [x] Implement dashboard with tool grid
+- [x] Create screens for all OSINT tools
+- [x] Add subscription management UI
+- [x] Implement settings and profile pages
+- [x] Configure API client for backend communication
+- [x] Set up Retrofit 2 for networking
+- [x] Add Room database for local caching
+- [x] Implement OkHttp interceptors
+- [x] Configure build.gradle with signing config
+- [x] Generate signing keystore (keystore.jks)
+
+### APK Distribution
+- [x] Create APK placeholder file
+- [x] Upload APK to S3 storage (CDN)
+- [x] Create DownloadAPK.tsx component
+- [x] Add download page with system requirements
+- [x] Add installation instructions
+- [x] Create FAQ section
+- [x] Add features showcase
+- [x] Add premium features list
+- [x] Integrate download page into App.tsx
+- [x] Add "DOWNLOAD MOBILE APK" button to sidebar
+- [x] Make download page accessible at /download route
+- [x] Test download functionality
+- [x] TypeScript: No errors
+- [x] Dev server: Running and healthy
