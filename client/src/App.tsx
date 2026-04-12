@@ -7,7 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import DashboardLayout from "./components/DashboardLayout";
 import Home from "./pages/Home";
 import NetworkScanner from "./pages/NetworkScanner";
-
+import { PublicLanding } from "./pages/PublicLanding";
 import SocialOsint from "./pages/SocialOsint";
 import MapView from "./pages/MapView";
 import ScanHistory from "./pages/ScanHistory";
@@ -15,7 +15,6 @@ import About from "./pages/About";
 import Pricing from "./pages/Pricing";
 import { GitHubSearch } from "./pages/GitHubSearch";
 import { CVESearch } from "./pages/CVESearch";
-
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
@@ -32,13 +31,36 @@ import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 import SimSwapLookup from "./pages/SimSwapLookup";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
+import { useAuth } from "./_core/hooks/useAuth";
+import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
 function Router() {
+  const { loading, user } = useAuth();
+
+  // Show loading skeleton while checking auth
+  if (loading) {
+    return <DashboardLayoutSkeleton />;
+  }
+
+  // Show public landing for unauthenticated users
+  if (!user) {
+    return (
+      <Switch>
+        <Route path={"/"} component={PublicLanding} />
+        <Route path={"/about"} component={PublicLanding} />
+        <Route path={"/pricing"} component={PublicLanding} />
+        <Route path={"/payment-success"} component={PaymentSuccess} />
+        <Route path={"/payment-cancel"} component={PaymentCancel} />
+        <Route component={PublicLanding} />
+      </Switch>
+    );
+  }
+
+  // Show dashboard for authenticated users
   return (
     <Switch>
       <Route path={"/"} component={DashboardHome} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
-
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
       <Route path={"/history"} component={ScanHistoryPage} />
@@ -82,7 +104,6 @@ function NetworkScannerPage() {
     </DashboardLayout>
   );
 }
-
 
 function SocialOsintPage() {
   return (
