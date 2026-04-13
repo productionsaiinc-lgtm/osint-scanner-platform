@@ -12,6 +12,7 @@ import { vpnRouter } from "./vpn-router";
 import { vpnConnectionRouter } from "./vpn-connection-router";
 import { phoneImeiRouter } from "./phone-imei-router";
 import { simSwapRouter } from "./sim-swap-router";
+import { monitoringRouter } from "./monitoring-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -20,6 +21,7 @@ export const appRouter = router({
   vpnConnection: vpnConnectionRouter,
   phoneImei: phoneImeiRouter,
   simSwap: simSwapRouter,
+  monitoring: monitoringRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

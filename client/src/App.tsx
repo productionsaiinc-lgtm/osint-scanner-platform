@@ -32,6 +32,8 @@ import SimSwapLookup from "./pages/SimSwapLookup";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
 import { DownloadAPK } from "./pages/DownloadAPK";
+import Monitoring from "./pages/Monitoring";
+import AlertHistory from "./pages/AlertHistory";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -86,7 +88,9 @@ function Router() {
       <Route path={"/download"} component={DownloadAPKPage} />
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path={"/monitoring"} component={MonitoringPage} />
+      <Route path={"/alert-history"} component={AlertHistoryPage} />
+      <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -272,6 +276,22 @@ function DownloadAPKPage() {
   return (
     <DashboardLayout>
       <DownloadAPK />
+    </DashboardLayout>
+  );
+}
+
+function MonitoringPage() {
+  return (
+    <DashboardLayout>
+      <Monitoring />
+    </DashboardLayout>
+  );
+}
+
+function AlertHistoryPage() {
+  return (
+    <DashboardLayout>
+      <AlertHistory />
     </DashboardLayout>
   );
 }

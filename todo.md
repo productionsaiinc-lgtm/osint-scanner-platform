@@ -648,3 +648,82 @@
 - [x] Test download functionality
 - [x] TypeScript: No errors
 - [x] Dev server: Running and healthy
+
+
+## Phase 28: Real-Time Monitoring & Alerts
+
+### Monitoring System Architecture
+- [ ] Design monitoring database schema (monitored assets, alerts, scan history)
+- [ ] Create monitored_assets table with scan schedules
+- [ ] Create alerts table for threat detection
+- [ ] Create scan_history table for change tracking
+- [ ] Create alert_rules table for custom detection rules
+
+### Scheduled Scanning Service
+- [ ] Build cron job scheduler for periodic scans
+- [ ] Implement daily/weekly/monthly scan schedules
+- [ ] Create background job processor
+- [ ] Add scan result comparison logic
+- [ ] Implement change detection (DNS, SSL, ports, etc.)
+
+### Threat Detection & Alerts
+- [ ] Detect new open ports
+- [ ] Detect SSL certificate expiration
+- [ ] Detect DNS record changes
+- [ ] Detect new subdomains
+- [ ] Detect IP reputation changes
+- [ ] Detect service version changes
+
+### Email Notifications
+- [ ] Create email notification service
+- [ ] Send alerts on threat detection
+- [ ] Send daily/weekly digest reports
+- [ ] Create email templates
+- [ ] Implement email scheduling
+
+### Monitoring Dashboard
+- [ ] Build monitored assets list
+- [ ] Display asset health status
+- [ ] Show recent alerts
+- [ ] Display scan history timeline
+- [ ] Show threat trends
+
+### Alert Configuration UI
+- [ ] Create add/edit monitored asset form
+- [ ] Set scan frequency (daily/weekly/monthly)
+- [ ] Configure alert thresholds
+- [ ] Enable/disable specific alerts
+- [ ] Manage notification preferences
+
+### Alert History & Reporting
+- [ ] Display alert history with timestamps
+- [ ] Create alert severity levels
+- [ ] Generate compliance reports
+- [ ] Export alert data to CSV/PDF
+- [ ] Create alert statistics dashboard
+
+### Testing & Validation
+- [ ] Write monitoring system tests
+- [ ] Test scheduled scan execution
+- [ ] Test threat detection logic
+- [ ] Test email notifications
+- [ ] Test end-to-end workflows
+
+
+## Phase 25: Real-Time Monitoring & Alerts System
+
+### Monitoring Service Backend
+- [x] Create monitoring database schema (monitoredAssets, alertRules, alerts, scanHistory)
+- [x] Implement scheduled scan service (5-minute intervals)
+- [x] Implement change detection logic (DNS, SSL, subdomains, ports)
+- [x] Implement alert generation system
+- [x] Implement alert management (read/resolve)
+- [x] Build monitoring dashboard UI page (Monitoring.tsx)
+- [x] Create alert configuration UI page (integrated into Monitoring.tsx)
+- [x] Implement email notification system (email-notification-service.ts)
+- [x] Build alert history and reporting page (AlertHistory.tsx)
+- [x] Add monitoring tRPC procedures (CRUD operations in monitoring-router.ts)
+- [x] Write comprehensive monitoring tests (monitoring.test.ts with 21 test cases)
+- [x] Add "Monitoring" to sidebar navigation (Eye icon)
+- [x] Add "Alert History" to sidebar navigation (Archive icon)
+- [x] Test end-to-end monitoring flow

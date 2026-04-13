@@ -321,3 +321,78 @@ export const simSwapPatterns = mysqlTable("simSwapPatterns", {
 
 export type SimSwapPattern = typeof simSwapPatterns.$inferSelect;
 export type InsertSimSwapPattern = typeof simSwapPatterns.$inferInsert;
+
+
+/**
+ * Monitored assets for real-time monitoring and alerts
+ */
+export const monitoredAssets = mysqlTable("monitoredAssets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  assetType: mysqlEnum("assetType", ["domain", "ip", "service", "email"]).notNull(),
+  assetValue: varchar("assetValue", { length: 255 }).notNull(),
+  description: text("description"),
+  scanFrequency: mysqlEnum("scanFrequency", ["daily", "weekly", "monthly"]).default("daily").notNull(),
+  isActive: int("isActive").default(1), // boolean as int
+  lastScanned: timestamp("lastScanned"),
+  nextScan: timestamp("nextScan"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type MonitoredAsset = typeof monitoredAssets.$inferSelect;
+export type InsertMonitoredAsset = typeof monitoredAssets.$inferInsert;
+
+/**
+ * Alert rules for threat detection
+ */
+export const alertRules = mysqlTable("alertRules", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  ruleType: mysqlEnum("ruleType", ["new_port", "ssl_expiry", "dns_change", "subdomain_found", "ip_reputation", "service_version"]).notNull(),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  isEnabled: int("isEnabled").default(1), // boolean as int
+  notifyEmail: int("notifyEmail").default(1), // boolean as int
+  notifyDashboard: int("notifyDashboard").default(1), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AlertRule = typeof alertRules.$inferSelect;
+export type InsertAlertRule = typeof alertRules.$inferInsert;
+
+/**
+ * Alerts generated from monitoring
+ */
+export const alerts = mysqlTable("alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  alertType: mysqlEnum("alertType", ["new_port", "ssl_expiry", "dns_change", "subdomain_found", "ip_reputation", "service_version"]).notNull(),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  details: text("details"), // JSON with detailed information
+  isRead: int("isRead").default(0), // boolean as int
+  isResolved: int("isResolved").default(0), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+});
+export type Alert = typeof alerts.$inferSelect;
+export type InsertAlert = typeof alerts.$inferInsert;
+
+/**
+ * Scan history for change detection
+ */
+export const monitoringScanHistory = mysqlTable("monitoringScanHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  scanType: varchar("scanType", { length: 50 }).notNull(),
+  previousResults: text("previousResults"), // JSON of previous scan results
+  currentResults: text("currentResults"), // JSON of current scan results
+  changeDetected: int("changeDetected").default(0), // boolean as int
+  changeDetails: text("changeDetails"), // JSON with what changed
+  status: mysqlEnum("status", ["pending", "running", "completed", "error"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MonitoringScanHistory = typeof monitoringScanHistory.$inferSelect;
+export type InsertMonitoringScanHistory = typeof monitoringScanHistory.$inferInsert;
