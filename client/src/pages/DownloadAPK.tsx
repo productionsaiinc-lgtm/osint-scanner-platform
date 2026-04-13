@@ -213,6 +213,21 @@ export function DownloadAPK() {
                 Currently, the app is only available for Android. iOS support is planned for future releases.
               </CardContent>
             </Card>
+
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-base">Parse Error - Build Locally</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-300">
+                <p className="mb-3">To build a working APK locally:</p>
+                <ol className="space-y-2 text-sm list-decimal list-inside">
+                  <li>Use Expo (easiest, no setup)</li>
+                  <li>Use Android Studio</li>
+                  <li>Use React Native CLI</li>
+                </ol>
+                <p className="mt-3 text-xs text-slate-400">See APK_BUILD_GUIDE.md for details.</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
