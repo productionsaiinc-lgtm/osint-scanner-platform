@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { updateMetaTags, pageMetadata } from "@/lib/seo";
+import PayPalButton from "@/components/PayPalButton";
 
 export default function Pricing() {
   const { user } = useAuth();
@@ -124,13 +125,9 @@ export default function Pricing() {
               <p className="text-gray-400 text-sm mt-2">Billed monthly or yearly</p>
             </div>
 
-            <Button
-              onClick={() => handleUpgrade("pro")}
-              className="w-full mb-8 bg-neon-pink text-black hover:bg-neon-pink/80 font-bold"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              Upgrade Now
-            </Button>
+            <div className="w-full mb-8">
+              <PayPalButton />
+            </div>
 
             <div className="space-y-4">
               <p className="font-semibold text-neon-pink mb-4">Everything in Free, plus:</p>

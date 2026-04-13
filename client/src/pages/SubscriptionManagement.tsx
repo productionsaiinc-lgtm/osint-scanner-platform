@@ -6,6 +6,7 @@ import { CreditCard, Crown, CheckCircle, AlertCircle, Loader2, Zap } from 'lucid
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { toast } from 'sonner';
+import PayPalButton from '@/components/PayPalButton';
 
 export function SubscriptionManagement() {
   const { user } = useAuth();
@@ -99,23 +100,7 @@ export function SubscriptionManagement() {
                   You are currently on the free plan
                 </AlertDescription>
               </Alert>
-              <Button
-                onClick={handlePremiumPurchase}
-                disabled={isLoading}
-                className="w-full bg-neon-pink hover:bg-neon-pink/80 text-black font-bold"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Upgrade to Premium - $20/month
-                  </>
-                )}
-              </Button>
+              <PayPalButton />
             </div>
           )}
         </CardContent>
