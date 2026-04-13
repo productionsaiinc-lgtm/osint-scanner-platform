@@ -1,26 +1,41 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Check, Zap } from "lucide-react";
-import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { updateMetaTags, pageMetadata } from "@/lib/seo";
 
 export default function Pricing() {
   const { user } = useAuth();
+
+  useEffect(() => {
+    updateMetaTags(pageMetadata.pricing);
+  }, []);
+
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const { data: plans, isLoading } = trpc.subscription.plans.useQuery();
+  const { data: plans, isLoading, error } = trpc.subscription.plans.useQuery();
   const { data: hasPremium } = trpc.subscription.hasPremium.useQuery();
 
-  const handleUpgrade = (planName: string) => {
+  if (error) {
+    console.error("Failed to load pricing plans:", error);
+  }
+
+  const handleUpgrade = async (planName: string) => {
     if (!user) {
       toast.error("Please log in to upgrade");
       return;
     }
 
-    setSelectedPlan(planName);
-    // In production, redirect to PayPal checkout
-    toast.info("Redirecting to PayPal...");
+    try {
+      setSelectedPlan(planName);
+      // Redirect to PayPal checkout
+      toast.info("Redirecting to PayPal...");
+    } catch (error) {
+      console.error("Upgrade error:", error);
+      toast.error("Failed to process upgrade");
+    }
   };
 
   const premiumFeatures = [
@@ -100,34 +115,22 @@ export default function Pricing() {
               POPULAR
             </div>
 
-          import React from 'react';
+            <div className="mb-6 mt-4">
+              <h2 className="text-2xl font-bold text-neon-pink mb-2">PRO</h2>
+              <div className="text-3xl font-bold text-neon-green">
+                $20
+                <span className="text-lg text-gray-400">/month</span>
+              </div>
+              <p className="text-gray-400 text-sm mt-2">Billed monthly or yearly</p>
+            </div>
 
-const PayPalBuyButton: React.FC = () => {
-  return (
-    <div>
-      <style>{`.pp-4KE9LVL5YMB78{ text-align:center; border:none; border-radius:0.25rem; min-width:11.625rem; padding:0 2rem; height:2.625rem; font-weight:bold; background-color:#FFD140; color:#000000; font-family:"Helvetica Neue",Arial,sans-serif; font-size:1rem; line-height:1.25rem; cursor:pointer; }`}</style>
-      <form
-        action="https://www.paypal.com/ncp/payment/4KE9LVL5YMB78"
-        method="post"
-        target="_blank"
-        style={{ display: 'inline-grid', justifyItems: 'center', alignContent: 'start', gap: '0.5rem' }}
-      >
-        <input className="pp-4KE9LVL5YMB78" type="submit" value="Buy Now" />
-        <img src="https://www.paypalobjects.com/images/Debit_Credit_APM.svg" alt="cards" />
-        <section style={{ fontSize: '0.75rem' }}>
-          Powered by{' '}
-          <img
-            src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
-            alt="paypal"
-            style={{ height: '0.875rem', verticalAlign: 'middle' }}
-          />
-        </section>
-      </form>
-    </div>
-  );
-};
-
-export default PayPalBuyButton;
+            <Button
+              onClick={() => handleUpgrade("pro")}
+              className="w-full mb-8 bg-neon-pink text-black hover:bg-neon-pink/80 font-bold"
+            >
+              <Zap className="h-4 w-4 mr-2" />
+              Upgrade Now
+            </Button>
 
             <div className="space-y-4">
               <p className="font-semibold text-neon-pink mb-4">Everything in Free, plus:</p>

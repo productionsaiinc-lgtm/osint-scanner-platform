@@ -4,33 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CreditCard, Crown, CheckCircle, AlertCircle, Loader2, Zap } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
-
-<div>  
-  <style>
-.pp-4KE9LVL5YMB78{text-align:center;
-border:none;
-border-radius:0.25rem;
-min-width:11.625rem;
-padding:0 2rem;
-height:2.625rem;
-font-weight:bold;
-background-color:#FFD140;
-color:#000000;
-font-family:"Helvetica Neue",Arial,sans-serif;
-font-size:1rem;
-line-height:1.25rem;
-cursor:pointer;
-}
-</style>
-  <form action="https://www.paypal.com/ncp/payment/4KE9LVL5YMB78" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-    <input class="pp-4KE9LVL5YMB78" type="submit" value="Buy Now" />
-<img src=https://www.paypalobjects.com/images/Debit_Credit_APM.svg alt="cards" />
-    <section style="font-size: 0.75rem;"> Powered by <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
-  </form>
-</div>
-
+import { useAuth } from '@/_core/hooks/useAuth';
+import { toast } from 'sonner';
 
 export function SubscriptionManagement() {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -43,251 +21,190 @@ export function SubscriptionManagement() {
   const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
 
   const handlePremiumPurchase = async () => {
+    if (!user) {
+      toast.error('Please log in to purchase premium');
+      return;
+    }
+
     setIsLoading(true);
     setError('');
     try {
       const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
       if (result.checkoutUrl && result.orderId) {
         setOrderId(result.orderId);
-        // Open PayPal checkout in new window
-        const paypalWindow = window.open(result.checkoutUrl, 'paypal_checkout', 'width=800,height=600');
-        
-        // Check if user returned from PayPal
-        const checkInterval = setInterval(() => {
-          if (paypalWindow?.closed) {
-            clearInterval(checkInterval);
-            // Attempt to capture the order
-            handleCapturePayPalOrder(result.orderId);
-          }
-        }, 1000);
-      } else {
-        setError('Failed to create PayPal order. Please try again.');
+        window.open(result.checkoutUrl, '_blank');
+        toast.info('Redirecting to PayPal checkout...');
       }
     } catch (err) {
-      setError('Payment error. Please try again.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create checkout';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCapturePayPalOrder = async (id: string) => {
+  const handleCaptureOrder = async () => {
+    if (!orderId) {
+      toast.error('No order ID found');
+      return;
+    }
+
     setIsLoading(true);
-    setError('');
     try {
-      const result = await capturePayPalOrder.mutateAsync({ orderId: id });
-      if (result.success) {
-        setOrderId(null);
-        // Refresh subscription status
-        window.location.reload();
-      } else {
-        setError('Failed to capture payment. Please try again.');
-      }
+      await capturePayPalOrder.mutateAsync({ orderId });
+      toast.success('Payment captured successfully!');
+      setOrderId(null);
     } catch (err) {
-      setError('Payment capture error. Please try again.');
-      console.error(err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to capture order';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpgrade = async (planId: number) => {
-    setIsLoading(true);
-    setError('');
+  const handleGetReceipt = async (paymentId: number) => {
     try {
-      const result = await createCheckout.mutateAsync({ priceId: 'premium_20' });
-      if (result.checkoutUrl && result.orderId) {
-        setOrderId(result.orderId);
-        const paypalWindow = window.open(result.checkoutUrl, 'paypal_checkout', 'width=800,height=600');
-        
-        const checkInterval = setInterval(() => {
-          if (paypalWindow?.closed) {
-            clearInterval(checkInterval);
-            handleCapturePayPalOrder(result.orderId);
-          }
-        }, 1000);
-      } else {
-        setError('Failed to create PayPal order. Please try again.');
-      }
+      // For now, just show a toast
+      toast.info('Receipt generation coming soon');
     } catch (err) {
-      setError('Payment error. Please try again.');
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+      console.error('Receipt error:', err);
+      toast.error('Failed to generate receipt');
     }
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold text-cyan-400 flex items-center gap-2">
-          <CreditCard className="w-8 h-8" />
-          Subscription Management
-        </h1>
-        <p className="text-gray-400 mt-2">Manage your OSINT Scanner subscription and billing</p>
-      </div>
-
-      {/* Premium Purchase CTA */}
-      {!hasPremium && (
-        <Card className="border-l-4 border-l-neon-green border-gray-600/30 bg-gradient-to-r from-neon-green/10 to-transparent">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <Zap className="w-8 h-8 text-neon-green flex-shrink-0" />
-                <div>
-                  <div className="text-lg font-bold text-neon-green">Unlock Premium Features</div>
-                  <div className="text-sm text-gray-400 mt-1">Get unlimited scans, advanced tools, and priority support</div>
-                </div>
-              </div>
-              <Button
-                onClick={handlePremiumPurchase}
-                disabled={isLoading}
-                className="bg-neon-green hover:bg-neon-green/80 text-black font-bold text-lg px-8 py-6 h-auto whitespace-nowrap flex-shrink-0"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-5 h-5 mr-2" />
-                    Upgrade for $20 (PayPal)
-                  </>
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <Alert className="border-red-500/30 bg-red-500/10">
-          <AlertCircle className="h-4 w-4 text-red-500" />
-          <AlertDescription className="text-red-400">{error}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Current Subscription */}
-      <Card className="border-cyan-500/30 bg-black/40">
+    <div className="space-y-6">
+      {/* Current Subscription Status */}
+      <Card className="border-neon-pink/30 bg-black/50">
         <CardHeader>
-          <CardTitle className="text-cyan-400 flex items-center gap-2">
+          <CardTitle className="text-neon-pink flex items-center gap-2">
             <Crown className="w-5 h-5" />
-            Current Plan
+            Subscription Status
           </CardTitle>
         </CardHeader>
         <CardContent>
           {hasPremium ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
-                  <div className="text-xs text-gray-400">Plan Name</div>
-                  <div className="text-lg font-bold text-cyan-400 mt-1 capitalize">
-                    Pro
-                  </div>
-                </div>
-                <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
-                  <div className="text-xs text-gray-400">Status</div>
-                  <div className="text-lg font-bold text-green-400 mt-1 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4" />
-                    Active
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 border border-cyan-500/30 rounded bg-cyan-500/5">
-                <div className="text-xs text-gray-400 mb-2">Included Features</div>
-                <div className="space-y-1">
-                  <div className="text-sm text-cyan-400 flex items-center gap-2">
-                    <CheckCircle className="w-3 h-3" />
-                    Advanced OSINT Tools
-                  </div>
-                  <div className="text-sm text-cyan-400 flex items-center gap-2">
-                    <CheckCircle className="w-3 h-3" />
-                    Priority Support
-                  </div>
-                  <div className="text-sm text-cyan-400 flex items-center gap-2">
-                    <CheckCircle className="w-3 h-3" />
-                    Custom Reports
-                  </div>
-                  <div className="text-sm text-cyan-400 flex items-center gap-2">
-                    <CheckCircle className="w-3 h-3" />
-                    Unlimited Scans
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <Alert className="border-yellow-500/30 bg-yellow-500/10">
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
-              <AlertDescription className="text-yellow-400">
-                You are currently on the Free plan. Upgrade to Pro to unlock premium features.
+            <Alert className="border-neon-green/30 bg-neon-green/10">
+              <CheckCircle className="h-4 w-4 text-neon-green" />
+              <AlertDescription className="text-neon-green">
+                You have an active premium subscription
               </AlertDescription>
             </Alert>
+          ) : (
+            <div className="space-y-4">
+              <Alert className="border-neon-cyan/30 bg-neon-cyan/10">
+                <AlertCircle className="h-4 w-4 text-neon-cyan" />
+                <AlertDescription className="text-neon-cyan">
+                  You are currently on the free plan
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={handlePremiumPurchase}
+                disabled={isLoading}
+                className="w-full bg-neon-pink hover:bg-neon-pink/80 text-black font-bold"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Upgrade to Premium - $20/month
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Available Plans */}
-      {plans && plans.length > 0 && (
-        <Card className="border-purple-500/30 bg-black/40">
+      {/* Order Capture */}
+      {orderId && (
+        <Card className="border-neon-cyan/30 bg-black/50">
           <CardHeader>
-            <CardTitle className="text-purple-400">Available Plans</CardTitle>
+            <CardTitle className="text-neon-cyan">Complete Payment</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {plans.map((plan: any) => (
+            <p className="text-gray-300 mb-4">Order ID: {orderId}</p>
+            <Button
+              onClick={handleCaptureOrder}
+              disabled={isLoading}
+              className="w-full bg-neon-cyan hover:bg-neon-cyan/80 text-black font-bold"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Capturing...
+                </>
+              ) : (
+                'Capture Payment'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <Alert className="border-red-500/30 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-500">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Payment History */}
+      {paymentHistory && paymentHistory.length > 0 && (
+        <Card className="border-neon-green/30 bg-black/50">
+          <CardHeader>
+            <CardTitle className="text-neon-green flex items-center gap-2">
+              <CreditCard className="w-5 h-5" />
+              Payment History
+            </CardTitle>
+            <CardDescription>Your recent transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {paymentHistory.map((payment: any) => (
                 <div
-                  key={plan.id}
-                  className={`p-4 border rounded ${
-                    hasPremium && plan.name === 'pro'
-                      ? 'border-green-500/50 bg-green-500/10'
-                      : 'border-purple-500/30 bg-purple-500/5'
-                  }`}
+                  key={payment.id}
+                  className="flex items-center justify-between p-3 rounded border border-neon-cyan/20 hover:border-neon-cyan/50 cursor-pointer transition-colors"
+                  onClick={() => setSelectedPaymentId(payment.id)}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-lg font-bold text-purple-400 capitalize">
-                      {plan.name}
-                    </div>
-                    {hasPremium && plan.name === 'pro' && (
-                      <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-400">
-                        Current
-                      </span>
+                  <div className="flex-1">
+                    <p className="text-neon-cyan font-semibold">${payment.amount.toFixed(2)}</p>
+                    <p className="text-gray-400 text-sm">
+                      {new Date(payment.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-3 py-1 rounded text-xs font-semibold ${
+                        payment.status === 'completed'
+                          ? 'bg-neon-green/20 text-neon-green'
+                          : payment.status === 'pending'
+                            ? 'bg-neon-yellow/20 text-neon-yellow'
+                            : 'bg-red-500/20 text-red-500'
+                      }`}
+                    >
+                      {payment.status}
+                    </span>
+                    {payment.status === 'completed' && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleGetReceipt(payment.id);
+                        }}
+                        className="border-neon-cyan/30 hover:border-neon-cyan text-neon-cyan text-xs"
+                      >
+                        Receipt
+                      </Button>
                     )}
                   </div>
-                  <div className="text-2xl font-bold text-cyan-400 mb-3">
-                    ${(plan.price / 100).toFixed(2)}
-                    <span className="text-sm text-gray-400">/month</span>
-                  </div>
-                  {plan.features && (
-                    <div className="space-y-2 mb-4">
-                      {plan.features.map((feature: string, idx: number) => (
-                        <div key={idx} className="text-xs text-gray-400 flex items-center gap-2">
-                          <CheckCircle className="w-3 h-3 text-green-400" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {!(hasPremium && plan.name === 'pro') && (
-                    <Button
-                      onClick={() => handleUpgrade(plan.id)}
-                      disabled={isLoading}
-                      className="w-full bg-neon-purple hover:bg-neon-purple/80 text-black font-semibold"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Upgrade for $20 (PayPal)
-                        </>
-                      )}
-                    </Button>
-                  )}
                 </div>
               ))}
             </div>
@@ -295,68 +212,18 @@ export function SubscriptionManagement() {
         </Card>
       )}
 
-      {/* Billing Information */}
-      <Card className="border-pink-500/30 bg-black/40">
-        <CardHeader>
-          <CardTitle className="text-pink-400">Billing Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <Alert className="border-blue-500/30 bg-blue-500/10">
-              <AlertCircle className="h-4 w-4 text-blue-500" />
-              <AlertDescription className="text-blue-400">
-                Invoices and receipts are sent to your email address. Payments are processed via PayPal.
-              </AlertDescription>
-            </Alert>
-            <div className="p-3 border border-pink-500/30 rounded bg-pink-500/5">
-              <div className="text-xs text-gray-400">Payment Method</div>
-              <div className="text-sm text-pink-400 mt-2 space-y-1">
-                <div>🏦 PayPal - productions.ai.inc@gmail.com</div>
-                <div className="text-xs text-gray-500 mt-2">Secure payment processing via PayPal</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Payment History */}
-      {paymentHistory && paymentHistory.length > 0 && (
-        <Card className="border-green-500/30 bg-black/40">
+      {/* Plans Information */}
+      {plans && (
+        <Card className="border-neon-purple/30 bg-black/50">
           <CardHeader>
-            <CardTitle className="text-green-400 flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              Payment History
-            </CardTitle>
+            <CardTitle className="text-neon-purple">Available Plans</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {paymentHistory.map((payment: any) => (
-                <div
-                  key={payment.id}
-                  className="p-3 border border-green-500/20 rounded bg-green-500/5 hover:bg-green-500/10 cursor-pointer transition"
-                  onClick={() => setSelectedPaymentId(payment.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-green-400">
-                        ${(payment.amount / 100).toFixed(2)} {payment.currency}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(payment.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs px-2 py-1 rounded ${
-                        payment.status === 'completed'
-                          ? 'bg-green-500/20 text-green-400'
-                          : payment.status === 'pending'
-                          ? 'bg-yellow-500/20 text-yellow-400'
-                          : 'bg-red-500/20 text-red-400'
-                      }`}>
-                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
+            <div className="space-y-3">
+              {plans.map((plan: any) => (
+                <div key={plan.id} className="p-3 rounded border border-neon-purple/20">
+                  <p className="text-neon-purple font-semibold">{plan.name}</p>
+                  <p className="text-gray-400 text-sm">${plan.price}/month</p>
                 </div>
               ))}
             </div>
