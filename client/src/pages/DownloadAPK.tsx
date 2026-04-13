@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Download, Smartphone, Zap, Shield, Users } from "lucide-react";
 
 export function DownloadAPK() {
-  const apkUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-v1.0.0_695a488c.zip";
+  const apkUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-v1.0.0_35c9fb2d.zip";
   
   const features = [
     {
@@ -103,7 +103,7 @@ export function DownloadAPK() {
                   className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white font-bold"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Download APK (v1.0.0)
+                  Download APK (v1.0.0 - React Native)
                 </Button>
               </a>
               <p className="text-xs text-slate-400 mt-2 text-center">
