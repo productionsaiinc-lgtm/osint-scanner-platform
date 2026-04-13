@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Download, Smartphone, Zap, Shield, Users } from "lucide-react";
 
 export function DownloadAPK() {
-  const apkUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-v1.0.0_52de2cb6.zip";
+  const apkUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-final_6a7b79c7.zip";
   
   const features = [
     {
