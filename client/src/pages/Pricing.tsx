@@ -100,15 +100,6 @@ export default function Pricing() {
               POPULAR
             </div>
 
-            <div className="mb-6 mt-4">
-              <h2 className="text-2xl font-bold text-neon-pink mb-2">PRO</h2>
-              <div className="text-3xl font-bold text-neon-green">
-                $20
-                <span className="text-lg text-gray-400">/month</span>
-              </div>
-              <p className="text-gray-400 text-sm mt-2">Billed monthly or yearly</p>
-            </div>
-
            <div>
   <style>.pp-4KE9LVL5YMB78{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
   <form action="https://www.paypal.com/ncp/payment/4KE9LVL5YMB78" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
