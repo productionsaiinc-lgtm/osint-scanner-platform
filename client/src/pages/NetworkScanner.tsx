@@ -162,7 +162,7 @@ export default function NetworkScanner() {
           {activeTab === "network" ? (
             // Network scan results
             <div className="space-y-4">
-              {scanResults.ports && Array.isArray(scanResults.ports.ports) && (
+              {scanResults.ports && scanResults.ports.ports && Array.isArray(scanResults.ports.ports) && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">Open Ports</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">

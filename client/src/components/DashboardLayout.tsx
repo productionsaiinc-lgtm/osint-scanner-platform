@@ -240,8 +240,8 @@ function DashboardLayoutContent({
                       onClick={() => {
                         if (item.action === "download-apk") {
                           const link = document.createElement('a');
-                          link.href = '/osint-scanner.apk';
-                          link.download = 'osint-scanner.apk';
+                          link.href = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-final_6a7b79c7.zip';
+                          link.download = 'osint-scanner-v1.0.0.zip';
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
