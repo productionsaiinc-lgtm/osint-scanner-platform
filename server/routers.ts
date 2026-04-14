@@ -16,6 +16,7 @@ import { monitoringRouter } from "./monitoring-router";
 import { scanForVulnerabilities, analyzeUrlPatterns } from "./vulnerability-scanner-service";
 import { analyzeSSLConfiguration, validateCertificateChain } from "./ssl-certificate-analyzer-service";
 import { newSecurityToolsRouter } from "./new-security-tools-router";
+import { exportRouter } from "./export-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -26,6 +27,7 @@ export const appRouter = router({
   simSwap: simSwapRouter,
   monitoring: monitoringRouter,
   securityTools: newSecurityToolsRouter,
+  export: exportRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

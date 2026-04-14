@@ -452,12 +452,14 @@
 ## Phase 19: Advanced Export and Real API Integrations
 
 ### Result Export Functionality
-- [ ] Install export dependencies (jsPDF, xlsx)
-- [ ] Implement PDF export for scan results
-- [ ] Implement CSV export for scan results
-- [ ] Implement JSON export for scan results
-- [ ] Create tRPC export procedures
-- [ ] Wire export to frontend UI
+- [x] Install export dependencies (jsPDF, xlsx)
+- [x] Implement PDF export for scan results
+- [x] Implement CSV export for scan results
+- [x] Implement JSON export for scan results
+- [x] Create tRPC export procedures (export-router.ts with 4 mutations)
+- [x] Create ExportButton component for frontend UI
+- [ ] Wire export buttons to ScanHistory page
+- [ ] Wire export buttons to individual scan detail pages
 - [ ] Create export templates
 - [ ] Add scheduled report generation
 - [ ] Implement email report delivery
