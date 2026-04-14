@@ -48,6 +48,8 @@ const menuItems = [
   { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
   { icon: Eye, label: "Monitoring", path: "/monitoring" },
   { icon: Archive, label: "Alert History", path: "/alert-history" },
+  { icon: Shield, label: "Vulnerability Scanner", path: "/vulnerability-scanner" },
+  { icon: Lock, label: "SSL Analyzer", path: "/ssl-analyzer" },
   { icon: Info, label: "About", path: "/about" },
   { icon: CreditCard, label: "Pricing", path: "/pricing" },
   { icon: Zap, label: "Subscription", path: "/subscription" },

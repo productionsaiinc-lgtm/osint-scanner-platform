@@ -34,6 +34,8 @@ import { PaymentCancel } from "./pages/PaymentCancel";
 import { DownloadAPK } from "./pages/DownloadAPK";
 import Monitoring from "./pages/Monitoring";
 import AlertHistory from "./pages/AlertHistory";
+import VulnerabilityScanner from "./pages/VulnerabilityScanner";
+import SSLAnalyzer from "./pages/SSLAnalyzer";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -90,6 +92,8 @@ function Router() {
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/monitoring"} component={MonitoringPage} />
       <Route path={"/alert-history"} component={AlertHistoryPage} />
+      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
+      <Route path={"/ssl-analyzer"} component={SSLAnalyzerPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -292,6 +296,22 @@ function AlertHistoryPage() {
   return (
     <DashboardLayout>
       <AlertHistory />
+    </DashboardLayout>
+  );
+}
+
+function VulnerabilityScannerPage() {
+  return (
+    <DashboardLayout>
+      <VulnerabilityScanner />
+    </DashboardLayout>
+  );
+}
+
+function SSLAnalyzerPage() {
+  return (
+    <DashboardLayout>
+      <SSLAnalyzer />
     </DashboardLayout>
   );
 }

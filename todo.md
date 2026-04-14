@@ -727,3 +727,28 @@
 - [x] Add "Monitoring" to sidebar navigation (Eye icon)
 - [x] Add "Alert History" to sidebar navigation (Archive icon)
 - [x] Test end-to-end monitoring flow
+
+
+## Phase 26: Vulnerability Scanner & SSL/TLS Certificate Analyzer
+
+### Vulnerability Scanner
+- [x] Create vulnerability-scanner-service.ts with common vulnerability checks
+- [x] Implement SQL injection detection
+- [x] Implement XSS vulnerability detection
+- [x] Implement CSRF vulnerability detection
+- [x] Implement security header analysis
+- [x] Add tRPC procedure for vulnerability scanning
+- [x] Build VulnerabilityScanner.tsx UI page
+- [x] Add to sidebar navigation
+
+### SSL/TLS Certificate Analyzer
+- [x] Create ssl-certificate-analyzer-service.ts
+- [x] Implement certificate chain validation
+- [x] Implement cipher suite analysis
+- [x] Implement SSL/TLS version detection
+- [x] Implement certificate expiry checking
+- [x] Implement security header analysis
+- [x] Add tRPC procedure for SSL analysis
+- [x] Build SSLAnalyzer.tsx UI page
+- [x] Add to sidebar navigation
+- [x] Test both tools end-to-end

@@ -13,6 +13,8 @@ import { vpnConnectionRouter } from "./vpn-connection-router";
 import { phoneImeiRouter } from "./phone-imei-router";
 import { simSwapRouter } from "./sim-swap-router";
 import { monitoringRouter } from "./monitoring-router";
+import { scanForVulnerabilities, analyzeUrlPatterns } from "./vulnerability-scanner-service";
+import { analyzeSSLConfiguration, validateCertificateChain } from "./ssl-certificate-analyzer-service";
 
 export const appRouter = router({
   system: systemRouter,
@@ -548,7 +550,28 @@ Provide the analysis in a clear, structured format suitable for security profess
           totalAPIs: Object.keys(status).length,
         };
       }),
+    // Vulnerability Scanner
+    scanVulnerabilities: protectedProcedure
+      .input(z.object({ target: z.string() }))
+      .mutation(async ({ input }) => {
+        try {
+          const results = await scanForVulnerabilities(input.target);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: error instanceof Error ? error.message : "Vulnerability scan failed" };
+        }
+      }),
+
+    // SSL/TLS Certificate Analyzer
+    analyzeSSL: protectedProcedure
+      .input(z.object({ hostname: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await analyzeSSLConfiguration(input.hostname);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: error instanceof Error ? error.message : "SSL analysis failed" };
+        }
+      }),
   }),
 });
-
-export type AppRouter = typeof appRouter;
