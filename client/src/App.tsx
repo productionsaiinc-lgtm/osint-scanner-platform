@@ -44,6 +44,8 @@ import { WHOISLookup } from "./pages/WHOISLookup";
 import { MetadataExtractor } from "./pages/MetadataExtractor";
 import PentestLab from "./pages/PentestLab";
 import CanaryTokens from "./pages/CanaryTokens";
+import CheckoutPage from "./pages/CheckoutPage";
+import PaymentAnalytics from "./pages/PaymentAnalytics";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -109,6 +111,8 @@ function Router() {
       <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
       <Route path={"/pentest-lab"} component={PentestLabPage} />
       <Route path={"/canary-tokens"} component={CanaryTokensPage} />
+      <Route path={"/checkout"} component={CheckoutPageWrapper} />
+      <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
@@ -392,6 +396,22 @@ function CanaryTokensPage() {
   return (
     <DashboardLayout>
       <CanaryTokens />
+    </DashboardLayout>
+  );
+}
+
+function CheckoutPageWrapper() {
+  return (
+    <DashboardLayout>
+      <CheckoutPage />
+    </DashboardLayout>
+  );
+}
+
+function PaymentAnalyticsPage() {
+  return (
+    <DashboardLayout>
+      <PaymentAnalytics />
     </DashboardLayout>
   );
 }
