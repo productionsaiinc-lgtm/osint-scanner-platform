@@ -18,6 +18,7 @@ import { analyzeSSLConfiguration, validateCertificateChain } from "./ssl-certifi
 import { newSecurityToolsRouter } from "./new-security-tools-router";
 import { exportRouter } from "./export-router";
 import { paymentMethodsRouter } from "./payment-methods-router";
+import { payoutEnhancementsRouter } from "./payout-enhancements-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -30,6 +31,7 @@ export const appRouter = router({
   securityTools: newSecurityToolsRouter,
   export: exportRouter,
   paymentMethods: paymentMethodsRouter,
+  payoutEnhancements: payoutEnhancementsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

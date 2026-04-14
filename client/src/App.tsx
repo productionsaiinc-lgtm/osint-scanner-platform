@@ -18,6 +18,7 @@ import { CVESearch } from "./pages/CVESearch";
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
+import { PayoutDashboardEnhanced } from "./pages/PayoutDashboardEnhanced";
 import { ShodanSearch } from "./pages/ShodanSearch";
 import { NotificationCenter } from "./pages/NotificationCenter";
 import { PhoneLookup } from "./pages/PhoneLookup";
@@ -87,6 +88,7 @@ function Router() {
       <Route path={"/email-verify"} component={EmailVerifyPage} />
       <Route path={"/subscription"} component={SubscriptionManagementPage} />
       <Route path={"/payouts"} component={PayoutDashboardPage} />
+      <Route path={"/payouts-enhanced"} component={PayoutDashboardEnhancedPage} />
       <Route path={"/shodan"} component={ShodanSearchPage} />
       <Route path={"/notifications"} component={NotificationCenterPage} />
       <Route path={"/phone-lookup"} component={PhoneLookupPage} />
@@ -212,6 +214,14 @@ function PayoutDashboardPage() {
   return (
     <DashboardLayout>
       <PayoutDashboard />
+    </DashboardLayout>
+  );
+}
+
+function PayoutDashboardEnhancedPage() {
+  return (
+    <DashboardLayout>
+      <PayoutDashboardEnhanced />
     </DashboardLayout>
   );
 }
