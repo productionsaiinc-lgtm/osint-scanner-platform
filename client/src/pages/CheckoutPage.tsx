@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "wouter";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ interface PaymentMethod {
 }
 
 export default function CheckoutPage() {
-  const navigate = useNavigate();
+  const [location, navigate] = useLocation();
   const [selectedPlan, setSelectedPlan] = useState<number>(2); // Default to Pro
   const [selectedMethod, setSelectedMethod] = useState<string>("stripe_card");
   const [step, setStep] = useState<"plan" | "payment" | "confirmation">("plan");
@@ -342,19 +342,19 @@ export default function CheckoutPage() {
             )}
 
             <div className="flex gap-4">
-              <Button
-                onClick={() => navigate("/pricing")}
-                variant="outline"
-                className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
-              >
-                View Pricing
-              </Button>
-              <Button
-                onClick={() => navigate("/dashboard")}
-                className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-900 font-bold"
-              >
-                Go to Dashboard
-              </Button>
+            <Button
+              onClick={() => navigate("/pricing")}
+              variant="outline"
+              className="flex-1 border-slate-600 text-slate-300 hover:bg-slate-700"
+            >
+              View Pricing
+            </Button>
+            <Button
+              onClick={() => navigate("/")}
+              className="flex-1 bg-cyan-500 hover:bg-cyan-600 text-slate-900 font-bold"
+            >
+              Go to Dashboard
+            </Button>
             </div>
           </div>
         )}
