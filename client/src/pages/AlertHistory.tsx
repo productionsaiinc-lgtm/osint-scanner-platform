@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import React from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,23 +51,23 @@ export default function AlertHistory() {
 
     // Filter by severity
     if (filterSeverity !== "all") {
-      filtered = filtered.filter((a) => a.severity === filterSeverity);
+      filtered = filtered.filter((a: Alert) => a.severity === filterSeverity);
     }
 
     // Filter by status
     if (filterStatus === "unread") {
-      filtered = filtered.filter((a) => !a.isRead);
+      filtered = filtered.filter((a: Alert) => !a.isRead);
     } else if (filterStatus === "unresolved") {
-      filtered = filtered.filter((a) => !a.isResolved);
+      filtered = filtered.filter((a: Alert) => !a.isResolved);
     } else if (filterStatus === "resolved") {
-      filtered = filtered.filter((a) => a.isResolved);
+      filtered = filtered.filter((a: Alert) => a.isResolved);
     }
 
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        (a) =>
+        (a: Alert) =>
           a.title.toLowerCase().includes(term) ||
           a.description.toLowerCase().includes(term) ||
           a.alertType.toLowerCase().includes(term)
@@ -75,12 +76,12 @@ export default function AlertHistory() {
 
     // Sort
     if (sortBy === "newest") {
-      filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      filtered.sort((a: Alert, b: Alert) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortBy === "oldest") {
-      filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      filtered.sort((a: Alert, b: Alert) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     } else if (sortBy === "severity") {
       const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
-      filtered.sort((a, b) => (severityOrder[a.severity] || 4) - (severityOrder[b.severity] || 4));
+      filtered.sort((a: Alert, b: Alert) => (severityOrder[a.severity] || 4) - (severityOrder[b.severity] || 4));
     }
 
     return filtered;
@@ -278,7 +279,8 @@ export default function AlertHistory() {
             </CardContent>
           </Card>
         ) : filteredAlerts.length > 0 ? (
-          filteredAlerts.map((alert) => (
+          <div className="space-y-3">
+            {filteredAlerts.map((alert: Alert) => (
             <Card
               key={alert.id}
               className={`border-l-4 ${
@@ -309,11 +311,11 @@ export default function AlertHistory() {
                       <span>Type: {alert.alertType.replace(/_/g, " ").toUpperCase()}</span>
                       <span>{new Date(alert.createdAt).toLocaleString()}</span>
                     </div>
-                    {alert.details && (
-                      <div className="mt-3 p-2 bg-gray-800 rounded text-xs text-gray-400 max-h-24 overflow-y-auto">
-                        <pre>{JSON.stringify(alert.details, null, 2)}</pre>
-                      </div>
-                    )}
+              {alert.details && (
+                <div className="mt-4 p-4 bg-gray-900 rounded text-sm font-mono text-gray-300">
+                  <pre>{JSON.stringify(alert.details as any, null, 2)}</pre>
+                </div>
+              )}
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
@@ -341,7 +343,8 @@ export default function AlertHistory() {
                 </div>
               </CardContent>
             </Card>
-          ))
+            ))}
+          </div>
         ) : (
           <Card className="bg-gray-900 border-neon-cyan/30">
             <CardContent className="pt-6 text-center">

@@ -41,7 +41,7 @@
 - [x] Build scan history view with filtering
 - [x] Implement search functionality
 - [x] Add result detail view
-- [ ] Implement result export functionality
+- [x] Implement result export functionality
 
 ## Phase 7: LLM-Powered Analysis
 - [x] Integrate LLM API for threat analysis (tRPC procedure)
@@ -85,8 +85,8 @@
 - [x] Implement advanced port scanning (simulated)
 - [x] Add service version detection (simulated)
 - [x] Implement OS fingerprinting (simulated)
-- [ ] Add UDP port scanning
-- [ ] Implement SYN stealth scanning
+- [x] Add UDP port scanning
+- [x] Implement SYN stealth scanning
 - [x] Add vulnerability scanning - CVE lookup (simulated)
 - [ ] Integrate real Nmap scanner
 - [ ] Integrate real service fingerprinting tools
@@ -94,7 +94,7 @@
 ### Domain & Web Reconnaissance
 - [x] Implement reverse DNS lookup (simulated)
 - [x] Add MX record enumeration (simulated)
-- [ ] Implement SPF/DKIM/DMARC record lookup
+- [x] Implement SPF/DKIM/DMARC record lookup
 - [x] Add HTTP header analysis (simulated)
 - [x] Implement SSL/TLS certificate chain analysis (simulated)
 - [ ] Add certificate transparency log search
@@ -116,7 +116,7 @@
 
 ### IP & ASN Intelligence
 - [x] Implement ASN lookup (simulated)
-- [ ] Add IP reputation scoring
+- [x] Add IP reputation scoring
 - [x] Implement reverse IP lookup (simulated)
 - [x] Add IP geolocation with ISP info
 - [ ] Implement netblock enumeration

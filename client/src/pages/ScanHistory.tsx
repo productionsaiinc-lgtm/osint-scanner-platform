@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Clock, Search, Loader2, Eye } from "lucide-react";
+import { Clock, Search, Loader2, Eye, Download, FileJson, FileText } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 export default function ScanHistory() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,6 +18,70 @@ export default function ScanHistory() {
     const matchesType = filterType === "all" || scan.scanType === filterType;
     return matchesSearch && matchesType;
   }) || [];
+
+  const exportAsJSON = (scans: any[]) => {
+    const data = JSON.stringify(scans, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scan-history-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as JSON");
+  };
+
+  const exportAsCSV = (scans: any[]) => {
+    const headers = ["ID", "Target", "Type", "Status", "Date", "Results"];
+    const rows = scans.map(scan => [
+      scan.id,
+      scan.target,
+      scan.scanType,
+      scan.status,
+      new Date(scan.createdAt).toLocaleString(),
+      typeof scan.rawResults === "string" ? scan.rawResults : JSON.stringify(scan.rawResults)
+    ]);
+    
+    const csv = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+    
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scan-history-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as CSV");
+  };
+
+  const exportAsMarkdown = (scans: any[]) => {
+    let markdown = "# Scan History Export\n\n";
+    markdown += `Generated: ${new Date().toLocaleString()}\n\n`;
+    markdown += `Total Scans: ${scans.length}\n\n`;
+    
+    scans.forEach((scan, idx) => {
+      markdown += `## Scan ${idx + 1}\n\n`;
+      markdown += `- **Target**: ${scan.target}\n`;
+      markdown += `- **Type**: ${scan.scanType}\n`;
+      markdown += `- **Status**: ${scan.status}\n`;
+      markdown += `- **Date**: ${new Date(scan.createdAt).toLocaleString()}\n\n`;
+      markdown += `### Results\n\`\`\`json\n`;
+      markdown += typeof scan.rawResults === "string" ? scan.rawResults : JSON.stringify(scan.rawResults, null, 2);
+      markdown += `\n\`\`\`\n\n`;
+    });
+    
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `scan-history-${new Date().toISOString().split('T')[0]}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as Markdown");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -91,6 +156,33 @@ export default function ScanHistory() {
             <div className="text-2xl font-bold neon-green">{filteredScans.length}</div>
           </div>
         </div>
+
+        {/* Export Buttons */}
+        {filteredScans.length > 0 && (
+          <div className="flex gap-2 pt-4 border-t border-[#ff006e]/20 flex-wrap">
+            <Button
+              onClick={() => exportAsJSON(filteredScans)}
+              className="flex-1 min-w-[150px] bg-[#00f5ff]/20 hover:bg-[#00f5ff]/30 border border-[#00f5ff]/50 text-[#00f5ff]"
+            >
+              <FileJson className="h-4 w-4 mr-2" />
+              JSON
+            </Button>
+            <Button
+              onClick={() => exportAsCSV(filteredScans)}
+              className="flex-1 min-w-[150px] bg-[#39ff14]/20 hover:bg-[#39ff14]/30 border border-[#39ff14]/50 text-[#39ff14]"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              CSV
+            </Button>
+            <Button
+              onClick={() => exportAsMarkdown(filteredScans)}
+              className="flex-1 min-w-[150px] bg-[#ff006e]/20 hover:bg-[#ff006e]/30 border border-[#ff006e]/50 text-[#ff006e]"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Markdown
+            </Button>
+          </div>
+        )}
       </Card>
 
       {/* Scans List */}

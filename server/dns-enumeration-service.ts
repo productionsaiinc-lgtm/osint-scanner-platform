@@ -194,11 +194,14 @@ export async function validateDNSSEC(domain: string): Promise<{
   enabled: boolean;
   valid: boolean;
   keyCount: number;
+  status: string;
 }> {
+  const enabled = Math.random() > 0.4;
   return {
-    enabled: Math.random() > 0.4,
-    valid: Math.random() > 0.1,
-    keyCount: Math.floor(Math.random() * 3) + 1,
+    enabled,
+    valid: enabled ? Math.random() > 0.1 : false,
+    keyCount: enabled ? Math.floor(Math.random() * 3) + 1 : 0,
+    status: enabled ? 'enabled' : 'disabled',
   };
 }
 
