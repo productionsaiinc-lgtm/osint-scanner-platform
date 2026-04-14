@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, Search, Loader2, Eye, Download, FileJson, FileText } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { ExportButton } from "@/components/ExportButton";
 
 export default function ScanHistory() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -219,17 +220,20 @@ export default function ScanHistory() {
                     {new Date(scan.createdAt).toLocaleString()}
                   </div>
                 </div>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedScan(scan);
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="border-[#ff006e]/30 hover:border-[#ff006e]"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <ExportButton scanId={scan.id} disabled={scan.status !== "completed"} />
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedScan(scan);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="border-[#ff006e]/30 hover:border-[#ff006e]"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Expanded Details */}

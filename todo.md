@@ -458,7 +458,8 @@
 - [x] Implement JSON export for scan results
 - [x] Create tRPC export procedures (export-router.ts with 4 mutations)
 - [x] Create ExportButton component for frontend UI
-- [ ] Wire export buttons to ScanHistory page
+- [x] Wire export buttons to ScanHistory page (with dropdown menu)
+- [x] Test export functionality end-to-end (JSON export verified)
 - [ ] Wire export buttons to individual scan detail pages
 - [ ] Create export templates
 - [ ] Add scheduled report generation
