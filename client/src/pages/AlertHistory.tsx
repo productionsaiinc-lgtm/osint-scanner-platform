@@ -25,11 +25,14 @@ export default function AlertHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "severity">("newest");
 
-  // Queries
-  const { data: alerts, isLoading, refetch } = trpc.monitoring.listAlerts.useQuery({
-    limit: 100,
-    unreadOnly: false,
-  });
+  // Queries - Disabled until database tables are created on deployment
+  const alerts: Alert[] = [];
+  const isLoading = false;
+  const refetch = () => {};
+  // const { data: alerts, isLoading, refetch } = trpc.monitoring.listAlerts.useQuery({
+  //   limit: 100,
+  //   unreadOnly: false,
+  // });
 
   // Mutations
   const markAlertReadMutation = trpc.monitoring.markAlertRead.useMutation({
