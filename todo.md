@@ -99,7 +99,7 @@
 - [x] Implement SSL/TLS certificate chain analysis (simulated)
 - [ ] Add certificate transparency log search
 - [x] Implement web technology detection (simulated)
-- [ ] Add robots.txt and sitemap enumeration
+- [x] Add robots.txt and sitemap enumeration
 - [ ] Integrate real DNS resolver
 - [ ] Integrate real certificate chain parser
 - [ ] Integrate Wappalyzer engine
@@ -108,9 +108,9 @@
 - [x] Implement email verification and validation (simulated)
 - [x] Add email breach database lookup (simulated)
 - [x] Implement username enumeration across platforms (simulated)
-- [ ] Add email format pattern detection
-- [ ] Implement person search (name + location)
-- [ ] Add phone number lookup and validation
+- [x] Add email format pattern detection
+- [x] Implement person search (name + location)
+- [x] Add phone number lookup and validation
 - [ ] Integrate HaveIBeenPwned API
 - [ ] Integrate real email verification service
 
