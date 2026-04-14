@@ -97,11 +97,13 @@ describe("Monitoring System", () => {
       if (assets.length > 0) {
         const assetId = assets[0].id;
         const result = await db.insert(alertRules).values({
+          userId: testUserId,
           monitoredAssetId: assetId,
           ruleType: "new_port",
           severity: "high",
           isEnabled: 1,
-          notificationMethod: "email",
+          notifyEmail: 1,
+          notifyDashboard: 1,
           createdAt: new Date(),
         });
 
@@ -429,11 +431,13 @@ describe("Monitoring System", () => {
 
         // Create alert rule
         await db.insert(alertRules).values({
+          userId: testUserId,
           monitoredAssetId: assetId,
           ruleType: "new_port",
           severity: "high",
           isEnabled: 1,
-          notificationMethod: "email",
+          notifyEmail: 1,
+          notifyDashboard: 1,
           createdAt: new Date(),
         });
 
