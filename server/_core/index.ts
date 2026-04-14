@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerStripeWebhook } from "../stripe-webhook";
 import { registerPayoutWebhook } from "../payout-webhook";
+import { ensureMonitoringTables } from "../migrations/create-monitoring-tables";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,6 +31,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run database migrations on startup
+  console.log("[Server] Running database migrations...");
+  await ensureMonitoringTables();
+  
   const app = express();
   const server = createServer(app);
   

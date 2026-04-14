@@ -25,29 +25,24 @@ export default function AlertHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "severity">("newest");
 
-  // Queries - Disabled until database tables are created on deployment
-  const alerts: Alert[] = [];
-  const isLoading = false;
-  const refetch = () => {};
-  // const { data: alerts, isLoading, refetch } = trpc.monitoring.listAlerts.useQuery({
-  //   limit: 100,
-  //   unreadOnly: false,
-  // });
+  // Queries - Now enabled with auto-migration on server startup
+  const { data: alerts, isLoading, refetch } = trpc.monitoring.listAlerts.useQuery({
+    limit: 100,
+    unreadOnly: false,
+  });
 
-  // Mutations - Disabled until database tables are created
-  const markAlertReadMutation = { mutateAsync: async (args: any) => {} };
-  const markAlertResolvedMutation = { mutateAsync: async (args: any) => {} };
-  // const markAlertReadMutation = trpc.monitoring.markAlertRead.useMutation({
-  //   onSuccess: () => {
-  //     refetch();
-  //   },
-  // });
-  // const markAlertResolvedMutation = trpc.monitoring.markAlertResolved.useMutation({
-  //   onSuccess: () => {
-  //     toast.success("Alert resolved");
-  //     refetch();
-  //   },
-  // });
+  // Mutations - Now enabled with auto-migration on server startup
+  const markAlertReadMutation = trpc.monitoring.markAlertRead.useMutation({
+    onSuccess: () => {
+      refetch();
+    },
+  });
+  const markAlertResolvedMutation = trpc.monitoring.markAlertResolved.useMutation({
+    onSuccess: () => {
+      toast.success("Alert resolved");
+      refetch();
+    },
+  });
 
   // Filter and sort alerts
   const filteredAlerts = React.useMemo(() => {
