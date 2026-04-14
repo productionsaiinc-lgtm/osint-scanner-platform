@@ -17,6 +17,7 @@ import { scanForVulnerabilities, analyzeUrlPatterns } from "./vulnerability-scan
 import { analyzeSSLConfiguration, validateCertificateChain } from "./ssl-certificate-analyzer-service";
 import { newSecurityToolsRouter } from "./new-security-tools-router";
 import { exportRouter } from "./export-router";
+import { paymentMethodsRouter } from "./payment-methods-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -28,6 +29,7 @@ export const appRouter = router({
   monitoring: monitoringRouter,
   securityTools: newSecurityToolsRouter,
   export: exportRouter,
+  paymentMethods: paymentMethodsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
