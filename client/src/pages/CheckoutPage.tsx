@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
-import { CreditCard, Apple, Smartphone, Landmark, PaypalIcon, CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { CreditCard, Apple, Smartphone, Landmark, Wallet, CheckCircle, AlertCircle, Loader } from "lucide-react";
 
 interface PaymentMethod {
   id: string;
@@ -40,7 +40,7 @@ export default function CheckoutPage() {
     {
       id: "paypal",
       name: "PayPal",
-      icon: <PaypalIcon className="w-6 h-6" />,
+      icon: <Wallet className="w-6 h-6" />,
       description: "Pay securely with your PayPal account",
       enabled: true,
     },
