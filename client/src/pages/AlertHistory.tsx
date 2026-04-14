@@ -34,19 +34,20 @@ export default function AlertHistory() {
   //   unreadOnly: false,
   // });
 
-  // Mutations
-  const markAlertReadMutation = trpc.monitoring.markAlertRead.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
-  const markAlertResolvedMutation = trpc.monitoring.markAlertResolved.useMutation({
-    onSuccess: () => {
-      toast.success("Alert resolved");
-      refetch();
-    },
-  });
+  // Mutations - Disabled until database tables are created
+  const markAlertReadMutation = { mutateAsync: async (args: any) => {} };
+  const markAlertResolvedMutation = { mutateAsync: async (args: any) => {} };
+  // const markAlertReadMutation = trpc.monitoring.markAlertRead.useMutation({
+  //   onSuccess: () => {
+  //     refetch();
+  //   },
+  // });
+  // const markAlertResolvedMutation = trpc.monitoring.markAlertResolved.useMutation({
+  //   onSuccess: () => {
+  //     toast.success("Alert resolved");
+  //     refetch();
+  //   },
+  // });
 
   // Filter and sort alerts
   const filteredAlerts = React.useMemo(() => {
@@ -323,7 +324,7 @@ export default function AlertHistory() {
                   <div className="flex gap-2 flex-shrink-0">
                     {!alert.isRead && (
                       <Button
-                        onClick={() => markAlertReadMutation.mutate({ alertId: alert.id })}
+                        onClick={() => markAlertReadMutation.mutateAsync({ alertId: alert.id })}
                         size="sm"
                         className="bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan"
                         title="Mark as read"
@@ -333,7 +334,7 @@ export default function AlertHistory() {
                     )}
                     {!alert.isResolved && (
                       <Button
-                        onClick={() => markAlertResolvedMutation.mutate({ alertId: alert.id })}
+                        onClick={() => markAlertResolvedMutation.mutateAsync({ alertId: alert.id })}
                         size="sm"
                         className="bg-green-900 hover:bg-green-800 text-green-100"
                         title="Mark as resolved"
