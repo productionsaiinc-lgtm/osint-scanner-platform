@@ -42,6 +42,7 @@ import { WAFDetection } from "./pages/WAFDetection";
 import { SubdomainTakeover } from "./pages/SubdomainTakeover";
 import { WHOISLookup } from "./pages/WHOISLookup";
 import { MetadataExtractor } from "./pages/MetadataExtractor";
+import { PentestLab } from "./pages/PentestLab";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -105,7 +106,8 @@ function Router() {
       <Route path={"/subdomain-takeover"} component={SubdomainTakeoverPage} />
       <Route path={"/whois-lookup"} component={WHOISLookupPage} />
       <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
-      <Route path={"\/:path*"} component={NotFound} />
+      <Route path={"/:path*"} component={NotFound} />
+      <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );

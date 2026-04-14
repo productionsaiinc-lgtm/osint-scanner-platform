@@ -20,8 +20,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint } from "lucide-react";
+  import { useIsMobile } from "@/hooks/useMobile";
+  import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -93,6 +93,7 @@ const menuSections: MenuSection[] = [
     section: "Visualization & Tools",
     items: [
       { icon: Map, label: "Map View", path: "/map" },
+      { icon: Code2, label: "Pentest Lab", path: "/pentest-lab" },
     ],
   },
   {
