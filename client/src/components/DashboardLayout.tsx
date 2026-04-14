@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -61,8 +61,13 @@ const menuSections: MenuSection[] = [
       { icon: Lock, label: "SSL Analyzer", path: "/ssl-analyzer" },
       { icon: Shield, label: "WAF Detection", path: "/waf-detection" },
       { icon: AlertTriangle, label: "Subdomain Takeover", path: "/subdomain-takeover" },
+    ],
+  },
+  {
+    section: "Forensics",
+    items: [
+      { icon: Fingerprint, label: "Metadata Extractor", path: "/metadata-extractor" },
       { icon: Search, label: "Reverse Image Search", path: "/reverse-image-search" },
-      { icon: Code2, label: "Metadata Extractor", path: "/metadata-extractor" },
     ],
   },
   {
