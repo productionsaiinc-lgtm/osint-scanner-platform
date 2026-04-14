@@ -36,6 +36,12 @@ import Monitoring from "./pages/Monitoring";
 import AlertHistory from "./pages/AlertHistory";
 import VulnerabilityScanner from "./pages/VulnerabilityScanner";
 import SSLAnalyzer from "./pages/SSLAnalyzer";
+import { ReverseImageSearch } from "./pages/ReverseImageSearch";
+import { DNSEnumeration } from "./pages/DNSEnumeration";
+import { WAFDetection } from "./pages/WAFDetection";
+import { SubdomainTakeover } from "./pages/SubdomainTakeover";
+import { WHOISLookup } from "./pages/WHOISLookup";
+import { MetadataExtractor } from "./pages/MetadataExtractor";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -91,10 +97,15 @@ function Router() {
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/monitoring"} component={MonitoringPage} />
-      <Route path={"/alert-history"} component={AlertHistoryPage} />
-      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
+      <Route path={"/alert-history"} component={AlertHistoryPage} />      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
       <Route path={"/ssl-analyzer"} component={SSLAnalyzerPage} />
-      <Route path={"/:path*"} component={NotFound} />
+      <Route path={"/reverse-image-search"} component={ReverseImageSearchPage} />
+      <Route path={"/dns-enumeration"} component={DNSEnumerationPage} />
+      <Route path={"/waf-detection"} component={WAFDetectionPage} />
+      <Route path={"/subdomain-takeover"} component={SubdomainTakeoverPage} />
+      <Route path={"/whois-lookup"} component={WHOISLookupPage} />
+      <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
+      <Route path={"\/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -312,6 +323,54 @@ function SSLAnalyzerPage() {
   return (
     <DashboardLayout>
       <SSLAnalyzer />
+    </DashboardLayout>
+  );
+}
+
+function ReverseImageSearchPage() {
+  return (
+    <DashboardLayout>
+      <ReverseImageSearch />
+    </DashboardLayout>
+  );
+}
+
+function DNSEnumerationPage() {
+  return (
+    <DashboardLayout>
+      <DNSEnumeration />
+    </DashboardLayout>
+  );
+}
+
+function WAFDetectionPage() {
+  return (
+    <DashboardLayout>
+      <WAFDetection />
+    </DashboardLayout>
+  );
+}
+
+function SubdomainTakeoverPage() {
+  return (
+    <DashboardLayout>
+      <SubdomainTakeover />
+    </DashboardLayout>
+  );
+}
+
+function WHOISLookupPage() {
+  return (
+    <DashboardLayout>
+      <WHOISLookup />
+    </DashboardLayout>
+  );
+}
+
+function MetadataExtractorPage() {
+  return (
+    <DashboardLayout>
+      <MetadataExtractor />
     </DashboardLayout>
   );
 }

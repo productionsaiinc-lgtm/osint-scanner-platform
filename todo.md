@@ -752,3 +752,71 @@
 - [x] Build SSLAnalyzer.tsx UI page
 - [x] Add to sidebar navigation
 - [x] Test both tools end-to-end
+
+
+## Phase 27: New Security Analysis Tools (User Requested)
+
+### Reverse Image Search
+- [x] Create reverse-image-search-service.ts backend service
+- [x] Implement image URL analysis
+- [x] Add image similarity detection
+- [x] Implement reverse search across multiple sources
+- [x] Add tRPC procedure for reverse image search
+- [x] Build ReverseImageSearch.tsx UI page
+- [x] Add to sidebar navigation
+
+### DNS Enumeration
+- [x] Create dns-enumeration-service.ts backend service
+- [x] Implement DNS record enumeration
+- [x] Add subdomain discovery via DNS
+- [x] Implement DNS zone transfer detection
+- [x] Add DNSSEC validation
+- [x] Add tRPC procedure for DNS enumeration
+- [x] Build DNSEnumeration.tsx UI page
+- [x] Add to sidebar navigation
+
+### Web Application Firewall Detection
+- [x] Create waf-detection-service.ts backend service
+- [x] Implement WAF fingerprinting
+- [x] Add WAF bypass detection
+- [x] Implement WAF rule analysis
+- [x] Add protection level assessment
+- [x] Add tRPC procedure for WAF detection
+- [x] Build WAFDetection.tsx UI page
+- [x] Add to sidebar navigation
+
+### Subdomain Takeover Detection
+- [x] Create subdomain-takeover-service.ts backend service
+- [x] Implement CNAME analysis
+- [x] Add DNS resolution checking
+- [x] Implement vulnerable service detection
+- [x] Add takeover risk assessment
+- [x] Add tRPC procedure for subdomain takeover detection
+- [x] Build SubdomainTakeover.tsx UI page
+- [x] Add to sidebar navigation
+
+### WHOIS Lookup
+- [x] Create whois-lookup-service.ts backend service
+- [x] Implement WHOIS query functionality
+- [x] Add domain registrar information
+- [x] Implement registrant data extraction
+- [x] Add nameserver information
+- [x] Add tRPC procedure for WHOIS lookup
+- [x] Build WHOISLookup.tsx UI page
+- [x] Add to sidebar navigation
+
+### Metadata Extractor
+- [x] Create metadata-extractor-service.ts backend service
+- [x] Implement image metadata extraction (EXIF)
+- [x] Add document metadata extraction (PDF, Office)
+- [x] Implement location data extraction
+- [x] Add camera/device information extraction
+- [x] Add tRPC procedure for metadata extraction
+- [x] Build MetadataExtractor.tsx UI page
+- [x] Add to sidebar navigation
+
+### Testing & Integration
+- [x] Write tests for all 6 new tools
+- [x] Test end-to-end workflows
+- [x] Verify navigation and UI integration
+- [x] Run full test suite
