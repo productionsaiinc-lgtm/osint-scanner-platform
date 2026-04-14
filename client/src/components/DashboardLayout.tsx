@@ -251,13 +251,14 @@ function DashboardLayoutContent({
             <div className="flex items-center gap-3 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-accent/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0 font-semibold text-sm"
                 aria-label="Toggle navigation"
               >
                 <PanelLeft className="h-4 w-4 text-neon-cyan" />
+                {!isCollapsed && <span className="text-neon-cyan neon-cyan-glow">Menu</span>}
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 ml-auto">
                   <span className="font-bold tracking-tight truncate neon-cyan-glow text-sm">
                     OSINT
                   </span>
