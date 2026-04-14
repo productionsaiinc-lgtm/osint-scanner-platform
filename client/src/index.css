@@ -100,21 +100,21 @@
   --sidebar-primary: oklch(0.65 0.25 330);
   --sidebar-primary-foreground: oklch(0.05 0 0);
   
-  /* Pure black background */
-  --background: oklch(0 0 0);
+  /* Deep black background with slight blue tint */
+  --background: oklch(0.08 0.01 280);
   --foreground: oklch(0.95 0.01 200);
   
-  /* Cards with dark background */
-  --card: oklch(0.05 0 0);
+  /* Cards with subtle glow effect */
+  --card: oklch(0.12 0.02 280);
   --card-foreground: oklch(0.95 0.01 200);
   
-  --popover: oklch(0.05 0 0);
+  --popover: oklch(0.12 0.02 280);
   --popover-foreground: oklch(0.95 0.01 200);
   
-  --secondary: oklch(0.1 0 0);
+  --secondary: oklch(0.15 0.02 280);
   --secondary-foreground: oklch(0.9 0.02 200);
   
-  --muted: oklch(0.15 0 0);
+  --muted: oklch(0.2 0.02 280);
   --muted-foreground: oklch(0.65 0.02 200);
   
   --accent: oklch(0.7 0.22 200);
@@ -125,11 +125,11 @@
   
   /* Neon borders */
   --border: oklch(0.65 0.25 330 / 0.3);
-  --input: oklch(0.1 0 0);
+  --input: oklch(0.15 0.02 280);
   --ring: oklch(0.7 0.22 200);
   
   /* Sidebar styling */
-  --sidebar: oklch(0 0 0);
+  --sidebar: oklch(0.1 0.01 280);
   --sidebar-foreground: oklch(0.95 0.01 200);
   --sidebar-accent: oklch(0.65 0.25 330);
   --sidebar-accent-foreground: oklch(0.05 0 0);
