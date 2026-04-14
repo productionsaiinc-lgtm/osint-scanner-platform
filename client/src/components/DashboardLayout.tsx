@@ -21,45 +21,84 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Radar, label: "Network Scanner", path: "/network-scanner" },
+interface MenuSection {
+  section: string;
+  items: Array<{ icon: any; label: string; path: string }>;
+}
 
-  { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
-  { icon: Map, label: "Map View", path: "/map" },
-  { icon: History, label: "Scan History", path: "/history" },
-  { icon: Code2, label: "GitHub Search", path: "/github-search" },
-  { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
-  { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
-  { icon: Network, label: "Nmap Scanner", path: "/nmap-scanner" },
-  { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
-  { icon: Cpu, label: "Shodan", path: "/shodan" },
-  { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
-  { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
-  { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
-  { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
-  { icon: Eye, label: "Monitoring", path: "/monitoring" },
-  { icon: Archive, label: "Alert History", path: "/alert-history" },
-  { icon: Shield, label: "Vulnerability Scanner", path: "/vulnerability-scanner" },
-  { icon: Lock, label: "SSL Analyzer", path: "/ssl-analyzer" },
-  { icon: Search, label: "Reverse Image Search", path: "/reverse-image-search" },
-  { icon: Globe, label: "DNS Enumeration", path: "/dns-enumeration" },
-  { icon: Shield, label: "WAF Detection", path: "/waf-detection" },
-  { icon: AlertTriangle, label: "Subdomain Takeover", path: "/subdomain-takeover" },
-  { icon: Globe, label: "WHOIS Lookup", path: "/whois-lookup" },
-  { icon: Code2, label: "Metadata Extractor", path: "/metadata-extractor" },
-  { icon: Info, label: "About", path: "/about" },
-  { icon: CreditCard, label: "Pricing", path: "/pricing" },
-  { icon: Zap, label: "Subscription", path: "/subscription" },
-  { icon: Wallet, label: "Payouts", path: "/payouts" },
+const menuSections: MenuSection[] = [
+  {
+    section: "Core",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: History, label: "Scan History", path: "/history" },
+      { icon: Eye, label: "Monitoring", path: "/monitoring" },
+      { icon: Archive, label: "Alert History", path: "/alert-history" },
+      { icon: Bell, label: "Notifications", path: "/notifications" },
+    ],
+  },
+  {
+    section: "Network & Infrastructure",
+    items: [
+      { icon: Radar, label: "Network Scanner", path: "/network-scanner" },
+      { icon: Network, label: "Nmap Scanner", path: "/nmap-scanner" },
+      { icon: Cpu, label: "Shodan", path: "/shodan" },
+      { icon: Globe, label: "DNS Enumeration", path: "/dns-enumeration" },
+      { icon: Globe, label: "WHOIS Lookup", path: "/whois-lookup" },
+      { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
+    ],
+  },
+  {
+    section: "Web & Domain Security",
+    items: [
+      { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
+      { icon: Lock, label: "SSL Analyzer", path: "/ssl-analyzer" },
+      { icon: Shield, label: "WAF Detection", path: "/waf-detection" },
+      { icon: AlertTriangle, label: "Subdomain Takeover", path: "/subdomain-takeover" },
+      { icon: Search, label: "Reverse Image Search", path: "/reverse-image-search" },
+      { icon: Code2, label: "Metadata Extractor", path: "/metadata-extractor" },
+    ],
+  },
+  {
+    section: "Intelligence & Threat",
+    items: [
+      { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
+      { icon: Code2, label: "GitHub Search", path: "/github-search" },
+      { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
+      { icon: Shield, label: "Vulnerability Scanner", path: "/vulnerability-scanner" },
+    ],
+  },
+  {
+    section: "Personal & Device",
+    items: [
+      { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
+      { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
+      { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
+      { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
+      { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
+    ],
+  },
+  {
+    section: "Visualization & Tools",
+    items: [
+      { icon: Map, label: "Map View", path: "/map" },
+    ],
+  },
+  {
+    section: "Account & Billing",
+    items: [
+      { icon: CreditCard, label: "Pricing", path: "/pricing" },
+      { icon: Zap, label: "Subscription", path: "/subscription" },
+      { icon: Wallet, label: "Payouts", path: "/payouts" },
+      { icon: Info, label: "About", path: "/about" },
+    ],
+  },
 ];
 
 const downloadItems = [
@@ -145,8 +184,8 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["Core"]));
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -185,6 +224,16 @@ function DashboardLayoutContent({
     };
   }, [isResizing, setSidebarWidth]);
 
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
   return (
     <>
       <div className="relative" ref={sidebarRef}>
@@ -213,33 +262,58 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0 flex flex-col overflow-hidden">
-            <SidebarMenu className="px-2 py-2 space-y-1 flex-1 overflow-y-auto">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
+            <div className="flex-1 overflow-y-auto px-2 py-2 space-y-2">
+              {menuSections.map((section) => {
+                const isExpanded = expandedSections.has(section.section);
+                const isCollapsedSidebar = isCollapsed;
+
                 return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal ${
-                        isActive
-                          ? "bg-neon-pink/20 text-neon-pink-glow border border-neon-pink/50"
-                          : "text-foreground hover:bg-neon-cyan/10 hover:text-neon-cyan"
-                      }`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${
-                          isActive ? "text-neon-pink" : "text-neon-cyan/70"
-                        }`}
-                      />
-                      <span className="text-xs uppercase tracking-wider">{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={section.section} className="space-y-1">
+                    {!isCollapsedSidebar && (
+                      <button
+                        onClick={() => toggleSection(section.section)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-neon-cyan/70 hover:text-neon-cyan transition-colors group"
+                      >
+                        <span>{section.section}</span>
+                        <ChevronDown
+                          className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+
+                    {isExpanded && (
+                      <SidebarMenu className="space-y-1">
+                        {section.items.map((item) => {
+                          const isActive = location === item.path;
+                          return (
+                            <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton
+                                isActive={isActive}
+                                onClick={() => setLocation(item.path)}
+                                tooltip={item.label}
+                                className={`h-10 transition-all font-normal ${
+                                  isActive
+                                    ? "bg-neon-pink/20 text-neon-pink-glow border border-neon-pink/50"
+                                    : "text-foreground hover:bg-neon-cyan/10 hover:text-neon-cyan"
+                                }`}
+                              >
+                                <item.icon
+                                  className={`h-4 w-4 ${
+                                    isActive ? "text-neon-pink" : "text-neon-cyan/70"
+                                  }`}
+                                />
+                                <span className="text-xs uppercase tracking-wider">{item.label}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </SidebarMenu>
+                    )}
+                  </div>
                 );
               })}
-            </SidebarMenu>
-            
+            </div>
+
             <div className="border-t border-neon-pink/30 pt-2 pb-2 px-2 flex-shrink-0">
               <SidebarMenu className="space-y-1">
                 {downloadItems.map(item => (
@@ -298,32 +372,18 @@ function DashboardLayoutContent({
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
+
+        {/* Resize handle */}
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-neon-pink/50 transition-colors ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => {
-            if (isCollapsed) return;
-            setIsResizing(true);
-          }}
-          style={{ zIndex: 50 }}
+          onMouseDown={() => setIsResizing(true)}
+          className="absolute right-0 top-0 bottom-0 w-1 hover:w-1.5 hover:bg-neon-cyan/50 cursor-col-resize transition-all group"
         />
       </div>
 
       <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        <main className="flex-1 p-4">{children}</main>
+        <div className="flex flex-col flex-1">
+          {children}
+        </div>
       </SidebarInset>
     </>
   );
