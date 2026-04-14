@@ -43,6 +43,7 @@ import { SubdomainTakeover } from "./pages/SubdomainTakeover";
 import { WHOISLookup } from "./pages/WHOISLookup";
 import { MetadataExtractor } from "./pages/MetadataExtractor";
 import PentestLab from "./pages/PentestLab";
+import CanaryTokens from "./pages/CanaryTokens";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -107,6 +108,7 @@ function Router() {
       <Route path={"/whois-lookup"} component={WHOISLookupPage} />
       <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
       <Route path={"/pentest-lab"} component={PentestLabPage} />
+      <Route path={"/canary-tokens"} component={CanaryTokensPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
@@ -382,6 +384,14 @@ function PentestLabPage() {
   return (
     <DashboardLayout>
       <PentestLab />
+    </DashboardLayout>
+  );
+}
+
+function CanaryTokensPage() {
+  return (
+    <DashboardLayout>
+      <CanaryTokens />
     </DashboardLayout>
   );
 }

@@ -27,6 +27,7 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
+
 interface MenuSection {
   section: string;
   items: Array<{ icon: any; label: string; path: string }>;
@@ -94,6 +95,7 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: Map, label: "Map View", path: "/map" },
       { icon: Code2, label: "Pentest Lab", path: "/pentest-lab" },
+      { icon: AlertTriangle, label: "Canary Tokens", path: "/canary-tokens" },
     ],
   },
   {
