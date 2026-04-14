@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -98,7 +97,8 @@ function Router() {
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/monitoring"} component={MonitoringPage} />
-      <Route path={"/alert-history"} component={AlertHistoryPage} />      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
+      <Route path={"/alert-history"} component={AlertHistoryPage} />
+      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
       <Route path={"/ssl-analyzer"} component={SSLAnalyzerPage} />
       <Route path={"/reverse-image-search"} component={ReverseImageSearchPage} />
       <Route path={"/dns-enumeration"} component={DNSEnumerationPage} />
@@ -106,7 +106,7 @@ function Router() {
       <Route path={"/subdomain-takeover"} component={SubdomainTakeoverPage} />
       <Route path={"/whois-lookup"} component={WHOISLookupPage} />
       <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
-      <Route path={"/:path*"} component={NotFound} />
+      <Route path={"/pentest-lab"} component={PentestLabPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -377,19 +377,22 @@ function MetadataExtractorPage() {
   );
 }
 
-function App() {
+function PentestLabPage() {
+  return (
+    <DashboardLayout>
+      <PentestLab />
+    </DashboardLayout>
+  );
+}
+
+export default function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider>
         <TooltipProvider>
-          <Toaster />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
 }
-
-export default App;
