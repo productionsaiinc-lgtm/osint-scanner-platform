@@ -890,3 +890,37 @@
 - [ ] Create subscription lifecycle tests
 - [ ] Create payment history tests
 - [ ] Create receipt generation tests
+
+
+## Phase 31: Pentest Labs Completion
+
+### Backend Integration
+- [x] Create pentest-labs-router.ts with tRPC procedures for:
+  - [x] Get lab details
+  - [x] Start lab challenge
+  - [x] Submit lab solution
+  - [x] Get user progress
+  - [x] Get leaderboard
+- [x] Implement lab challenge validation engine
+- [x] Add scoring and points calculation
+- [ ] Create database schema for lab progress and submissions
+
+### Frontend Enhancement
+- [ ] Create LabDetail.tsx page for individual lab challenges
+- [ ] Implement lab execution environment with code editor
+- [ ] Add solution submission and validation UI
+- [ ] Create leaderboard page with rankings
+- [ ] Add user statistics dashboard
+- [ ] Implement hint system for labs
+
+### Lab Content
+- [ ] Add challenge descriptions and objectives
+- [ ] Create expected outputs/solutions for each lab
+- [ ] Add hints and guidance for each lab
+- [ ] Implement difficulty-based scoring multipliers
+
+### Testing & Validation
+- [ ] Write tests for lab backend procedures
+- [ ] Test lab submission and validation
+- [ ] Test leaderboard calculations
+- [ ] End-to-end testing of lab workflow

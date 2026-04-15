@@ -19,6 +19,7 @@ import { newSecurityToolsRouter } from "./new-security-tools-router";
 import { exportRouter } from "./export-router";
 import { paymentMethodsRouter } from "./payment-methods-router";
 import { payoutEnhancementsRouter } from "./payout-enhancements-router";
+import { pentestLabsRouter } from "./pentest-labs-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -32,6 +33,7 @@ export const appRouter = router({
   export: exportRouter,
   paymentMethods: paymentMethodsRouter,
   payoutEnhancements: payoutEnhancementsRouter,
+  pentestLabs: pentestLabsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
