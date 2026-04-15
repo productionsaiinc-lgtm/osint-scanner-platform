@@ -396,3 +396,28 @@ export const monitoringScanHistory = mysqlTable("monitoringScanHistory", {
 });
 export type MonitoringScanHistory = typeof monitoringScanHistory.$inferSelect;
 export type InsertMonitoringScanHistory = typeof monitoringScanHistory.$inferInsert;
+
+/**
+ * PayPal payouts tracking for direct payout model
+ */
+export const payouts = mysqlTable("payouts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  paymentId: int("paymentId").notNull(), // Reference to payment that triggered payout
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  payoutId: varchar("payoutId", { length: 100 }).notNull().unique(), // PayPal payout batch ID
+  status: mysqlEnum("status", ["PENDING", "PROCESSING", "SUCCESS", "FAILED", "DENIED", "RETURNED"]).default("PENDING").notNull(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  senderBatchId: varchar("senderBatchId", { length: 100 }),
+  transactionId: varchar("transactionId", { length: 100 }), // Individual transaction ID
+  transactionStatus: varchar("transactionStatus", { length: 50 }), // Transaction-level status
+  failureReason: text("failureReason"), // Reason if payout failed
+  retryCount: int("retryCount").default(0),
+  lastRetryAt: timestamp("lastRetryAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Payout = typeof payouts.$inferSelect;
+export type InsertPayout = typeof payouts.$inferInsert;

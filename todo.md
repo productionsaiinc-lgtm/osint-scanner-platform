@@ -924,3 +924,34 @@
 - [ ] Test lab submission and validation
 - [ ] Test leaderboard calculations
 - [ ] End-to-end testing of lab workflow
+
+
+## Phase 32: Direct Payout Model Implementation
+
+### Automatic Payout Service
+- [ ] Create automatic-payout-service.ts with PayPal payout API integration
+- [ ] Implement initiatePayout() function to send money to PayPal account
+- [ ] Add payout status tracking (pending, completed, failed)
+- [ ] Create payout retry logic for failed transactions
+- [ ] Implement payout scheduling (immediate or batch)
+
+### Payment-Triggered Payouts
+- [ ] Modify capturePayPalOrder to trigger automatic payout
+- [ ] Add payout amount calculation (100% of payment)
+- [ ] Create payout record in database
+- [ ] Add error handling for payout failures
+- [ ] Implement fallback to manual payout if automatic fails
+
+### Payout Status & Webhooks
+- [ ] Add PayPal payout webhook handler
+- [ ] Track payout status updates (pending → completed/failed)
+- [ ] Create payout notification system
+- [ ] Add payout history tracking
+- [ ] Implement payout reconciliation
+
+### Testing & Monitoring
+- [ ] Test payout with sandbox PayPal account
+- [ ] Verify payout amounts are correct
+- [ ] Test failure scenarios and retries
+- [ ] Monitor payout processing times
+- [ ] Create payout dashboard metrics
