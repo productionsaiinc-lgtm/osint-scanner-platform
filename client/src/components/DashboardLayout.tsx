@@ -105,6 +105,7 @@ const menuSections: MenuSection[] = [
       { icon: Zap, label: "Subscription", path: "/subscription" },
       { icon: Wallet, label: "Payouts", path: "/payouts" },
       { icon: TrendingUp, label: "Payouts Enhanced", path: "/payouts-enhanced" },
+      { icon: TrendingUp, label: "Live Payouts", path: "/live-payouts" },
       { icon: Info, label: "About", path: "/about" },
     ],
   },

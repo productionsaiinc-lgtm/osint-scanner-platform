@@ -20,6 +20,7 @@ import { exportRouter } from "./export-router";
 import { paymentMethodsRouter } from "./payment-methods-router";
 import { payoutEnhancementsRouter } from "./payout-enhancements-router";
 import { pentestLabsRouter } from "./pentest-labs-router";
+import { livePayoutsRouter } from "./live-payouts-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -34,6 +35,7 @@ export const appRouter = router({
   paymentMethods: paymentMethodsRouter,
   payoutEnhancements: payoutEnhancementsRouter,
   pentestLabs: pentestLabsRouter,
+  livePayouts: livePayoutsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

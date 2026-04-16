@@ -47,6 +47,7 @@ import PentestLab from "./pages/PentestLab";
 import CanaryTokens from "./pages/CanaryTokens";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentAnalytics from "./pages/PaymentAnalytics";
+import { LivePayoutsDashboard } from "./pages/LivePayoutsDashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -115,6 +116,7 @@ function Router() {
       <Route path={"/canary-tokens"} component={CanaryTokensPage} />
       <Route path={"/checkout"} component={CheckoutPageWrapper} />
       <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />
+      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
@@ -422,6 +424,14 @@ function PaymentAnalyticsPage() {
   return (
     <DashboardLayout>
       <PaymentAnalytics />
+    </DashboardLayout>
+  );
+}
+
+function LivePayoutsDashboardPage() {
+  return (
+    <DashboardLayout>
+      <LivePayoutsDashboard />
     </DashboardLayout>
   );
 }
