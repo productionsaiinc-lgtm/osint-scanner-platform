@@ -252,11 +252,11 @@ function DashboardLayoutContent({
   };
 
   return (
-    <>
+    <SidebarProvider>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0"
+          className="border-r-0 md:flex hidden"
           disableTransition={isResizing}
         >
           <SidebarHeader className="h-16 justify-center border-b border-neon-pink/30">
@@ -400,9 +400,14 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         <div className="flex flex-col flex-1">
+          {/* Mobile hamburger menu */}
+          <div className="md:hidden flex items-center gap-2 p-4 border-b border-neon-pink/30">
+            <SidebarTrigger className="text-neon-cyan" />
+            <span className="font-bold text-neon-cyan neon-cyan-glow">OSINT</span>
+          </div>
           {children}
         </div>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }
