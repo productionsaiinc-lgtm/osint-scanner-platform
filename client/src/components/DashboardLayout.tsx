@@ -99,6 +99,12 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
+    section: "Mobile Device Management",
+    items: [
+      { icon: PhoneIcon, label: "MDM Dashboard", path: "/mdm" },
+    ],
+  },
+  {
     section: "Account & Billing",
     items: [
       { icon: CreditCard, label: "Pricing", path: "/pricing" },
@@ -106,7 +112,6 @@ const menuSections: MenuSection[] = [
       { icon: Wallet, label: "Payouts", path: "/payouts" },
       { icon: TrendingUp, label: "Payouts Enhanced", path: "/payouts-enhanced" },
       { icon: TrendingUp, label: "Live Payouts", path: "/live-payouts" },
-      { icon: PhoneIcon, label: "MDM", path: "/mdm" },
       { icon: Info, label: "About", path: "/about" },
     ],
   },
