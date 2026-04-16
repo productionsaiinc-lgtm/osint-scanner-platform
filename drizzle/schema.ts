@@ -421,3 +421,124 @@ export const payouts = mysqlTable("payouts", {
 
 export type Payout = typeof payouts.$inferSelect;
 export type InsertPayout = typeof payouts.$inferInsert;
+
+
+/**
+ * MDM (Mobile Device Management) - Managed devices
+ */
+export const mdmDevices = mysqlTable("mdmDevices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  deviceId: varchar("deviceId", { length: 100 }).notNull().unique(), // Unique device identifier
+  deviceName: varchar("deviceName", { length: 255 }).notNull(),
+  deviceType: mysqlEnum("deviceType", ["android", "ios", "windows", "macos", "linux"]).notNull(),
+  osVersion: varchar("osVersion", { length: 50 }),
+  manufacturer: varchar("manufacturer", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  imei: varchar("imei", { length: 20 }),
+  serialNumber: varchar("serialNumber", { length: 100 }),
+  enrollmentStatus: mysqlEnum("enrollmentStatus", ["pending", "enrolled", "unenrolled", "suspended"]).default("pending").notNull(),
+  enrollmentDate: timestamp("enrollmentDate"),
+  lastCheckIn: timestamp("lastCheckIn"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  location: text("location"), // JSON with lat, lon, address
+  batteryLevel: int("batteryLevel"), // 0-100
+  storageUsed: int("storageUsed"), // in MB
+  storageTotal: int("storageTotal"), // in MB
+  isCompliant: int("isCompliant").default(1), // boolean - compliant with policies
+  complianceIssues: text("complianceIssues"), // JSON array of issues
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDevice = typeof mdmDevices.$inferSelect;
+export type InsertMdmDevice = typeof mdmDevices.$inferInsert;
+
+/**
+ * MDM Device Policies - Security and management policies
+ */
+export const mdmPolicies = mysqlTable("mdmPolicies", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  policyName: varchar("policyName", { length: 255 }).notNull(),
+  description: text("description"),
+  policyType: mysqlEnum("policyType", ["security", "compliance", "app_management", "network", "device_control"]).notNull(),
+  
+  // Security policies
+  minPasswordLength: int("minPasswordLength").default(6),
+  requireNumeric: int("requireNumeric").default(0), // boolean
+  requireSpecialChar: int("requireSpecialChar").default(0), // boolean
+  maxPasswordAge: int("maxPasswordAge"), // days
+  passwordExpirationWarning: int("passwordExpirationWarning"), // days
+  
+  // Device control policies
+  allowUsbDebug: int("allowUsbDebug").default(0), // boolean
+  allowUnknownSources: int("allowUnknownSources").default(0), // boolean
+  allowDeveloperMode: int("allowDeveloperMode").default(0), // boolean
+  enableEncryption: int("enableEncryption").default(1), // boolean
+  
+  // App management
+  allowedApps: text("allowedApps"), // JSON array of allowed app package names
+  blockedApps: text("blockedApps"), // JSON array of blocked app package names
+  
+  // Network policies
+  requireVpn: int("requireVpn").default(0), // boolean
+  allowedWifi: text("allowedWifi"), // JSON array of allowed WiFi SSIDs
+  
+  isActive: int("isActive").default(1), // boolean
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmPolicy = typeof mdmPolicies.$inferSelect;
+export type InsertMdmPolicy = typeof mdmPolicies.$inferInsert;
+
+/**
+ * MDM Device Policy Assignment - Link devices to policies
+ */
+export const mdmDevicePolicyAssignments = mysqlTable("mdmDevicePolicyAssignments", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  policyId: int("policyId").notNull(),
+  assignmentStatus: mysqlEnum("assignmentStatus", ["pending", "applied", "failed", "revoked"]).default("pending").notNull(),
+  appliedAt: timestamp("appliedAt"),
+  failureReason: text("failureReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDevicePolicyAssignment = typeof mdmDevicePolicyAssignments.$inferSelect;
+export type InsertMdmDevicePolicyAssignment = typeof mdmDevicePolicyAssignments.$inferInsert;
+
+/**
+ * MDM Device Commands - Remote commands sent to devices
+ */
+export const mdmDeviceCommands = mysqlTable("mdmDeviceCommands", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  commandType: mysqlEnum("commandType", ["lock", "wipe", "restart", "update_policy", "install_app", "uninstall_app", "take_screenshot", "get_location"]).notNull(),
+  commandStatus: mysqlEnum("commandStatus", ["pending", "sent", "executed", "failed"]).default("pending").notNull(),
+  commandData: text("commandData"), // JSON with command-specific data
+  executedAt: timestamp("executedAt"),
+  failureReason: text("failureReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDeviceCommand = typeof mdmDeviceCommands.$inferSelect;
+export type InsertMdmDeviceCommand = typeof mdmDeviceCommands.$inferInsert;
+
+/**
+ * MDM Device Logs - Activity logs for auditing
+ */
+export const mdmDeviceLogs = mysqlTable("mdmDeviceLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  logType: mysqlEnum("logType", ["enrollment", "policy_applied", "command_executed", "compliance_check", "security_event", "app_installed", "app_uninstalled"]).notNull(),
+  logMessage: text("logMessage").notNull(),
+  logData: text("logData"), // JSON with additional details
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDeviceLog = typeof mdmDeviceLogs.$inferSelect;
+export type InsertMdmDeviceLog = typeof mdmDeviceLogs.$inferInsert;

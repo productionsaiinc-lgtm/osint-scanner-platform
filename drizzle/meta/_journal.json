@@ -50,6 +50,13 @@
       "when": 1776273513440,
       "tag": "0006_loving_violations",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1776312333363,
+      "tag": "0007_living_rhino",
+      "breakpoints": true
     }
   ]
 }
