@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { bigint, decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -542,3 +542,109 @@ export const mdmDeviceLogs = mysqlTable("mdmDeviceLogs", {
 
 export type MdmDeviceLog = typeof mdmDeviceLogs.$inferSelect;
 export type InsertMdmDeviceLog = typeof mdmDeviceLogs.$inferInsert;
+
+/**
+ * GPS/Location tracking for managed devices
+ */
+export const mdmDeviceLocations = mysqlTable("mdmDeviceLocations", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  accuracy: int("accuracy"), // in meters
+  altitude: decimal("altitude", { precision: 10, scale: 2 }),
+  speed: decimal("speed", { precision: 8, scale: 2 }), // in m/s
+  heading: decimal("heading", { precision: 6, scale: 2 }), // 0-360 degrees
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDeviceLocation = typeof mdmDeviceLocations.$inferSelect;
+export type InsertMdmDeviceLocation = typeof mdmDeviceLocations.$inferInsert;
+
+/**
+ * Network monitoring data for managed devices
+ */
+export const mdmNetworkMonitoring = mysqlTable("mdmNetworkMonitoring", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  networkType: varchar("networkType", { length: 50 }).notNull(), // 'wifi', 'cellular', 'bluetooth'
+  ssid: varchar("ssid", { length: 255 }), // WiFi SSID
+  signalStrength: int("signalStrength"), // -30 to -120 dBm
+  bandwidth: varchar("bandwidth", { length: 50 }), // '2.4GHz', '5GHz', '6GHz'
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  macAddress: varchar("macAddress", { length: 17 }),
+  dataUsage: int("dataUsage"), // in bytes
+  uploadSpeed: decimal("uploadSpeed", { precision: 10, scale: 2 }), // Mbps
+  downloadSpeed: decimal("downloadSpeed", { precision: 10, scale: 2 }), // Mbps
+  latency: int("latency"), // in ms
+  packetLoss: decimal("packetLoss", { precision: 5, scale: 2 }), // percentage
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmNetworkMonitoring = typeof mdmNetworkMonitoring.$inferSelect;
+export type InsertMdmNetworkMonitoring = typeof mdmNetworkMonitoring.$inferInsert;
+
+/**
+ * App usage analytics for managed devices
+ */
+export const mdmAppUsageAnalytics = mysqlTable("mdmAppUsageAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  appPackageName: varchar("appPackageName", { length: 255 }).notNull(),
+  appName: varchar("appName", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }), // 'productivity', 'social', 'gaming', etc.
+  usageTime: int("usageTime"), // in seconds
+  launchCount: int("launchCount").default(0),
+  dataUsed: int("dataUsed"), // in bytes
+  batteryDrain: decimal("batteryDrain", { precision: 5, scale: 2 }), // percentage
+  lastUsed: timestamp("lastUsed"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmAppUsageAnalytics = typeof mdmAppUsageAnalytics.$inferSelect;
+export type InsertMdmAppUsageAnalytics = typeof mdmAppUsageAnalytics.$inferInsert;
+
+/**
+ * Device performance metrics
+ */
+export const mdmDevicePerformance = mysqlTable("mdmDevicePerformance", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  cpuUsage: decimal("cpuUsage", { precision: 5, scale: 2 }), // percentage
+  memoryUsage: decimal("memoryUsage", { precision: 5, scale: 2 }), // percentage
+  storageUsage: decimal("storageUsage", { precision: 5, scale: 2 }), // percentage
+  batteryLevel: int("batteryLevel"), // 0-100
+  batteryHealth: varchar("batteryHealth", { length: 50 }), // 'good', 'fair', 'poor'
+  temperature: decimal("temperature", { precision: 5, scale: 2 }), // in Celsius
+  uptime: int("uptime"), // in seconds
+  restarts: int("restarts").default(0),
+  crashes: int("crashes").default(0),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDevicePerformance = typeof mdmDevicePerformance.$inferSelect;
+export type InsertMdmDevicePerformance = typeof mdmDevicePerformance.$inferInsert;
+
+/**
+ * Security events and threats detected on managed devices
+ */
+export const mdmSecurityEvents = mysqlTable("mdmSecurityEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  eventType: varchar("eventType", { length: 100 }).notNull(), // 'malware', 'phishing', 'suspicious_app', 'jailbreak', etc.
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).notNull(),
+  description: text("description"),
+  threatName: varchar("threatName", { length: 255 }),
+  source: varchar("source", { length: 255 }), // app, file, network, etc.
+  resolved: boolean("resolved").default(false),
+  resolutionAction: varchar("resolutionAction", { length: 255 }), // 'quarantined', 'deleted', 'blocked', etc.
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmSecurityEvent = typeof mdmSecurityEvents.$inferSelect;
+export type InsertMdmSecurityEvent = typeof mdmSecurityEvents.$inferInsert;
