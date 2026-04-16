@@ -21,6 +21,7 @@ import { paymentMethodsRouter } from "./payment-methods-router";
 import { payoutEnhancementsRouter } from "./payout-enhancements-router";
 import { pentestLabsRouter } from "./pentest-labs-router";
 import { livePayoutsRouter } from "./live-payouts-router";
+import { mdmRouter } from "./mdm-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -36,6 +37,7 @@ export const appRouter = router({
   payoutEnhancements: payoutEnhancementsRouter,
   pentestLabs: pentestLabsRouter,
   livePayouts: livePayoutsRouter,
+  mdm: mdmRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
