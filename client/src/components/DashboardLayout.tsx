@@ -340,8 +340,8 @@ function DashboardLayoutContent({
                       onClick={() => {
                         if (item.action === "download-apk") {
                           const link = document.createElement('a');
-                          link.href = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-final_6a7b79c7.zip';
-                          link.download = 'osint-scanner-v1.0.0.zip';
+                          link.href = '/OsintPentestPlatform.apk';
+                          link.download = 'OsintPentestPlatform-v2.0.0.apk';
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
