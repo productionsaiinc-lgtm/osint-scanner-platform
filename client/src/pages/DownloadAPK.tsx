@@ -45,7 +45,7 @@ export function DownloadAPK() {
         {/* Download Card */}
         <Card className="bg-slate-800 border-slate-700 mb-12">
           <CardHeader>
-            <CardTitle className="text-2xl text-cyan-400">OSINT Scanner v1.0.0</CardTitle>
+            <CardTitle className="text-2xl text-cyan-400">OSINT Scanner v2.0.0</CardTitle>
             <CardDescription>Native Android Application</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -103,11 +103,11 @@ export function DownloadAPK() {
                   className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white font-bold"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Download APK (v1.0.0 - Custom Build)
+                  Download APK (v2.0.0 - Latest Build)
                 </Button>
               </a>
               <p className="text-xs text-slate-400 mt-2 text-center">
-                File size: ~50MB | Last updated: April 2026
+                File size: 71MB | Last updated: April 17, 2026
               </p>
             </div>
           </CardContent>
