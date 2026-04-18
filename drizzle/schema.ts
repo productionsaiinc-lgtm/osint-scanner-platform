@@ -648,3 +648,54 @@ export const mdmSecurityEvents = mysqlTable("mdmSecurityEvents", {
 
 export type MdmSecurityEvent = typeof mdmSecurityEvents.$inferSelect;
 export type InsertMdmSecurityEvent = typeof mdmSecurityEvents.$inferInsert;
+
+
+/**
+ * Canary Tokens for tracking unauthorized access
+ */
+export const canaryTokens = mysqlTable("canaryTokens", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  email: varchar("email", { length: 320 }).notNull(),
+  tokenType: mysqlEnum("tokenType", ["page_view", "resource", "form_submission", "api_call"]).default("page_view").notNull(),
+  status: mysqlEnum("status", ["Active", "Inactive"]).default("Active").notNull(),
+  tokenUrl: text("tokenUrl").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  triggerLimit: int("triggerLimit"),
+  triggerCount: int("triggerCount").default(0),
+  lastTriggeredAt: timestamp("lastTriggeredAt"),
+  notificationEmail: varchar("notificationEmail", { length: 320 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CanaryToken = typeof canaryTokens.$inferSelect;
+export type InsertCanaryToken = typeof canaryTokens.$inferInsert;
+
+/**
+ * Canary Token Triggers - tracks when tokens are accessed
+ */
+export const canaryTokenTriggers = mysqlTable("canaryTokenTriggers", {
+  id: int("id").autoincrement().primaryKey(),
+  tokenId: varchar("tokenId", { length: 64 }).notNull(),
+  userId: int("userId").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }).notNull(),
+  userAgent: text("userAgent"),
+  referer: text("referer"),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  deviceType: varchar("deviceType", { length: 50 }), // 'mobile', 'desktop', 'tablet'
+  browser: varchar("browser", { length: 100 }),
+  browserVersion: varchar("browserVersion", { length: 50 }),
+  os: varchar("os", { length: 100 }),
+  osVersion: varchar("osVersion", { length: 50 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CanaryTokenTrigger = typeof canaryTokenTriggers.$inferSelect;
+export type InsertCanaryTokenTrigger = typeof canaryTokenTriggers.$inferInsert;

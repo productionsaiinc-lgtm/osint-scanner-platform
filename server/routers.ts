@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles } from "./db";
+import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles, createCanaryToken, getCanaryTokens, getCanaryToken, updateCanaryToken, deleteCanaryToken, recordCanaryTokenTrigger, getCanaryTokenTriggers, getCanaryTokenStats } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
 import { getAPIStatus } from "./api-config";
@@ -22,6 +22,7 @@ import { payoutEnhancementsRouter } from "./payout-enhancements-router";
 import { pentestLabsRouter } from "./pentest-labs-router";
 import { livePayoutsRouter } from "./live-payouts-router";
 import { mdmRouter } from "./mdm-router";
+import { canaryTokenRouter } from "./canary-token-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -38,6 +39,7 @@ export const appRouter = router({
   pentestLabs: pentestLabsRouter,
   livePayouts: livePayoutsRouter,
   mdm: mdmRouter,
+  canaryToken: canaryTokenRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

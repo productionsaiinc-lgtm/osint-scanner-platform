@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Copy, Trash2, Eye, Plus, AlertTriangle, Clock } from "lucide-react";
+import { Copy, Trash2, Eye, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CanaryTokens() {
-  const [isCreating, setIsCreating] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,7 +22,7 @@ export default function CanaryTokens() {
     onSuccess: () => {
       toast.success("Canary token created!");
       setFormData({ name: "", email: "", description: "", tokenType: "page_view" });
-      setIsCreating(false);
+      setIsOpen(false);
       refetch();
     },
     onError: (error) => {
@@ -94,21 +94,21 @@ export default function CanaryTokens() {
           <h1 className="text-3xl font-bold text-neon-cyan">Canary Tokens</h1>
           <p className="text-gray-400 mt-2">Monitor unauthorized access to your site</p>
         </div>
-        <Dialog open={isCreating} onOpenChange={setIsCreating}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-neon-cyan text-black hover:bg-neon-cyan/90">
               <Plus className="w-4 h-4 mr-2" />
               Create Token
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-gray-900 border-neon-cyan/30">
+          <DialogContent className="bg-gray-900 border-neon-cyan/30 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-neon-cyan">Create Canary Token</DialogTitle>
               <DialogDescription>
                 Create a unique token to track unauthorized access to your site
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 py-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">Token Name</label>
                 <Input

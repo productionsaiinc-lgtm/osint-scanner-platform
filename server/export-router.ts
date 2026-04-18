@@ -20,7 +20,7 @@ export const exportRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         // Get scan data
-        const scans: any = await getUserScans(ctx.user.id, 1000);
+        const scans: any = await getUserScans(ctx.user.id);
         const scan = scans?.find((s: any) => s.id === input.scanId);
 
         if (!scan) {
@@ -54,7 +54,7 @@ export const exportRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         // Get scan data
-        const scans: any = await getUserScans(ctx.user.id, 1000);
+        const scans: any = await getUserScans(ctx.user.id);
         const scan = scans?.find((s: any) => s.id === input.scanId);
 
         if (!scan) {
@@ -89,7 +89,7 @@ export const exportRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         // Get scan data
-        const scans: any = await getUserScans(ctx.user.id, 1000);
+        const scans: any = await getUserScans(ctx.user.id);
         const scan = scans?.find((s: any) => s.id === input.scanId);
 
         if (!scan) {
@@ -256,7 +256,7 @@ export const exportRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         // Get scan data
-        const scans: any = await getUserScans(ctx.user.id, 1000);
+        const scans: any = await getUserScans(ctx.user.id);
         const scan = scans?.find((s: any) => s.id === input.scanId);
 
         if (!scan) {
