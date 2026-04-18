@@ -6,6 +6,7 @@
 import { router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { createCanaryToken, getCanaryTokens, getCanaryToken, updateCanaryToken, deleteCanaryToken, getCanaryTokenStats } from "./db";
+import { getTokenTriggerHistory, getTokenTriggerStats } from "./canary-trigger-service";
 import { randomBytes } from "crypto";
 
 export const canaryTokenRouter = router({
@@ -139,4 +140,34 @@ export const canaryTokenRouter = router({
     const stats = await getCanaryTokenStats(ctx.user.id);
     return stats;
   }),
+
+  /**
+   * Get trigger history for a token
+   */
+  getTriggerHistory: protectedProcedure
+    .input(z.object({ tokenId: z.string(), limit: z.number().default(50) }))
+    .query(async ({ input, ctx }) => {
+      const token = await getCanaryToken(input.tokenId, ctx.user.id);
+      if (!token) {
+        throw new Error("Canary token not found");
+      }
+
+      const triggers = await getTokenTriggerHistory(input.tokenId, ctx.user.id, input.limit);
+      return { triggers };
+    }),
+
+  /**
+   * Get trigger statistics for a token
+   */
+  getTriggerStats: protectedProcedure
+    .input(z.object({ tokenId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const token = await getCanaryToken(input.tokenId, ctx.user.id);
+      if (!token) {
+        throw new Error("Canary token not found");
+      }
+
+      const stats = await getTokenTriggerStats(input.tokenId);
+      return stats;
+    }),
 });

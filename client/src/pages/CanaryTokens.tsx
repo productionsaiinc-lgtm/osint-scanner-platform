@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Copy, Trash2, Eye, Plus, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { Link } from "wouter";
 
 export default function CanaryTokens() {
   const [isOpen, setIsOpen] = useState(false);
@@ -260,14 +261,24 @@ export default function CanaryTokens() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0">
+                    <Link href={`/canary-tokens/${token.id}`}>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-gray-400 hover:text-neon-cyan"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </Link>
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={() => handleToggle(token.id)}
-                      className="text-gray-400 hover:text-neon-cyan"
+                      className="text-gray-400 hover:text-green-400"
                       title={token.status === "Active" ? "Disable" : "Enable"}
                     >
-                      <Eye className="w-4 h-4" />
+                      {token.status === "Active" ? "✓" : "○"}
                     </Button>
                     <Button
                       size="sm"

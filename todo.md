@@ -955,3 +955,55 @@
 - [ ] Test failure scenarios and retries
 - [ ] Monitor payout processing times
 - [ ] Create payout dashboard metrics
+
+
+## Phase 33: Complete Canary Tokens Implementation
+
+### Token URL Generation & Trigger Tracking
+- [ ] Generate unique token URLs for each canary token
+- [ ] Create trigger tracking endpoint (/api/canary/trigger/:tokenId)
+- [ ] Implement trigger logging to database
+- [ ] Add timestamp and metadata to trigger records
+
+### Visitor Information Collection
+- [ ] Capture visitor IP address
+- [ ] Implement geolocation lookup (IP to location)
+- [ ] Collect device information (User-Agent parsing)
+- [ ] Extract browser and OS details
+- [ ] Store visitor fingerprint data
+
+### Token Details Page
+- [ ] Create TokenDetails.tsx page component
+- [ ] Display token information (name, type, status, created date)
+- [ ] Show trigger history with timestamps
+- [ ] Display visitor information (IP, location, device, browser)
+- [ ] Add trigger filtering and search
+- [ ] Implement pagination for large trigger lists
+
+### Email Notifications
+- [ ] Implement email notification on token trigger
+- [ ] Create email template with trigger details
+- [ ] Send email to configured email address
+- [ ] Add notification preferences (enable/disable)
+- [ ] Create notification history log
+
+### Webhook Integration
+- [ ] Create webhook configuration in token settings
+- [ ] Implement webhook payload generation
+- [ ] Send POST request to webhook URL on trigger
+- [ ] Add webhook retry logic
+- [ ] Create webhook history and logs
+
+### Analytics Dashboard
+- [ ] Show trigger statistics (total, by type, by date)
+- [ ] Create trigger timeline chart
+- [ ] Display top triggered tokens
+- [ ] Show geographic distribution of triggers
+- [ ] Add device/browser breakdown
+
+### Testing & Validation
+- [ ] Write tests for trigger tracking
+- [ ] Test visitor information collection
+- [ ] Test email notifications
+- [ ] Test webhook integration
+- [ ] End-to-end testing of complete flow

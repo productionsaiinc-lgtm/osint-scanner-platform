@@ -45,6 +45,7 @@ import { WHOISLookup } from "./pages/WHOISLookup";
 import { MetadataExtractor } from "./pages/MetadataExtractor";
 import PentestLab from "./pages/PentestLab";
 import CanaryTokens from "./pages/CanaryTokens";
+import { TokenDetails } from "./pages/TokenDetails";
 import CheckoutPage from "./pages/CheckoutPage";
 import PaymentAnalytics from "./pages/PaymentAnalytics";
 import { LivePayoutsDashboard } from "./pages/LivePayoutsDashboard";
@@ -115,6 +116,7 @@ function Router() {
       <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
       <Route path={"/pentest-lab"} component={PentestLabPage} />
       <Route path={"/canary-tokens"} component={CanaryTokensPage} />
+      <Route path={"/canary-tokens/:tokenId"} component={TokenDetailsPage} />
       <Route path={"/checkout"} component={CheckoutPageWrapper} />
       <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
       <Route path={"/mdm"} component={MDMDashboardPage} />
@@ -409,6 +411,14 @@ function CanaryTokensPage() {
   return (
     <DashboardLayout>
       <CanaryTokens />
+    </DashboardLayout>
+  );
+}
+
+function TokenDetailsPage() {
+  return (
+    <DashboardLayout>
+      <TokenDetails />
     </DashboardLayout>
   );
 }
