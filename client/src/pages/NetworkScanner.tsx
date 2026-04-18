@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Network, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react";
+import ScanProgressBar from "@/components/ScanProgressBar";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -15,6 +16,24 @@ export default function NetworkScanner() {
   const createScanMutation = trpc.scans.create.useMutation();
   const executeNetworkScanMutation = trpc.scans.executeNetworkScan.useMutation();
   const executeDomainScanMutation = trpc.scans.executeDomainScan.useMutation();
+
+  const networkScanSteps = [
+    { label: "Initializing scan engine", duration: 600 },
+    { label: "Resolving hostname / IP", duration: 800 },
+    { label: "Probing open ports", duration: 2500 },
+    { label: "Running ping & traceroute", duration: 1200 },
+    { label: "Fetching IP geolocation", duration: 900 },
+    { label: "Calculating risk score", duration: 600 },
+  ];
+
+  const domainScanSteps = [
+    { label: "Initializing scan engine", duration: 500 },
+    { label: "Querying WHOIS database", duration: 1200 },
+    { label: "Fetching DNS records", duration: 1000 },
+    { label: "Enumerating subdomains", duration: 2000 },
+    { label: "Analyzing SSL certificate", duration: 800 },
+    { label: "Compiling results", duration: 500 },
+  ];
 
   const handleScan = async () => {
     if (!target.trim()) {
@@ -148,6 +167,12 @@ export default function NetworkScanner() {
           )}
         </Button>
       </Card>
+
+      {/* Progress Bar */}
+      <ScanProgressBar
+        isScanning={isScanning}
+        steps={activeTab === "network" ? networkScanSteps : domainScanSteps}
+      />
 
       {/* Results Section */}
       {scanResults && (
