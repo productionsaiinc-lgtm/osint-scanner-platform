@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,26 +7,27 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Copy, MapPin, Globe, Smartphone, Monitor } from "lucide-react";
 
 export function TokenDetails() {
-  const [params] = useParams<{ tokenId: string }>();
-  const [, navigate] = useRouter();
+  const params = useParams<{ tokenId: string }>();
+  const navigate = useRouter()[1];
   const [copied, setCopied] = useState(false);
+  const tokenId = params?.tokenId;
 
   // Fetch token details
   const tokenQuery = trpc.canaryToken.getById.useQuery(
-    { tokenId: params.tokenId },
-    { enabled: !!params.tokenId }
+    { tokenId: tokenId || "" },
+    { enabled: !!tokenId }
   );
 
   // Fetch trigger history
   const triggersQuery = trpc.canaryToken.getTriggerHistory.useQuery(
-    { tokenId: params.tokenId, limit: 100 },
-    { enabled: !!params.tokenId }
+    { tokenId: tokenId || "", limit: 100 },
+    { enabled: !!tokenId }
   );
 
   // Fetch trigger statistics
   const statsQuery = trpc.canaryToken.getTriggerStats.useQuery(
-    { tokenId: params.tokenId },
-    { enabled: !!params.tokenId }
+    { tokenId: tokenId || "" },
+    { enabled: !!tokenId }
   );
 
   const handleCopyUrl = () => {
