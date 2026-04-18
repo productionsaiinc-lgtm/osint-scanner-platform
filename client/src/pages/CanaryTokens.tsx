@@ -297,8 +297,16 @@ export default function CanaryTokens() {
         ) : (
           <Card className="bg-gray-900 border-neon-cyan/30">
             <CardContent className="pt-6 text-center">
-              <p className="text-gray-400">No canary tokens created yet</p>
-              <p className="text-sm text-gray-500 mt-2">Create your first token to start monitoring</p>
+              <p className="text-gray-400 mb-4">No canary tokens created yet</p>
+              <p className="text-sm text-gray-500 mb-6">Create your first token to start monitoring</p>
+              <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-neon-cyan text-black hover:bg-neon-cyan/90">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Now
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </CardContent>
           </Card>
         )}
