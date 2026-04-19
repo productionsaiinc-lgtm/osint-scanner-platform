@@ -10,7 +10,8 @@ export default function About() {
         <div className="max-w-4xl mx-auto px-4 py-12">
           <h1 className="text-5xl font-bold mb-6 neon-glow-cyan">
             OSINT SCANNER PLATFORM 
-            </h1>
+            NEW OSINT TOOLS IN SIDEBAR MENU ARENT 
+            FULLY FUNCTIONING YET.            </h1>
             
           
           
