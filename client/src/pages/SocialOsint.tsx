@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Users, Loader2, CheckCircle2, AlertCircle, ExternalLink, Globe, AlertTriangle, Search } from "lucide-react";
-import ScanProgressBar from "@/components/ScanProgressBar";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -21,15 +20,6 @@ export default function SocialOsint() {
 
   const createScanMutation = trpc.scans.create.useMutation();
   const executeSocialScanMutation = trpc.scans.executeSocialScan.useMutation();
-
-  const socialScanSteps = [
-    { label: "Initializing scan engine", duration: 500 },
-    { label: "Searching Twitter / X", duration: 900 },
-    { label: "Searching Instagram", duration: 900 },
-    { label: "Searching Reddit & TikTok", duration: 900 },
-    { label: "Searching LinkedIn & GitHub", duration: 900 },
-    { label: "Compiling profile intelligence", duration: 600 },
-  ];
   const searchBreaches = trpc.scans.searchBreaches.useQuery(
     { email: email.trim() },
     { enabled: false }
@@ -141,11 +131,6 @@ export default function SocialOsint() {
           Breach Search
         </button>
       </div>
-
-      {/* Progress Bar - shown for profile & scraper tabs */}
-      {(activeTab === "profiles" || activeTab === "scraper") && (
-        <ScanProgressBar isScanning={isScanning} steps={socialScanSteps} />
-      )}
 
       {/* Profile Search Tab */}
       {activeTab === "profiles" && (

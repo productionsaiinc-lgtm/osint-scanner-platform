@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
   import { useIsMobile } from "@/hooks/useMobile";
-  import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker, TrendingUp, Smartphone as PhoneIcon, Plane } from "lucide-react";
+  import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker, TrendingUp, Smartphone as PhoneIcon } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -115,25 +115,7 @@ const menuSections: MenuSection[] = [
       { icon: Info, label: "About", path: "/about" },
     ],
   },
-  {
-    section: "🚀 New OSINT Tools",
-    items: [
-      { icon: AlertTriangle, label: "Dark Web Monitor", path: "/darkweb-monitor" },
-      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
-      { icon: Code2, label: "Crypto Tracker", path: "/crypto-tracker" },
-      { icon: Users, label: "Employee Enum", path: "/employee-enum" },
-      { icon: Map, label: "Geo Reverse", path: "/geolocation-reverse" },
-      { icon: HardDrive, label: "Malware Analyzer", path: "/malware-analyzer" },
-      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
-      { icon: Network, label: "IoT Scanner", path: "/iot-scanner" },
-      { icon: Plane, label: "Flight Tracker", path: "/flight-tracker" },
-      { icon: Shield, label: "Supply Chain", path: "/supplychain-analyzer" },
-      { icon: Eye, label: "Deepfake Detector", path: "/deepfake-detector" },
-      { icon: AlertCircle, label: "Insider Threat", path: "/insider-threat" },
-    ],
-  },
 ];
-
 
 const downloadItems = [
   { icon: Download, label: "Download Mobile APK", action: "download-apk" },
