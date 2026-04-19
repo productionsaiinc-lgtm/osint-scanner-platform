@@ -1,0 +1,20 @@
+CREATE TABLE `payouts` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`paymentId` int NOT NULL,
+	`amount` int NOT NULL,
+	`currency` varchar(3) NOT NULL DEFAULT 'USD',
+	`payoutId` varchar(100) NOT NULL,
+	`status` enum('PENDING','PROCESSING','SUCCESS','FAILED','DENIED','RETURNED') NOT NULL DEFAULT 'PENDING',
+	`recipientEmail` varchar(320) NOT NULL,
+	`senderBatchId` varchar(100),
+	`transactionId` varchar(100),
+	`transactionStatus` varchar(50),
+	`failureReason` text,
+	`retryCount` int DEFAULT 0,
+	`lastRetryAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `payouts_id` PRIMARY KEY(`id`),
+	CONSTRAINT `payouts_payoutId_unique` UNIQUE(`payoutId`)
+);

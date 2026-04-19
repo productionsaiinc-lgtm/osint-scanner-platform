@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { bigint, decimal, int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -321,3 +321,381 @@ export const simSwapPatterns = mysqlTable("simSwapPatterns", {
 
 export type SimSwapPattern = typeof simSwapPatterns.$inferSelect;
 export type InsertSimSwapPattern = typeof simSwapPatterns.$inferInsert;
+
+
+/**
+ * Monitored assets for real-time monitoring and alerts
+ */
+export const monitoredAssets = mysqlTable("monitoredAssets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  assetType: mysqlEnum("assetType", ["domain", "ip", "service", "email"]).notNull(),
+  assetValue: varchar("assetValue", { length: 255 }).notNull(),
+  description: text("description"),
+  scanFrequency: mysqlEnum("scanFrequency", ["daily", "weekly", "monthly"]).default("daily").notNull(),
+  isActive: int("isActive").default(1), // boolean as int
+  lastScanned: timestamp("lastScanned"),
+  nextScan: timestamp("nextScan"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type MonitoredAsset = typeof monitoredAssets.$inferSelect;
+export type InsertMonitoredAsset = typeof monitoredAssets.$inferInsert;
+
+/**
+ * Alert rules for threat detection
+ */
+export const alertRules = mysqlTable("alertRules", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  ruleType: mysqlEnum("ruleType", ["new_port", "ssl_expiry", "dns_change", "subdomain_found", "ip_reputation", "service_version"]).notNull(),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  isEnabled: int("isEnabled").default(1), // boolean as int
+  notifyEmail: int("notifyEmail").default(1), // boolean as int
+  notifyDashboard: int("notifyDashboard").default(1), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AlertRule = typeof alertRules.$inferSelect;
+export type InsertAlertRule = typeof alertRules.$inferInsert;
+
+/**
+ * Alerts generated from monitoring
+ */
+export const alerts = mysqlTable("alerts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  alertType: mysqlEnum("alertType", ["new_port", "ssl_expiry", "dns_change", "subdomain_found", "ip_reputation", "service_version"]).notNull(),
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  details: text("details"), // JSON with detailed information
+  isRead: int("isRead").default(0), // boolean as int
+  isResolved: int("isResolved").default(0), // boolean as int
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  resolvedAt: timestamp("resolvedAt"),
+});
+export type Alert = typeof alerts.$inferSelect;
+export type InsertAlert = typeof alerts.$inferInsert;
+
+/**
+ * Scan history for change detection
+ */
+export const monitoringScanHistory = mysqlTable("monitoringScanHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  monitoredAssetId: int("monitoredAssetId").notNull(),
+  scanType: varchar("scanType", { length: 50 }).notNull(),
+  previousResults: text("previousResults"), // JSON of previous scan results
+  currentResults: text("currentResults"), // JSON of current scan results
+  changeDetected: int("changeDetected").default(0), // boolean as int
+  changeDetails: text("changeDetails"), // JSON with what changed
+  status: mysqlEnum("status", ["pending", "running", "completed", "error"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MonitoringScanHistory = typeof monitoringScanHistory.$inferSelect;
+export type InsertMonitoringScanHistory = typeof monitoringScanHistory.$inferInsert;
+
+/**
+ * PayPal payouts tracking for direct payout model
+ */
+export const payouts = mysqlTable("payouts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  paymentId: int("paymentId").notNull(), // Reference to payment that triggered payout
+  amount: int("amount").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  payoutId: varchar("payoutId", { length: 100 }).notNull().unique(), // PayPal payout batch ID
+  status: mysqlEnum("status", ["PENDING", "PROCESSING", "SUCCESS", "FAILED", "DENIED", "RETURNED"]).default("PENDING").notNull(),
+  recipientEmail: varchar("recipientEmail", { length: 320 }).notNull(),
+  senderBatchId: varchar("senderBatchId", { length: 100 }),
+  transactionId: varchar("transactionId", { length: 100 }), // Individual transaction ID
+  transactionStatus: varchar("transactionStatus", { length: 50 }), // Transaction-level status
+  failureReason: text("failureReason"), // Reason if payout failed
+  retryCount: int("retryCount").default(0),
+  lastRetryAt: timestamp("lastRetryAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Payout = typeof payouts.$inferSelect;
+export type InsertPayout = typeof payouts.$inferInsert;
+
+
+/**
+ * MDM (Mobile Device Management) - Managed devices
+ */
+export const mdmDevices = mysqlTable("mdmDevices", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  deviceId: varchar("deviceId", { length: 100 }).notNull().unique(), // Unique device identifier
+  deviceName: varchar("deviceName", { length: 255 }).notNull(),
+  deviceType: mysqlEnum("deviceType", ["android", "ios", "windows", "macos", "linux"]).notNull(),
+  osVersion: varchar("osVersion", { length: 50 }),
+  manufacturer: varchar("manufacturer", { length: 100 }),
+  model: varchar("model", { length: 100 }),
+  imei: varchar("imei", { length: 20 }),
+  serialNumber: varchar("serialNumber", { length: 100 }),
+  enrollmentStatus: mysqlEnum("enrollmentStatus", ["pending", "enrolled", "unenrolled", "suspended"]).default("pending").notNull(),
+  enrollmentDate: timestamp("enrollmentDate"),
+  lastCheckIn: timestamp("lastCheckIn"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  location: text("location"), // JSON with lat, lon, address
+  batteryLevel: int("batteryLevel"), // 0-100
+  storageUsed: int("storageUsed"), // in MB
+  storageTotal: int("storageTotal"), // in MB
+  isCompliant: int("isCompliant").default(1), // boolean - compliant with policies
+  complianceIssues: text("complianceIssues"), // JSON array of issues
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDevice = typeof mdmDevices.$inferSelect;
+export type InsertMdmDevice = typeof mdmDevices.$inferInsert;
+
+/**
+ * MDM Device Policies - Security and management policies
+ */
+export const mdmPolicies = mysqlTable("mdmPolicies", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  policyName: varchar("policyName", { length: 255 }).notNull(),
+  description: text("description"),
+  policyType: mysqlEnum("policyType", ["security", "compliance", "app_management", "network", "device_control"]).notNull(),
+  
+  // Security policies
+  minPasswordLength: int("minPasswordLength").default(6),
+  requireNumeric: int("requireNumeric").default(0), // boolean
+  requireSpecialChar: int("requireSpecialChar").default(0), // boolean
+  maxPasswordAge: int("maxPasswordAge"), // days
+  passwordExpirationWarning: int("passwordExpirationWarning"), // days
+  
+  // Device control policies
+  allowUsbDebug: int("allowUsbDebug").default(0), // boolean
+  allowUnknownSources: int("allowUnknownSources").default(0), // boolean
+  allowDeveloperMode: int("allowDeveloperMode").default(0), // boolean
+  enableEncryption: int("enableEncryption").default(1), // boolean
+  
+  // App management
+  allowedApps: text("allowedApps"), // JSON array of allowed app package names
+  blockedApps: text("blockedApps"), // JSON array of blocked app package names
+  
+  // Network policies
+  requireVpn: int("requireVpn").default(0), // boolean
+  allowedWifi: text("allowedWifi"), // JSON array of allowed WiFi SSIDs
+  
+  isActive: int("isActive").default(1), // boolean
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmPolicy = typeof mdmPolicies.$inferSelect;
+export type InsertMdmPolicy = typeof mdmPolicies.$inferInsert;
+
+/**
+ * MDM Device Policy Assignment - Link devices to policies
+ */
+export const mdmDevicePolicyAssignments = mysqlTable("mdmDevicePolicyAssignments", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  policyId: int("policyId").notNull(),
+  assignmentStatus: mysqlEnum("assignmentStatus", ["pending", "applied", "failed", "revoked"]).default("pending").notNull(),
+  appliedAt: timestamp("appliedAt"),
+  failureReason: text("failureReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDevicePolicyAssignment = typeof mdmDevicePolicyAssignments.$inferSelect;
+export type InsertMdmDevicePolicyAssignment = typeof mdmDevicePolicyAssignments.$inferInsert;
+
+/**
+ * MDM Device Commands - Remote commands sent to devices
+ */
+export const mdmDeviceCommands = mysqlTable("mdmDeviceCommands", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  commandType: mysqlEnum("commandType", ["lock", "wipe", "restart", "update_policy", "install_app", "uninstall_app", "take_screenshot", "get_location"]).notNull(),
+  commandStatus: mysqlEnum("commandStatus", ["pending", "sent", "executed", "failed"]).default("pending").notNull(),
+  commandData: text("commandData"), // JSON with command-specific data
+  executedAt: timestamp("executedAt"),
+  failureReason: text("failureReason"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type MdmDeviceCommand = typeof mdmDeviceCommands.$inferSelect;
+export type InsertMdmDeviceCommand = typeof mdmDeviceCommands.$inferInsert;
+
+/**
+ * MDM Device Logs - Activity logs for auditing
+ */
+export const mdmDeviceLogs = mysqlTable("mdmDeviceLogs", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  logType: mysqlEnum("logType", ["enrollment", "policy_applied", "command_executed", "compliance_check", "security_event", "app_installed", "app_uninstalled"]).notNull(),
+  logMessage: text("logMessage").notNull(),
+  logData: text("logData"), // JSON with additional details
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDeviceLog = typeof mdmDeviceLogs.$inferSelect;
+export type InsertMdmDeviceLog = typeof mdmDeviceLogs.$inferInsert;
+
+/**
+ * GPS/Location tracking for managed devices
+ */
+export const mdmDeviceLocations = mysqlTable("mdmDeviceLocations", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }).notNull(),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }).notNull(),
+  accuracy: int("accuracy"), // in meters
+  altitude: decimal("altitude", { precision: 10, scale: 2 }),
+  speed: decimal("speed", { precision: 8, scale: 2 }), // in m/s
+  heading: decimal("heading", { precision: 6, scale: 2 }), // 0-360 degrees
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDeviceLocation = typeof mdmDeviceLocations.$inferSelect;
+export type InsertMdmDeviceLocation = typeof mdmDeviceLocations.$inferInsert;
+
+/**
+ * Network monitoring data for managed devices
+ */
+export const mdmNetworkMonitoring = mysqlTable("mdmNetworkMonitoring", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  networkType: varchar("networkType", { length: 50 }).notNull(), // 'wifi', 'cellular', 'bluetooth'
+  ssid: varchar("ssid", { length: 255 }), // WiFi SSID
+  signalStrength: int("signalStrength"), // -30 to -120 dBm
+  bandwidth: varchar("bandwidth", { length: 50 }), // '2.4GHz', '5GHz', '6GHz'
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  macAddress: varchar("macAddress", { length: 17 }),
+  dataUsage: int("dataUsage"), // in bytes
+  uploadSpeed: decimal("uploadSpeed", { precision: 10, scale: 2 }), // Mbps
+  downloadSpeed: decimal("downloadSpeed", { precision: 10, scale: 2 }), // Mbps
+  latency: int("latency"), // in ms
+  packetLoss: decimal("packetLoss", { precision: 5, scale: 2 }), // percentage
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmNetworkMonitoring = typeof mdmNetworkMonitoring.$inferSelect;
+export type InsertMdmNetworkMonitoring = typeof mdmNetworkMonitoring.$inferInsert;
+
+/**
+ * App usage analytics for managed devices
+ */
+export const mdmAppUsageAnalytics = mysqlTable("mdmAppUsageAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  appPackageName: varchar("appPackageName", { length: 255 }).notNull(),
+  appName: varchar("appName", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }), // 'productivity', 'social', 'gaming', etc.
+  usageTime: int("usageTime"), // in seconds
+  launchCount: int("launchCount").default(0),
+  dataUsed: int("dataUsed"), // in bytes
+  batteryDrain: decimal("batteryDrain", { precision: 5, scale: 2 }), // percentage
+  lastUsed: timestamp("lastUsed"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmAppUsageAnalytics = typeof mdmAppUsageAnalytics.$inferSelect;
+export type InsertMdmAppUsageAnalytics = typeof mdmAppUsageAnalytics.$inferInsert;
+
+/**
+ * Device performance metrics
+ */
+export const mdmDevicePerformance = mysqlTable("mdmDevicePerformance", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  cpuUsage: decimal("cpuUsage", { precision: 5, scale: 2 }), // percentage
+  memoryUsage: decimal("memoryUsage", { precision: 5, scale: 2 }), // percentage
+  storageUsage: decimal("storageUsage", { precision: 5, scale: 2 }), // percentage
+  batteryLevel: int("batteryLevel"), // 0-100
+  batteryHealth: varchar("batteryHealth", { length: 50 }), // 'good', 'fair', 'poor'
+  temperature: decimal("temperature", { precision: 5, scale: 2 }), // in Celsius
+  uptime: int("uptime"), // in seconds
+  restarts: int("restarts").default(0),
+  crashes: int("crashes").default(0),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmDevicePerformance = typeof mdmDevicePerformance.$inferSelect;
+export type InsertMdmDevicePerformance = typeof mdmDevicePerformance.$inferInsert;
+
+/**
+ * Security events and threats detected on managed devices
+ */
+export const mdmSecurityEvents = mysqlTable("mdmSecurityEvents", {
+  id: int("id").autoincrement().primaryKey(),
+  deviceId: int("deviceId").notNull(),
+  eventType: varchar("eventType", { length: 100 }).notNull(), // 'malware', 'phishing', 'suspicious_app', 'jailbreak', etc.
+  severity: mysqlEnum("severity", ["low", "medium", "high", "critical"]).notNull(),
+  description: text("description"),
+  threatName: varchar("threatName", { length: 255 }),
+  source: varchar("source", { length: 255 }), // app, file, network, etc.
+  resolved: boolean("resolved").default(false),
+  resolutionAction: varchar("resolutionAction", { length: 255 }), // 'quarantined', 'deleted', 'blocked', etc.
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MdmSecurityEvent = typeof mdmSecurityEvents.$inferSelect;
+export type InsertMdmSecurityEvent = typeof mdmSecurityEvents.$inferInsert;
+
+
+/**
+ * Canary Tokens for tracking unauthorized access
+ */
+export const canaryTokens = mysqlTable("canaryTokens", {
+  id: varchar("id", { length: 64 }).primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  email: varchar("email", { length: 320 }).notNull(),
+  tokenType: mysqlEnum("tokenType", ["page_view", "resource", "form_submission", "api_call"]).default("page_view").notNull(),
+  status: mysqlEnum("status", ["Active", "Inactive"]).default("Active").notNull(),
+  tokenUrl: text("tokenUrl").notNull(),
+  expiresAt: timestamp("expiresAt"),
+  triggerLimit: int("triggerLimit"),
+  triggerCount: int("triggerCount").default(0),
+  lastTriggeredAt: timestamp("lastTriggeredAt"),
+  notificationEmail: varchar("notificationEmail", { length: 320 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CanaryToken = typeof canaryTokens.$inferSelect;
+export type InsertCanaryToken = typeof canaryTokens.$inferInsert;
+
+/**
+ * Canary Token Triggers - tracks when tokens are accessed
+ */
+export const canaryTokenTriggers = mysqlTable("canaryTokenTriggers", {
+  id: int("id").autoincrement().primaryKey(),
+  tokenId: varchar("tokenId", { length: 64 }).notNull(),
+  userId: int("userId").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }).notNull(),
+  userAgent: text("userAgent"),
+  referer: text("referer"),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  latitude: decimal("latitude", { precision: 10, scale: 8 }),
+  longitude: decimal("longitude", { precision: 11, scale: 8 }),
+  deviceType: varchar("deviceType", { length: 50 }), // 'mobile', 'desktop', 'tablet'
+  browser: varchar("browser", { length: 100 }),
+  browserVersion: varchar("browserVersion", { length: 50 }),
+  os: varchar("os", { length: 100 }),
+  osVersion: varchar("osVersion", { length: 50 }),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CanaryTokenTrigger = typeof canaryTokenTriggers.$inferSelect;
+export type InsertCanaryTokenTrigger = typeof canaryTokenTriggers.$inferInsert;

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Network, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react";
+import ScanProgressBar from "@/components/ScanProgressBar";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -15,6 +16,24 @@ export default function NetworkScanner() {
   const createScanMutation = trpc.scans.create.useMutation();
   const executeNetworkScanMutation = trpc.scans.executeNetworkScan.useMutation();
   const executeDomainScanMutation = trpc.scans.executeDomainScan.useMutation();
+
+  const networkScanSteps = [
+    { label: "Initializing scan engine", duration: 600 },
+    { label: "Resolving hostname / IP", duration: 800 },
+    { label: "Probing open ports", duration: 2500 },
+    { label: "Running ping & traceroute", duration: 1200 },
+    { label: "Fetching IP geolocation", duration: 900 },
+    { label: "Calculating risk score", duration: 600 },
+  ];
+
+  const domainScanSteps = [
+    { label: "Initializing scan engine", duration: 500 },
+    { label: "Querying WHOIS database", duration: 1200 },
+    { label: "Fetching DNS records", duration: 1000 },
+    { label: "Enumerating subdomains", duration: 2000 },
+    { label: "Analyzing SSL certificate", duration: 800 },
+    { label: "Compiling results", duration: 500 },
+  ];
 
   const handleScan = async () => {
     if (!target.trim()) {
@@ -149,6 +168,12 @@ export default function NetworkScanner() {
         </Button>
       </Card>
 
+      {/* Progress Bar */}
+      <ScanProgressBar
+        isScanning={isScanning}
+        steps={activeTab === "network" ? networkScanSteps : domainScanSteps}
+      />
+
       {/* Results Section */}
       {scanResults && (
         <Card className="hud-frame p-6 space-y-4">
@@ -162,11 +187,11 @@ export default function NetworkScanner() {
           {activeTab === "network" ? (
             // Network scan results
             <div className="space-y-4">
-              {scanResults.ports && (
+              {scanResults.ports && scanResults.ports.ports && Array.isArray(scanResults.ports.ports) && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">Open Ports</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {scanResults.ports.map((port: any, idx: number) => (
+                    {scanResults.ports.ports.map((port: any, idx: number) => (
                       <div
                         key={idx}
                         className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm"
@@ -182,21 +207,17 @@ export default function NetworkScanner() {
                 </div>
               )}
 
-              {scanResults.hostInfo && (
+              {scanResults.ping && scanResults.ping.success && (
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-neon-cyan">Host Information</h3>
+                  <h3 className="font-semibold text-neon-cyan">Ping Information</h3>
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
                     <div>
-                      <span className="text-gray-400">Hostname:</span>
-                      <span className="ml-2 text-neon-cyan font-mono">{scanResults.hostInfo.hostname}</span>
+                      <span className="text-gray-400">Status:</span>
+                      <span className="ml-2 text-neon-green">REACHABLE</span>
                     </div>
                     <div>
-                      <span className="text-gray-400">OS:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.hostInfo.os}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-400">Latency:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.hostInfo.latency}ms</span>
+                      <span className="text-gray-400">Response Time:</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.ping.responseTime}ms</span>
                     </div>
                   </div>
                 </div>
@@ -247,11 +268,11 @@ export default function NetworkScanner() {
                 </div>
               )}
 
-              {scanResults.dns && (
+              {scanResults.dns && Array.isArray(scanResults.dns.records) && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">DNS Records</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {scanResults.dns.map((record: any, idx: number) => (
+                    {scanResults.dns.records.map((record: any, idx: number) => (
                       <div
                         key={idx}
                         className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm"
@@ -264,12 +285,12 @@ export default function NetworkScanner() {
                 </div>
               )}
 
-              {scanResults.subdomains && (
+              {scanResults.subdomains && Array.isArray(scanResults.subdomains.subdomains) && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">Subdomains Found</h3>
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
                     <div className="flex flex-wrap gap-2">
-                      {scanResults.subdomains.map((sub: string, idx: number) => (
+                      {scanResults.subdomains.subdomains.map((sub: string, idx: number) => (
                         <span
                           key={idx}
                           className="px-2 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-xs text-neon-cyan font-mono"

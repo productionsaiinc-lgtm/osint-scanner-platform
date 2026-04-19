@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Download, Smartphone, Zap, Shield, Users } from "lucide-react";
 
 export function DownloadAPK() {
-  const apkUrl = "https://d2xsxph8kpxj0f.cloudfront.net/310519663526315443/FfTqerZJz39TgpHyUaW6rb/osint-scanner-v1.0.0_695a488c.zip";
+  const apkUrl = "/OsintPentestPlatform.apk";
   
   const features = [
     {
@@ -45,7 +45,7 @@ export function DownloadAPK() {
         {/* Download Card */}
         <Card className="bg-slate-800 border-slate-700 mb-12">
           <CardHeader>
-            <CardTitle className="text-2xl text-cyan-400">OSINT Scanner v1.0.0</CardTitle>
+            <CardTitle className="text-2xl text-cyan-400">OSINT Scanner v2.0.0</CardTitle>
             <CardDescription>Native Android Application</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -103,11 +103,11 @@ export function DownloadAPK() {
                   className="w-full bg-gradient-to-r from-cyan-500 to-pink-500 hover:from-cyan-600 hover:to-pink-600 text-white font-bold"
                 >
                   <Download className="mr-2 h-5 w-5" />
-                  Download APK (v1.0.0)
+                  Download APK (v2.0.0 - Latest Build)
                 </Button>
               </a>
               <p className="text-xs text-slate-400 mt-2 text-center">
-                File size: ~50MB | Last updated: April 2026
+                File size: 71MB | Last updated: April 17, 2026
               </p>
             </div>
           </CardContent>
@@ -211,6 +211,21 @@ export function DownloadAPK() {
               </CardHeader>
               <CardContent className="text-slate-300">
                 Currently, the app is only available for Android. iOS support is planned for future releases.
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-base">Parse Error - Build Locally</CardTitle>
+              </CardHeader>
+              <CardContent className="text-slate-300">
+                <p className="mb-3">To build a working APK locally:</p>
+                <ol className="space-y-2 text-sm list-decimal list-inside">
+                  <li>Use Expo (easiest, no setup)</li>
+                  <li>Use Android Studio</li>
+                  <li>Use React Native CLI</li>
+                </ol>
+                <p className="mt-3 text-xs text-slate-400">See APK_BUILD_GUIDE.md for details.</p>
               </CardContent>
             </Card>
           </div>

@@ -9,6 +9,8 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerStripeWebhook } from "../stripe-webhook";
 import { registerPayoutWebhook } from "../payout-webhook";
+import { ensureMonitoringTables } from "../migrations/create-monitoring-tables";
+import { recordCanaryTrigger } from "../canary-trigger-service";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,6 +32,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run database migrations on startup
+  console.log("[Server] Running database migrations...");
+  await ensureMonitoringTables();
+  
   const app = express();
   const server = createServer(app);
   
@@ -44,6 +50,40 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   
+  // Canary Token Trigger Endpoint
+  app.get("/api/canary/:tokenId", async (req, res) => {
+    try {
+      const { tokenId } = req.params;
+      const ipAddress = req.ip || req.connection.remoteAddress || "unknown";
+      const userAgent = req.headers["user-agent"];
+      const referer = req.headers["referer"];
+
+      // Get token to find userId
+      const { getCanaryToken } = await import("../db");
+      const token = await getCanaryToken(tokenId, 0); // userId will be updated after fetch
+
+      if (!token) {
+        return res.status(404).json({ error: "Token not found" });
+      }
+
+      // Record the trigger
+      await recordCanaryTrigger({
+        tokenId,
+        userId: token.userId,
+        ipAddress,
+        userAgent: userAgent as string,
+        referer: referer as string,
+      });
+
+      // Return a 1x1 pixel image or redirect
+      res.set("Content-Type", "image/gif");
+      res.send(Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64"));
+    } catch (error) {
+      console.error("[Canary Trigger] Error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

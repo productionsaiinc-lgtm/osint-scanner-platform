@@ -20,37 +20,120 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car } from "lucide-react";
+  import { useIsMobile } from "@/hooks/useMobile";
+  import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker, TrendingUp, Smartphone as PhoneIcon } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Radar, label: "Network Scanner", path: "/network-scanner" },
 
-  { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
-  { icon: Map, label: "Map View", path: "/map" },
-  { icon: History, label: "Scan History", path: "/history" },
-  { icon: Code2, label: "GitHub Search", path: "/github-search" },
-  { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
-  { icon: Bell, label: "Notifications", path: "/notifications" },
-  { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
-  { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
-  { icon: Network, label: "Nmap Scanner", path: "/nmap-scanner" },
-  { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
-  { icon: Cpu, label: "Shodan", path: "/shodan" },
-  { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
-  { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
-  { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
-  { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
-  { icon: Info, label: "About", path: "/about" },
-  { icon: CreditCard, label: "Pricing", path: "/pricing" },
-  { icon: Zap, label: "Subscription", path: "/subscription" },
-  { icon: Wallet, label: "Payouts", path: "/payouts" },
+interface MenuSection {
+  section: string;
+  items: Array<{ icon: any; label: string; path: string }>;
+}
+
+const menuSections: MenuSection[] = [
+  {
+    section: "Core",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: History, label: "Scan History", path: "/history" },
+      { icon: Eye, label: "Monitoring", path: "/monitoring" },
+      { icon: Archive, label: "Alert History", path: "/alert-history" },
+      { icon: Bell, label: "Notifications", path: "/notifications" },
+    ],
+  },
+  {
+    section: "Network & Infrastructure",
+    items: [
+      { icon: Radar, label: "Network Scanner", path: "/network-scanner" },
+      { icon: Network, label: "Nmap Scanner", path: "/nmap-scanner" },
+      { icon: Cpu, label: "Shodan", path: "/shodan" },
+      { icon: Globe, label: "DNS Enumeration", path: "/dns-enumeration" },
+      { icon: Globe, label: "WHOIS Lookup", path: "/whois-lookup" },
+      { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
+    ],
+  },
+  {
+    section: "Web & Domain Security",
+    items: [
+      { icon: Globe, label: "Web Scraper", path: "/web-scraper" },
+      { icon: Lock, label: "SSL Analyzer", path: "/ssl-analyzer" },
+      { icon: Shield, label: "WAF Detection", path: "/waf-detection" },
+      { icon: AlertTriangle, label: "Subdomain Takeover", path: "/subdomain-takeover" },
+    ],
+  },
+  {
+    section: "Forensics",
+    items: [
+      { icon: Fingerprint, label: "Metadata Extractor", path: "/metadata-extractor" },
+      { icon: Search, label: "Reverse Image Search", path: "/reverse-image-search" },
+    ],
+  },
+  {
+    section: "Intelligence & Threat",
+    items: [
+      { icon: Users, label: "Social Media OSINT", path: "/social-osint" },
+      { icon: Code2, label: "GitHub Search", path: "/github-search" },
+      { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
+      { icon: Shield, label: "Vulnerability Scanner", path: "/vulnerability-scanner" },
+    ],
+  },
+  {
+    section: "Personal & Device",
+    items: [
+      { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
+      { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
+      { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
+      { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
+      { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
+    ],
+  },
+  {
+    section: "Visualization & Tools",
+    items: [
+      { icon: Map, label: "Map View", path: "/map" },
+      { icon: Code2, label: "Pentest Lab", path: "/pentest-lab" },
+      { icon: AlertTriangle, label: "Canary Tokens", path: "/canary-tokens" },
+    ],
+  },
+  {
+    section: "Mobile Device Management",
+    items: [
+      { icon: PhoneIcon, label: "MDM Dashboard", path: "/mdm" },
+    ],
+  },
+  {
+    section: "Account & Billing",
+    items: [
+      { icon: CreditCard, label: "Pricing", path: "/pricing" },
+      { icon: Zap, label: "Subscription", path: "/subscription" },
+      { icon: Wallet, label: "Payouts", path: "/payouts" },
+      { icon: TrendingUp, label: "Payouts Enhanced", path: "/payouts-enhanced" },
+      { icon: TrendingUp, label: "Live Payouts", path: "/live-payouts" },
+      { icon: Info, label: "About", path: "/about" },
+    ],
+  },
+  {
+    section: "🚀 New OSINT Tools",
+    items: [
+      { icon: AlertTriangle, label: "Dark Web Monitor", path: "/darkweb-monitor" },
+      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
+      { icon: Code2, label: "Crypto Tracker", path: "/crypto-tracker" },
+      { icon: Users, label: "Employee Enum", path: "/employee-enum" },
+      { icon: Map, label: "Geo Reverse", path: "/geolocation-reverse" },
+      { icon: HardDrive, label: "Malware Analyzer", path: "/malware-analyzer" },
+      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
+      { icon: Network, label: "IoT Scanner", path: "/iot-scanner" },
+      { icon: Plane, label: "Flight Tracker", path: "/flight-tracker" },
+      { icon: Shield, label: "Supply Chain", path: "/supplychain-analyzer" },
+      { icon: Eye, label: "Deepfake Detector", path: "/deepfake-detector" },
+      { icon: AlertCircle, label: "Insider Threat", path: "/insider-threat" },
+    ],
+  },
 ];
+
 
 const downloadItems = [
   { icon: Download, label: "Download Mobile APK", action: "download-apk" },
@@ -108,6 +191,7 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider
+      defaultOpen={true}
       style={
         {
           "--sidebar-width": `${sidebarWidth}px`,
@@ -135,8 +219,8 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["Core"]));
   const sidebarRef = useRef<HTMLDivElement>(null);
-  const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -175,25 +259,36 @@ function DashboardLayoutContent({
     };
   }, [isResizing, setSidebarWidth]);
 
+  const toggleSection = (section: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(section)) {
+      newExpanded.delete(section);
+    } else {
+      newExpanded.add(section);
+    }
+    setExpandedSections(newExpanded);
+  };
+
   return (
-    <>
+    <SidebarProvider>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0"
+          className="border-r-0 md:flex hidden"
           disableTransition={isResizing}
         >
           <SidebarHeader className="h-16 justify-center border-b border-neon-pink/30">
             <div className="flex items-center gap-3 px-2 transition-all w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-accent/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                className="flex items-center gap-2 px-3 py-2 hover:bg-accent/20 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0 font-semibold text-sm"
                 aria-label="Toggle navigation"
               >
                 <PanelLeft className="h-4 w-4 text-neon-cyan" />
+                {!isCollapsed && <span className="text-neon-cyan neon-cyan-glow">Menu</span>}
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 ml-auto">
                   <span className="font-bold tracking-tight truncate neon-cyan-glow text-sm">
                     OSINT
                   </span>
@@ -203,33 +298,58 @@ function DashboardLayoutContent({
           </SidebarHeader>
 
           <SidebarContent className="gap-0 flex flex-col overflow-hidden">
-            <SidebarMenu className="px-2 py-2 space-y-1 flex-1 overflow-y-auto">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
+            <div className="flex-1 overflow-y-auto px-2 py-2 space-y-2">
+              {menuSections.map((section) => {
+                const isExpanded = expandedSections.has(section.section);
+                const isCollapsedSidebar = isCollapsed;
+
                 return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal ${
-                        isActive
-                          ? "bg-neon-pink/20 text-neon-pink-glow border border-neon-pink/50"
-                          : "text-foreground hover:bg-neon-cyan/10 hover:text-neon-cyan"
-                      }`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${
-                          isActive ? "text-neon-pink" : "text-neon-cyan/70"
-                        }`}
-                      />
-                      <span className="text-xs uppercase tracking-wider">{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={section.section} className="space-y-1">
+                    {!isCollapsedSidebar && (
+                      <button
+                        onClick={() => toggleSection(section.section)}
+                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold uppercase tracking-wider text-neon-cyan/70 hover:text-neon-cyan transition-colors group"
+                      >
+                        <span>{section.section}</span>
+                        <ChevronDown
+                          className={`h-3 w-3 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                    )}
+
+                    {isExpanded && (
+                      <SidebarMenu className="space-y-1">
+                        {section.items.map((item) => {
+                          const isActive = location === item.path;
+                          return (
+                            <SidebarMenuItem key={item.path}>
+                              <SidebarMenuButton
+                                isActive={isActive}
+                                onClick={() => setLocation(item.path)}
+                                tooltip={item.label}
+                                className={`h-10 transition-all font-normal ${
+                                  isActive
+                                    ? "bg-neon-pink/20 text-neon-pink-glow border border-neon-pink/50"
+                                    : "text-foreground hover:bg-neon-cyan/10 hover:text-neon-cyan"
+                                }`}
+                              >
+                                <item.icon
+                                  className={`h-4 w-4 ${
+                                    isActive ? "text-neon-pink" : "text-neon-cyan/70"
+                                  }`}
+                                />
+                                <span className="text-xs uppercase tracking-wider">{item.label}</span>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        })}
+                      </SidebarMenu>
+                    )}
+                  </div>
                 );
               })}
-            </SidebarMenu>
-            
+            </div>
+
             <div className="border-t border-neon-pink/30 pt-2 pb-2 px-2 flex-shrink-0">
               <SidebarMenu className="space-y-1">
                 {downloadItems.map(item => (
@@ -238,8 +358,8 @@ function DashboardLayoutContent({
                       onClick={() => {
                         if (item.action === "download-apk") {
                           const link = document.createElement('a');
-                          link.href = '/osint-scanner.apk';
-                          link.download = 'osint-scanner.apk';
+                          link.href = '/OsintPentestPlatform.apk';
+                          link.download = 'OsintPentestPlatform-v2.0.0.apk';
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
@@ -288,33 +408,24 @@ function DashboardLayoutContent({
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
+
+        {/* Resize handle */}
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-neon-pink/50 transition-colors ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => {
-            if (isCollapsed) return;
-            setIsResizing(true);
-          }}
-          style={{ zIndex: 50 }}
+          onMouseDown={() => setIsResizing(true)}
+          className="absolute right-0 top-0 bottom-0 w-1 hover:w-1.5 hover:bg-neon-cyan/50 cursor-col-resize transition-all group"
         />
       </div>
 
       <SidebarInset>
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
-                    {activeMenuItem?.label ?? "Menu"}
-                  </span>
-                </div>
-              </div>
-            </div>
+        <div className="flex flex-col flex-1">
+          {/* Mobile hamburger menu */}
+          <div className="md:hidden flex items-center gap-2 p-4 border-b border-neon-pink/30">
+            <SidebarTrigger className="text-neon-cyan" />
+            <span className="font-bold text-neon-cyan neon-cyan-glow">OSINT</span>
           </div>
-        )}
-        <main className="flex-1 p-4">{children}</main>
+          {children}
+        </div>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }

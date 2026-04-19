@@ -1,11 +1,18 @@
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Radar, Users, Map, History, Code2, AlertCircle, Bell, Smartphone, HardDrive, Network, Power, Cpu, Search, Globe, CreditCard, Car, Lock, Zap, ArrowRight, CheckCircle } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { getLoginUrl } from '@/const';
+import { updateMetaTags, pageMetadata } from '@/lib/seo';
 
 export function PublicLanding() {
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    updateMetaTags(pageMetadata.home);
+  }, []);
+
 
   const features = [
     {

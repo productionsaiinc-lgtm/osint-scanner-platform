@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Globe, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import ScanProgressBar from "@/components/ScanProgressBar";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -13,6 +14,15 @@ export default function DomainOsint() {
 
   const createScanMutation = trpc.scans.create.useMutation();
   const executeDomainScanMutation = trpc.scans.executeDomainScan.useMutation();
+
+  const domainScanSteps = [
+    { label: "Initializing scan engine", duration: 500 },
+    { label: "Querying WHOIS database", duration: 1200 },
+    { label: "Fetching DNS records", duration: 1000 },
+    { label: "Enumerating subdomains", duration: 2000 },
+    { label: "Analyzing SSL certificate", duration: 800 },
+    { label: "Compiling results", duration: 500 },
+  ];
 
   const handleScan = async () => {
     if (!target.trim()) {
@@ -229,6 +239,9 @@ export default function DomainOsint() {
           )}
         </div>
       )}
+
+      {/* Progress Bar */}
+      <ScanProgressBar isScanning={isScanning} steps={domainScanSteps} />
 
       {/* Empty State */}
       {!scanResults && !isScanning && (

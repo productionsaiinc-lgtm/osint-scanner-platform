@@ -18,6 +18,7 @@ import { CVESearch } from "./pages/CVESearch";
 import { EmailVerification } from "./pages/EmailVerification";
 import { SubscriptionManagement } from "./pages/SubscriptionManagement";
 import { PayoutDashboard } from "./pages/PayoutDashboard";
+import { PayoutDashboardEnhanced } from "./pages/PayoutDashboardEnhanced";
 import { ShodanSearch } from "./pages/ShodanSearch";
 import { NotificationCenter } from "./pages/NotificationCenter";
 import { PhoneLookup } from "./pages/PhoneLookup";
@@ -32,6 +33,23 @@ import SimSwapLookup from "./pages/SimSwapLookup";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
 import { DownloadAPK } from "./pages/DownloadAPK";
+import Monitoring from "./pages/Monitoring";
+import AlertHistory from "./pages/AlertHistory";
+import VulnerabilityScanner from "./pages/VulnerabilityScanner";
+import SSLAnalyzer from "./pages/SSLAnalyzer";
+import { ReverseImageSearch } from "./pages/ReverseImageSearch";
+import { DNSEnumeration } from "./pages/DNSEnumeration";
+import { WAFDetection } from "./pages/WAFDetection";
+import { SubdomainTakeover } from "./pages/SubdomainTakeover";
+import { WHOISLookup } from "./pages/WHOISLookup";
+import { MetadataExtractor } from "./pages/MetadataExtractor";
+import PentestLab from "./pages/PentestLab";
+import CanaryTokens from "./pages/CanaryTokens";
+import { TokenDetails } from "./pages/TokenDetails";
+import CheckoutPage from "./pages/CheckoutPage";
+import PaymentAnalytics from "./pages/PaymentAnalytics";
+import { LivePayoutsDashboard } from "./pages/LivePayoutsDashboard";
+import { MDMDashboard } from "./pages/MDMDashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -73,6 +91,7 @@ function Router() {
       <Route path={"/email-verify"} component={EmailVerifyPage} />
       <Route path={"/subscription"} component={SubscriptionManagementPage} />
       <Route path={"/payouts"} component={PayoutDashboardPage} />
+      <Route path={"/payouts-enhanced"} component={PayoutDashboardEnhancedPage} />
       <Route path={"/shodan"} component={ShodanSearchPage} />
       <Route path={"/notifications"} component={NotificationCenterPage} />
       <Route path={"/phone-lookup"} component={PhoneLookupPage} />
@@ -86,7 +105,23 @@ function Router() {
       <Route path={"/download"} component={DownloadAPKPage} />
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
-      <Route path={"/404"} component={NotFound} />
+      <Route path={"/monitoring"} component={MonitoringPage} />
+      <Route path={"/alert-history"} component={AlertHistoryPage} />      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
+      <Route path={"/ssl-analyzer"} component={SSLAnalyzerPage} />
+      <Route path={"/reverse-image-search"} component={ReverseImageSearchPage} />
+      <Route path={"/dns-enumeration"} component={DNSEnumerationPage} />
+      <Route path={"/waf-detection"} component={WAFDetectionPage} />
+      <Route path={"/subdomain-takeover"} component={SubdomainTakeoverPage} />
+      <Route path={"/whois-lookup"} component={WHOISLookupPage} />
+      <Route path={"/metadata-extractor"} component={MetadataExtractorPage} />
+      <Route path={"/pentest-lab"} component={PentestLabPage} />
+      <Route path={"/canary-tokens"} component={CanaryTokensPage} />
+      <Route path={"/canary-tokens/:tokenId"} component={TokenDetailsPage} />
+      <Route path={"/checkout"} component={CheckoutPageWrapper} />
+      <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
+      <Route path={"/mdm"} component={MDMDashboardPage} />
+      <Route path={"/:path*"} component={NotFound} />
+      <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -188,6 +223,14 @@ function PayoutDashboardPage() {
   );
 }
 
+function PayoutDashboardEnhancedPage() {
+  return (
+    <DashboardLayout>
+      <PayoutDashboardEnhanced />
+    </DashboardLayout>
+  );
+}
+
 function ShodanSearchPage() {
   return (
     <DashboardLayout>
@@ -272,6 +315,142 @@ function DownloadAPKPage() {
   return (
     <DashboardLayout>
       <DownloadAPK />
+    </DashboardLayout>
+  );
+}
+
+function MonitoringPage() {
+  return (
+    <DashboardLayout>
+      <Monitoring />
+    </DashboardLayout>
+  );
+}
+
+function AlertHistoryPage() {
+  return (
+    <DashboardLayout>
+      <AlertHistory />
+    </DashboardLayout>
+  );
+}
+
+function VulnerabilityScannerPage() {
+  return (
+    <DashboardLayout>
+      <VulnerabilityScanner />
+    </DashboardLayout>
+  );
+}
+
+function SSLAnalyzerPage() {
+  return (
+    <DashboardLayout>
+      <SSLAnalyzer />
+    </DashboardLayout>
+  );
+}
+
+function ReverseImageSearchPage() {
+  return (
+    <DashboardLayout>
+      <ReverseImageSearch />
+    </DashboardLayout>
+  );
+}
+
+function DNSEnumerationPage() {
+  return (
+    <DashboardLayout>
+      <DNSEnumeration />
+    </DashboardLayout>
+  );
+}
+
+function WAFDetectionPage() {
+  return (
+    <DashboardLayout>
+      <WAFDetection />
+    </DashboardLayout>
+  );
+}
+
+function SubdomainTakeoverPage() {
+  return (
+    <DashboardLayout>
+      <SubdomainTakeover />
+    </DashboardLayout>
+  );
+}
+
+function WHOISLookupPage() {
+  return (
+    <DashboardLayout>
+      <WHOISLookup />
+    </DashboardLayout>
+  );
+}
+
+function MetadataExtractorPage() {
+  return (
+    <DashboardLayout>
+      <MetadataExtractor />
+    </DashboardLayout>
+  );
+}
+
+function PentestLabPage() {
+  return (
+    <DashboardLayout>
+      <PentestLab />
+    </DashboardLayout>
+  );
+}
+
+function CanaryTokensPage() {
+  return (
+    <DashboardLayout>
+      <CanaryTokens />
+    </DashboardLayout>
+  );
+}
+
+function TokenDetailsPage() {
+  return (
+    <DashboardLayout>
+      <TokenDetails />
+    </DashboardLayout>
+  );
+}
+
+function CheckoutPageWrapper() {
+  return (
+    <DashboardLayout>
+      <CheckoutPage />
+    </DashboardLayout>
+  );
+}
+
+function PaymentAnalyticsPage() {
+  return (
+    <DashboardLayout>
+      <PaymentAnalytics />
+    </DashboardLayout>
+  );
+}
+
+function LivePayoutsDashboardPage() {
+  return (
+    <DashboardLayout>
+      <LivePayoutsDashboard />
+    </DashboardLayout>
+  );
+}
+
+function MDMDashboardPage() {
+  return (
+    <DashboardLayout>
+      <MDMDashboard />
     </DashboardLayout>
   );
 }

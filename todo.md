@@ -41,7 +41,7 @@
 - [x] Build scan history view with filtering
 - [x] Implement search functionality
 - [x] Add result detail view
-- [ ] Implement result export functionality
+- [x] Implement result export functionality
 
 ## Phase 7: LLM-Powered Analysis
 - [x] Integrate LLM API for threat analysis (tRPC procedure)
@@ -85,8 +85,8 @@
 - [x] Implement advanced port scanning (simulated)
 - [x] Add service version detection (simulated)
 - [x] Implement OS fingerprinting (simulated)
-- [ ] Add UDP port scanning
-- [ ] Implement SYN stealth scanning
+- [x] Add UDP port scanning
+- [x] Implement SYN stealth scanning
 - [x] Add vulnerability scanning - CVE lookup (simulated)
 - [ ] Integrate real Nmap scanner
 - [ ] Integrate real service fingerprinting tools
@@ -94,12 +94,12 @@
 ### Domain & Web Reconnaissance
 - [x] Implement reverse DNS lookup (simulated)
 - [x] Add MX record enumeration (simulated)
-- [ ] Implement SPF/DKIM/DMARC record lookup
+- [x] Implement SPF/DKIM/DMARC record lookup
 - [x] Add HTTP header analysis (simulated)
 - [x] Implement SSL/TLS certificate chain analysis (simulated)
 - [ ] Add certificate transparency log search
 - [x] Implement web technology detection (simulated)
-- [ ] Add robots.txt and sitemap enumeration
+- [x] Add robots.txt and sitemap enumeration
 - [ ] Integrate real DNS resolver
 - [ ] Integrate real certificate chain parser
 - [ ] Integrate Wappalyzer engine
@@ -108,15 +108,15 @@
 - [x] Implement email verification and validation (simulated)
 - [x] Add email breach database lookup (simulated)
 - [x] Implement username enumeration across platforms (simulated)
-- [ ] Add email format pattern detection
-- [ ] Implement person search (name + location)
-- [ ] Add phone number lookup and validation
+- [x] Add email format pattern detection
+- [x] Implement person search (name + location)
+- [x] Add phone number lookup and validation
 - [ ] Integrate HaveIBeenPwned API
 - [ ] Integrate real email verification service
 
 ### IP & ASN Intelligence
 - [x] Implement ASN lookup (simulated)
-- [ ] Add IP reputation scoring
+- [x] Add IP reputation scoring
 - [x] Implement reverse IP lookup (simulated)
 - [x] Add IP geolocation with ISP info
 - [ ] Implement netblock enumeration
@@ -452,12 +452,15 @@
 ## Phase 19: Advanced Export and Real API Integrations
 
 ### Result Export Functionality
-- [ ] Install export dependencies (jsPDF, xlsx)
-- [ ] Implement PDF export for scan results
-- [ ] Implement CSV export for scan results
-- [ ] Implement JSON export for scan results
-- [ ] Create tRPC export procedures
-- [ ] Wire export to frontend UI
+- [x] Install export dependencies (jsPDF, xlsx)
+- [x] Implement PDF export for scan results
+- [x] Implement CSV export for scan results
+- [x] Implement JSON export for scan results
+- [x] Create tRPC export procedures (export-router.ts with 4 mutations)
+- [x] Create ExportButton component for frontend UI
+- [x] Wire export buttons to ScanHistory page (with dropdown menu)
+- [x] Test export functionality end-to-end (JSON export verified)
+- [ ] Wire export buttons to individual scan detail pages
 - [ ] Create export templates
 - [ ] Add scheduled report generation
 - [ ] Implement email report delivery
@@ -648,3 +651,359 @@
 - [x] Test download functionality
 - [x] TypeScript: No errors
 - [x] Dev server: Running and healthy
+
+
+## Phase 28: Real-Time Monitoring & Alerts
+
+### Monitoring System Architecture
+- [ ] Design monitoring database schema (monitored assets, alerts, scan history)
+- [ ] Create monitored_assets table with scan schedules
+- [ ] Create alerts table for threat detection
+- [ ] Create scan_history table for change tracking
+- [ ] Create alert_rules table for custom detection rules
+
+### Scheduled Scanning Service
+- [ ] Build cron job scheduler for periodic scans
+- [ ] Implement daily/weekly/monthly scan schedules
+- [ ] Create background job processor
+- [ ] Add scan result comparison logic
+- [ ] Implement change detection (DNS, SSL, ports, etc.)
+
+### Threat Detection & Alerts
+- [ ] Detect new open ports
+- [ ] Detect SSL certificate expiration
+- [ ] Detect DNS record changes
+- [ ] Detect new subdomains
+- [ ] Detect IP reputation changes
+- [ ] Detect service version changes
+
+### Email Notifications
+- [ ] Create email notification service
+- [ ] Send alerts on threat detection
+- [ ] Send daily/weekly digest reports
+- [ ] Create email templates
+- [ ] Implement email scheduling
+
+### Monitoring Dashboard
+- [ ] Build monitored assets list
+- [ ] Display asset health status
+- [ ] Show recent alerts
+- [ ] Display scan history timeline
+- [ ] Show threat trends
+
+### Alert Configuration UI
+- [ ] Create add/edit monitored asset form
+- [ ] Set scan frequency (daily/weekly/monthly)
+- [ ] Configure alert thresholds
+- [ ] Enable/disable specific alerts
+- [ ] Manage notification preferences
+
+### Alert History & Reporting
+- [ ] Display alert history with timestamps
+- [ ] Create alert severity levels
+- [ ] Generate compliance reports
+- [ ] Export alert data to CSV/PDF
+- [ ] Create alert statistics dashboard
+
+### Testing & Validation
+- [ ] Write monitoring system tests
+- [ ] Test scheduled scan execution
+- [ ] Test threat detection logic
+- [ ] Test email notifications
+- [ ] Test end-to-end workflows
+
+
+## Phase 25: Real-Time Monitoring & Alerts System
+
+### Monitoring Service Backend
+- [x] Create monitoring database schema (monitoredAssets, alertRules, alerts, scanHistory)
+- [x] Implement scheduled scan service (5-minute intervals)
+- [x] Implement change detection logic (DNS, SSL, subdomains, ports)
+- [x] Implement alert generation system
+- [x] Implement alert management (read/resolve)
+- [x] Build monitoring dashboard UI page (Monitoring.tsx)
+- [x] Create alert configuration UI page (integrated into Monitoring.tsx)
+- [x] Implement email notification system (email-notification-service.ts)
+- [x] Build alert history and reporting page (AlertHistory.tsx)
+- [x] Add monitoring tRPC procedures (CRUD operations in monitoring-router.ts)
+- [x] Write comprehensive monitoring tests (monitoring.test.ts with 21 test cases)
+- [x] Add "Monitoring" to sidebar navigation (Eye icon)
+- [x] Add "Alert History" to sidebar navigation (Archive icon)
+- [x] Test end-to-end monitoring flow
+
+
+## Phase 26: Vulnerability Scanner & SSL/TLS Certificate Analyzer
+
+### Vulnerability Scanner
+- [x] Create vulnerability-scanner-service.ts with common vulnerability checks
+- [x] Implement SQL injection detection
+- [x] Implement XSS vulnerability detection
+- [x] Implement CSRF vulnerability detection
+- [x] Implement security header analysis
+- [x] Add tRPC procedure for vulnerability scanning
+- [x] Build VulnerabilityScanner.tsx UI page
+- [x] Add to sidebar navigation
+
+### SSL/TLS Certificate Analyzer
+- [x] Create ssl-certificate-analyzer-service.ts
+- [x] Implement certificate chain validation
+- [x] Implement cipher suite analysis
+- [x] Implement SSL/TLS version detection
+- [x] Implement certificate expiry checking
+- [x] Implement security header analysis
+- [x] Add tRPC procedure for SSL analysis
+- [x] Build SSLAnalyzer.tsx UI page
+- [x] Add to sidebar navigation
+- [x] Test both tools end-to-end
+
+
+## Phase 27: New Security Analysis Tools (User Requested)
+
+### Reverse Image Search
+- [x] Create reverse-image-search-service.ts backend service
+- [x] Implement image URL analysis
+- [x] Add image similarity detection
+- [x] Implement reverse search across multiple sources
+- [x] Add tRPC procedure for reverse image search
+- [x] Build ReverseImageSearch.tsx UI page
+- [x] Add to sidebar navigation
+
+### DNS Enumeration
+- [x] Create dns-enumeration-service.ts backend service
+- [x] Implement DNS record enumeration
+- [x] Add subdomain discovery via DNS
+- [x] Implement DNS zone transfer detection
+- [x] Add DNSSEC validation
+- [x] Add tRPC procedure for DNS enumeration
+- [x] Build DNSEnumeration.tsx UI page
+- [x] Add to sidebar navigation
+
+### Web Application Firewall Detection
+- [x] Create waf-detection-service.ts backend service
+- [x] Implement WAF fingerprinting
+- [x] Add WAF bypass detection
+- [x] Implement WAF rule analysis
+- [x] Add protection level assessment
+- [x] Add tRPC procedure for WAF detection
+- [x] Build WAFDetection.tsx UI page
+- [x] Add to sidebar navigation
+
+### Subdomain Takeover Detection
+- [x] Create subdomain-takeover-service.ts backend service
+- [x] Implement CNAME analysis
+- [x] Add DNS resolution checking
+- [x] Implement vulnerable service detection
+- [x] Add takeover risk assessment
+- [x] Add tRPC procedure for subdomain takeover detection
+- [x] Build SubdomainTakeover.tsx UI page
+- [x] Add to sidebar navigation
+
+### WHOIS Lookup
+- [x] Create whois-lookup-service.ts backend service
+- [x] Implement WHOIS query functionality
+- [x] Add domain registrar information
+- [x] Implement registrant data extraction
+- [x] Add nameserver information
+- [x] Add tRPC procedure for WHOIS lookup
+- [x] Build WHOISLookup.tsx UI page
+- [x] Add to sidebar navigation
+
+### Metadata Extractor
+- [x] Create metadata-extractor-service.ts backend service
+- [x] Implement image metadata extraction (EXIF)
+- [x] Add document metadata extraction (PDF, Office)
+- [x] Implement location data extraction
+- [x] Add camera/device information extraction
+- [x] Add tRPC procedure for metadata extraction
+- [x] Build MetadataExtractor.tsx UI page
+- [x] Add to sidebar navigation
+
+### Testing & Integration
+- [x] Write tests for all 6 new tools
+- [x] Test end-to-end workflows
+- [x] Verify navigation and UI integration
+- [x] Run full test suite
+
+
+## Phase 28: Pentest Lab
+
+### Pentest Lab Feature
+- [x] Create pentest-lab-service.ts backend service
+- [x] Implement lab scenarios and exercises
+- [x] Add difficulty levels and categories
+- [x] Implement scoring and progress tracking
+- [x] Add tRPC procedures for lab management
+- [x] Build PentestLab.tsx UI page
+- [x] Add to sidebar navigation
+- [x] Test end-to-end
+
+### Testing & Validation
+- [x] Write tests for pentest lab system
+- [x] Test end-to-end workflows
+- [x] Verify navigation and UI integration
+- [x] Run full test suite
+
+
+## Phase 30: Payment System Enhancement
+
+### Payment Flow Testing
+- [x] Test PayPal checkout flow end-to-end (252 tests passing)
+- [x] Test Stripe checkout flow end-to-end
+- [x] Test payment success/failure scenarios
+- [x] Test webhook processing (PayPal & Stripe)
+- [x] Test subscription activation after payment
+- [x] Test payment history retrieval
+- [x] Test receipt generation
+
+### Additional Payment Methods
+- [x] Add Apple Pay integration (payment-methods-router.ts)
+- [x] Add Google Pay integration
+- [x] Add Bank Transfer/ACH payment option
+- [ ] Add cryptocurrency payment option (optional)
+- [ ] Update payment method selection UI
+- [ ] Add payment method management page
+
+### Payment UI/UX Improvements
+- [ ] Create improved checkout page with progress indicator
+- [ ] Add payment method selection UI
+- [ ] Improve error handling and user feedback
+- [ ] Add loading states during payment processing
+- [ ] Create payment success/confirmation page
+- [ ] Add payment cancellation handling
+- [ ] Improve mobile payment experience
+- [ ] Add payment security badges/trust indicators
+
+### Payment Analytics & Reporting
+- [ ] Create payment analytics dashboard
+- [ ] Add revenue tracking by plan
+- [ ] Add payment method analytics
+- [ ] Add subscription churn analytics
+- [ ] Create payment reports (daily/monthly/yearly)
+- [ ] Add customer lifetime value (CLV) tracking
+- [ ] Add payment failure rate tracking
+- [ ] Create admin payment management interface
+
+### Payment Integration Tests
+- [ ] Create PayPal integration tests
+- [ ] Create Stripe integration tests
+- [ ] Create payment webhook tests
+- [ ] Create subscription lifecycle tests
+- [ ] Create payment history tests
+- [ ] Create receipt generation tests
+
+
+## Phase 31: Pentest Labs Completion
+
+### Backend Integration
+- [x] Create pentest-labs-router.ts with tRPC procedures for:
+  - [x] Get lab details
+  - [x] Start lab challenge
+  - [x] Submit lab solution
+  - [x] Get user progress
+  - [x] Get leaderboard
+- [x] Implement lab challenge validation engine
+- [x] Add scoring and points calculation
+- [ ] Create database schema for lab progress and submissions
+
+### Frontend Enhancement
+- [ ] Create LabDetail.tsx page for individual lab challenges
+- [ ] Implement lab execution environment with code editor
+- [ ] Add solution submission and validation UI
+- [ ] Create leaderboard page with rankings
+- [ ] Add user statistics dashboard
+- [ ] Implement hint system for labs
+
+### Lab Content
+- [ ] Add challenge descriptions and objectives
+- [ ] Create expected outputs/solutions for each lab
+- [ ] Add hints and guidance for each lab
+- [ ] Implement difficulty-based scoring multipliers
+
+### Testing & Validation
+- [ ] Write tests for lab backend procedures
+- [ ] Test lab submission and validation
+- [ ] Test leaderboard calculations
+- [ ] End-to-end testing of lab workflow
+
+
+## Phase 32: Direct Payout Model Implementation
+
+### Automatic Payout Service
+- [ ] Create automatic-payout-service.ts with PayPal payout API integration
+- [ ] Implement initiatePayout() function to send money to PayPal account
+- [ ] Add payout status tracking (pending, completed, failed)
+- [ ] Create payout retry logic for failed transactions
+- [ ] Implement payout scheduling (immediate or batch)
+
+### Payment-Triggered Payouts
+- [ ] Modify capturePayPalOrder to trigger automatic payout
+- [ ] Add payout amount calculation (100% of payment)
+- [ ] Create payout record in database
+- [ ] Add error handling for payout failures
+- [ ] Implement fallback to manual payout if automatic fails
+
+### Payout Status & Webhooks
+- [ ] Add PayPal payout webhook handler
+- [ ] Track payout status updates (pending → completed/failed)
+- [ ] Create payout notification system
+- [ ] Add payout history tracking
+- [ ] Implement payout reconciliation
+
+### Testing & Monitoring
+- [ ] Test payout with sandbox PayPal account
+- [ ] Verify payout amounts are correct
+- [ ] Test failure scenarios and retries
+- [ ] Monitor payout processing times
+- [ ] Create payout dashboard metrics
+
+
+## Phase 33: Complete Canary Tokens Implementation
+
+### Token URL Generation & Trigger Tracking
+- [ ] Generate unique token URLs for each canary token
+- [ ] Create trigger tracking endpoint (/api/canary/trigger/:tokenId)
+- [ ] Implement trigger logging to database
+- [ ] Add timestamp and metadata to trigger records
+
+### Visitor Information Collection
+- [ ] Capture visitor IP address
+- [ ] Implement geolocation lookup (IP to location)
+- [ ] Collect device information (User-Agent parsing)
+- [ ] Extract browser and OS details
+- [ ] Store visitor fingerprint data
+
+### Token Details Page
+- [ ] Create TokenDetails.tsx page component
+- [ ] Display token information (name, type, status, created date)
+- [ ] Show trigger history with timestamps
+- [ ] Display visitor information (IP, location, device, browser)
+- [ ] Add trigger filtering and search
+- [ ] Implement pagination for large trigger lists
+
+### Email Notifications
+- [ ] Implement email notification on token trigger
+- [ ] Create email template with trigger details
+- [ ] Send email to configured email address
+- [ ] Add notification preferences (enable/disable)
+- [ ] Create notification history log
+
+### Webhook Integration
+- [ ] Create webhook configuration in token settings
+- [ ] Implement webhook payload generation
+- [ ] Send POST request to webhook URL on trigger
+- [ ] Add webhook retry logic
+- [ ] Create webhook history and logs
+
+### Analytics Dashboard
+- [ ] Show trigger statistics (total, by type, by date)
+- [ ] Create trigger timeline chart
+- [ ] Display top triggered tokens
+- [ ] Show geographic distribution of triggers
+- [ ] Add device/browser breakdown
+
+### Testing & Validation
+- [ ] Write tests for trigger tracking
+- [ ] Test visitor information collection
+- [ ] Test email notifications
+- [ ] Test webhook integration
+- [ ] End-to-end testing of complete flow

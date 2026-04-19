@@ -1,9 +1,9 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME } from "../shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
-import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles } from "./db";
+import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles, createCanaryToken, getCanaryTokens, getCanaryToken, updateCanaryToken, deleteCanaryToken, recordCanaryTokenTrigger, getCanaryTokenTriggers, getCanaryTokenStats } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
 import { getAPIStatus } from "./api-config";
@@ -12,6 +12,17 @@ import { vpnRouter } from "./vpn-router";
 import { vpnConnectionRouter } from "./vpn-connection-router";
 import { phoneImeiRouter } from "./phone-imei-router";
 import { simSwapRouter } from "./sim-swap-router";
+import { monitoringRouter } from "./monitoring-router";
+import { scanForVulnerabilities, analyzeUrlPatterns } from "./vulnerability-scanner-service";
+import { analyzeSSLConfiguration, validateCertificateChain } from "./ssl-certificate-analyzer-service";
+import { newSecurityToolsRouter } from "./new-security-tools-router";
+import { exportRouter } from "./export-router";
+import { paymentMethodsRouter } from "./payment-methods-router";
+import { payoutEnhancementsRouter } from "./payout-enhancements-router";
+import { pentestLabsRouter } from "./pentest-labs-router";
+import { livePayoutsRouter } from "./live-payouts-router";
+import { mdmRouter } from "./mdm-router";
+import { canaryTokenRouter } from "./canary-token-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -20,6 +31,15 @@ export const appRouter = router({
   vpnConnection: vpnConnectionRouter,
   phoneImei: phoneImeiRouter,
   simSwap: simSwapRouter,
+  monitoring: monitoringRouter,
+  securityTools: newSecurityToolsRouter,
+  export: exportRouter,
+  paymentMethods: paymentMethodsRouter,
+  payoutEnhancements: payoutEnhancementsRouter,
+  pentestLabs: pentestLabsRouter,
+  livePayouts: livePayoutsRouter,
+  mdm: mdmRouter,
+  canaryToken: canaryTokenRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -546,7 +566,28 @@ Provide the analysis in a clear, structured format suitable for security profess
           totalAPIs: Object.keys(status).length,
         };
       }),
+    // Vulnerability Scanner
+    scanVulnerabilities: protectedProcedure
+      .input(z.object({ target: z.string() }))
+      .mutation(async ({ input }) => {
+        try {
+          const results = await scanForVulnerabilities(input.target);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: error instanceof Error ? error.message : "Vulnerability scan failed" };
+        }
+      }),
+
+    // SSL/TLS Certificate Analyzer
+    analyzeSSL: protectedProcedure
+      .input(z.object({ hostname: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const results = await analyzeSSLConfiguration(input.hostname);
+          return { success: true, results };
+        } catch (error) {
+          return { success: false, error: error instanceof Error ? error.message : "SSL analysis failed" };
+        }
+      }),
   }),
 });
-
-export type AppRouter = typeof appRouter;
