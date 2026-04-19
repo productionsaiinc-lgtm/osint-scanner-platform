@@ -99,6 +99,23 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
+    section: "🚀 NEW OSINT TOOLS",
+    items: [
+      { icon: Globe, label: "Dark Web Monitor", path: "/dark-web-monitor" },
+      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
+      { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
+      { icon: Users, label: "Employee Enum", path: "/employee-enum" },
+      { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
+      { icon: AlertCircle, label: "Malware Analyzer", path: "/malware-analyzer" },
+      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
+      { icon: Cpu, label: "IoT Scanner", path: "/iot-scanner" },
+      { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
+      { icon: Archive, label: "Supply Chain Analyzer", path: "/supply-chain-analyzer" },
+      { icon: Eye, label: "Deepfake Detector", path: "/deepfake-detector" },
+      { icon: AlertTriangle, label: "Insider Threat", path: "/insider-threat" },
+    ],
+  },
+  {
     section: "Mobile Device Management",
     items: [
       { icon: PhoneIcon, label: "MDM Dashboard", path: "/mdm" },

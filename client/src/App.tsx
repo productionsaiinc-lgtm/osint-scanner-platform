@@ -50,6 +50,18 @@ import CheckoutPage from "./pages/CheckoutPage";
 import PaymentAnalytics from "./pages/PaymentAnalytics";
 import { LivePayoutsDashboard } from "./pages/LivePayoutsDashboard";
 import { MDMDashboard } from "./pages/MDMDashboard";
+import { DarkWebMonitor } from "./pages/DarkWebMonitor";
+import { VINDecoder } from "./pages/VINDecoder";
+import { CryptoTracker } from "./pages/CryptoTracker";
+import { EmployeeEnum } from "./pages/EmployeeEnum";
+import { GeoReverse } from "./pages/GeoReverse";
+import { MalwareAnalyzer } from "./pages/MalwareAnalyzer";
+import { PasswordCracker } from "./pages/PasswordCracker";
+import { IoTScanner } from "./pages/IoTScanner";
+import { FlightTracker } from "./pages/FlightTracker";
+import { SupplyChainAnalyzer } from "./pages/SupplyChainAnalyzer";
+import { DeepfakeDetector } from "./pages/DeepfakeDetector";
+import { InsiderThreat } from "./pages/InsiderThreat";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -120,6 +132,18 @@ function Router() {
       <Route path={"/checkout"} component={CheckoutPageWrapper} />
       <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
       <Route path={"/mdm"} component={MDMDashboardPage} />
+      <Route path={"/dark-web-monitor"} component={DarkWebMonitorPage} />
+      <Route path={"/vin-decoder"} component={VINDecoderPage} />
+      <Route path={"/crypto-tracker"} component={CryptoTrackerPage} />
+      <Route path={"/employee-enum"} component={EmployeeEnumPage} />
+      <Route path={"/geo-reverse"} component={GeoReversePage} />
+      <Route path={"/malware-analyzer"} component={MalwareAnalyzerPage} />
+      <Route path={"/password-cracker"} component={PasswordCrackerPage} />
+      <Route path={"/iot-scanner"} component={IoTScannerPage} />
+      <Route path={"/flight-tracker"} component={FlightTrackerPage} />
+      <Route path={"/supply-chain-analyzer"} component={SupplyChainAnalyzerPage} />
+      <Route path={"/deepfake-detector"} component={DeepfakeDetectorPage} />
+      <Route path={"/insider-threat"} component={InsiderThreatPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
@@ -471,3 +495,99 @@ function App() {
 }
 
 export default App;
+
+function DarkWebMonitorPage() {
+  return (
+    <DashboardLayout>
+      <DarkWebMonitor />
+    </DashboardLayout>
+  );
+}
+
+function VINDecoderPage() {
+  return (
+    <DashboardLayout>
+      <VINDecoder />
+    </DashboardLayout>
+  );
+}
+
+function CryptoTrackerPage() {
+  return (
+    <DashboardLayout>
+      <CryptoTracker />
+    </DashboardLayout>
+  );
+}
+
+function EmployeeEnumPage() {
+  return (
+    <DashboardLayout>
+      <EmployeeEnum />
+    </DashboardLayout>
+  );
+}
+
+function GeoReversePage() {
+  return (
+    <DashboardLayout>
+      <GeoReverse />
+    </DashboardLayout>
+  );
+}
+
+function MalwareAnalyzerPage() {
+  return (
+    <DashboardLayout>
+      <MalwareAnalyzer />
+    </DashboardLayout>
+  );
+}
+
+function PasswordCrackerPage() {
+  return (
+    <DashboardLayout>
+      <PasswordCracker />
+    </DashboardLayout>
+  );
+}
+
+function IoTScannerPage() {
+  return (
+    <DashboardLayout>
+      <IoTScanner />
+    </DashboardLayout>
+  );
+}
+
+function FlightTrackerPage() {
+  return (
+    <DashboardLayout>
+      <FlightTracker />
+    </DashboardLayout>
+  );
+}
+
+function SupplyChainAnalyzerPage() {
+  return (
+    <DashboardLayout>
+      <SupplyChainAnalyzer />
+    </DashboardLayout>
+  );
+}
+
+function DeepfakeDetectorPage() {
+  return (
+    <DashboardLayout>
+      <DeepfakeDetector />
+    </DashboardLayout>
+  );
+}
+
+function InsiderThreatPage() {
+  return (
+    <DashboardLayout>
+      <InsiderThreat />
+    </DashboardLayout>
+  );
+}
