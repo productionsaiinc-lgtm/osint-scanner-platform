@@ -42,6 +42,14 @@ const menuSections: MenuSection[] = [
       { icon: Eye, label: "Monitoring", path: "/monitoring" },
       { icon: Archive, label: "Alert History", path: "/alert-history" },
       { icon: Bell, label: "Notifications", path: "/notifications" },
+      { icon: Globe, label: "Dark Web Monitor", path: "/dark-web-monitor" },
+      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
+      { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
+      { icon: Users, label: "Employee Enum", path: "/employee-enum" },
+      { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
+      { icon: AlertCircle, label: "Malware Analyzer", path: "/malware-analyzer" },
+      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
+
     ],
   },
   {
