@@ -593,3 +593,5 @@ Provide the analysis in a clear, structured format suitable for security profess
       }),
   }),
 });
+
+export type AppRouter = typeof appRouter;

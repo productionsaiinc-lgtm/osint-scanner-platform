@@ -1,6 +1,6 @@
 import { eq, and, gte, inArray, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger } from "../drizzle/schema";
+import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -57,7 +57,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 }
 
-export async function getUserByOpenId(openId: string): Promise<InsertUser | null> {
+export async function getUserByOpenId(openId: string): Promise<User | null> {
   const db = await getDb();
   if (!db) return null;
 
@@ -120,12 +120,16 @@ export async function getScan(id: number): Promise<Scan | null> {
   }
 }
 
-export async function getUserScans(userId: number): Promise<Scan[]> {
+export async function getUserScans(userId: number, limit?: number): Promise<Scan[]> {
   const db = await getDb();
   if (!db) return [];
 
   try {
-    return await db.select().from(scans).where(eq(scans.userId, userId));
+    const query = db.select().from(scans).where(eq(scans.userId, userId));
+    if (limit) {
+      return await query.limit(limit);
+    }
+    return await query;
   } catch (error) {
     console.error("[Database] Failed to get user scans:", error);
     return [];
