@@ -2,18 +2,26 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeft, Search, Loader2 } from 'lucide-react';
 import { useRouter } from 'wouter';
+import { trpc } from '@/lib/trpc';
 
 export function VINDecoder() {
   const [, navigate] = useRouter();
   const [vin, setVin] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const vinDecoder = trpc.osintTools.vinDecoder.useMutation();
+  const [results, setResults] = useState<any>(null);
 
   const handleDecode = async () => {
-    if (!vin.trim()) return;
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    if (!vin.trim() || vin.length !== 17) return;
+    try {
+      const response = await vinDecoder.mutateAsync({ vin });
+      if (response.success) {
+        setResults(response.data);
+      }
+    } catch (error) {
+      console.error("Decode failed:", error);
+    }
   };
 
   return (
@@ -42,11 +50,55 @@ export function VINDecoder() {
                     maxLength={17}
                     onKeyPress={(e) => e.key === 'Enter' && handleDecode()}
                   />
-                  <Button onClick={handleDecode} disabled={isLoading || vin.length !== 17}>
-                    <Search className="w-4 h-4" />
+                  <Button onClick={handleDecode} disabled={vinDecoder.isPending || vin.length !== 17}>
+                    {vinDecoder.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
+
+              {results && (
+                <div className="space-y-4 mt-6">
+                  <h2 className="text-lg font-semibold">Vehicle Information</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Manufacturer</p>
+                      <p className="font-semibold">{results.manufacturer}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Year</p>
+                      <p className="font-semibold">{results.year}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Make</p>
+                      <p className="font-semibold">{results.make}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Model</p>
+                      <p className="font-semibold">{results.model}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Body Type</p>
+                      <p className="font-semibold">{results.bodyType}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Engine</p>
+                      <p className="font-semibold">{results.engine}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Transmission</p>
+                      <p className="font-semibold">{results.transmission}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Drive Type</p>
+                      <p className="font-semibold">{results.driveType}</p>
+                    </Card>
+                  </div>
+                </div>
+              )}
             </div>
           </Card>
         </div>
