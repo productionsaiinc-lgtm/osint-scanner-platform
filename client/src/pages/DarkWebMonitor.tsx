@@ -2,18 +2,26 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Search, AlertCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'wouter';
+import { trpc } from '@/lib/trpc';
 
 export function DarkWebMonitor() {
   const [, navigate] = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const darkWebMonitor = trpc.osintTools.darkWebMonitor.useMutation();
+  const [results, setResults] = useState<any>(null);
 
   const handleSearch = async () => {
     if (!searchTerm.trim()) return;
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1000);
+    try {
+      const response = await darkWebMonitor.mutateAsync({ query: searchTerm });
+      if (response.success) {
+        setResults(response.data);
+      }
+    } catch (error) {
+      console.error("Search failed:", error);
+    }
   };
 
   return (
@@ -41,19 +49,45 @@ export function DarkWebMonitor() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
-                  <Button onClick={handleSearch} disabled={isLoading}>
-                    <Search className="w-4 h-4" />
+                  <Button onClick={handleSearch} disabled={darkWebMonitor.isPending}>
+                    {darkWebMonitor.isPending ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex gap-3">
-                <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-yellow-900">Feature Coming Soon</p>
-                  <p className="text-sm text-yellow-800">Dark web monitoring is under development</p>
+              {results && (
+                <div className="space-y-4 mt-6">
+                  <h2 className="text-lg font-semibold">Results</h2>
+                  <div className="grid grid-cols-3 gap-4">
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Mentions Found</p>
+                      <p className="text-2xl font-bold">{results.mentions}</p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Severity</p>
+                      <p className={`text-lg font-bold ${results.severity === 'high' ? 'text-red-600' : results.severity === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
+                        {results.severity.toUpperCase()}
+                      </p>
+                    </Card>
+                    <Card className="p-4 bg-slate-50">
+                      <p className="text-sm text-muted-foreground">Last Seen</p>
+                      <p className="text-sm font-mono">{new Date(results.lastSeen).toLocaleDateString()}</p>
+                    </Card>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-2">Sources:</p>
+                    <ul className="space-y-1">
+                      {results.sources.map((source: string, i: number) => (
+                        <li key={i} className="text-sm text-muted-foreground">• {source}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </Card>
         </div>

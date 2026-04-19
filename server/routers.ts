@@ -23,6 +23,7 @@ import { pentestLabsRouter } from "./pentest-labs-router";
 import { livePayoutsRouter } from "./live-payouts-router";
 import { mdmRouter } from "./mdm-router";
 import { canaryTokenRouter } from "./canary-token-router";
+import { osintToolsRouter } from "./osint-tools-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -40,6 +41,7 @@ export const appRouter = router({
   livePayouts: livePayoutsRouter,
   mdm: mdmRouter,
   canaryToken: canaryTokenRouter,
+  osintTools: osintToolsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
