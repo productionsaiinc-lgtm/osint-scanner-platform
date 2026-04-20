@@ -24,6 +24,7 @@ import { livePayoutsRouter } from "./live-payouts-router";
 import { mdmRouter } from "./mdm-router";
 import { canaryTokenRouter } from "./canary-token-router";
 import { osintToolsRouter } from "./osint-tools-router";
+import { advancedAnalysisRouter } from "./advanced-analysis-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -42,6 +43,7 @@ export const appRouter = router({
   mdm: mdmRouter,
   canaryToken: canaryTokenRouter,
   osintTools: osintToolsRouter,
+  advancedAnalysis: advancedAnalysisRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
