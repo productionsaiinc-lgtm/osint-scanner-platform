@@ -46,6 +46,7 @@ const menuSections: MenuSection[] = [
       { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
       { icon: Users, label: "Employee Enum", path: "/employee-enum" },
       { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
+      { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
     ],
   },
   {
@@ -96,9 +97,7 @@ const menuSections: MenuSection[] = [
       { icon: Smartphone, label: "Phone Lookup", path: "/phone-lookup" },
       { icon: HardDrive, label: "IMEI Checker", path: "/imei-checker" },
       { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
-      { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
       { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
-      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
     ],
   },
   {
@@ -110,9 +109,10 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
-    section: "🚀 NEW OSINT TOOLS",
+    section: "Vehicle",
     items: [
-      { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
+      { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
+      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
     ],
   },
   {
