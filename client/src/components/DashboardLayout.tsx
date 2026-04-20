@@ -43,13 +43,9 @@ const menuSections: MenuSection[] = [
       { icon: Archive, label: "Alert History", path: "/alert-history" },
       { icon: Bell, label: "Notifications", path: "/notifications" },
       { icon: Globe, label: "Dark Web Monitor", path: "/dark-web-monitor" },
-      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
       { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
       { icon: Users, label: "Employee Enum", path: "/employee-enum" },
       { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
-      { icon: AlertCircle, label: "Malware Analyzer", path: "/malware-analyzer" },
-      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
-
     ],
   },
   {
@@ -61,6 +57,7 @@ const menuSections: MenuSection[] = [
       { icon: Globe, label: "DNS Enumeration", path: "/dns-enumeration" },
       { icon: Globe, label: "WHOIS Lookup", path: "/whois-lookup" },
       { icon: Power, label: "VPN Connection", path: "/vpn-connection" },
+      { icon: Cpu, label: "IoT Scanner", path: "/iot-scanner" },
     ],
   },
   {
@@ -77,6 +74,9 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: Fingerprint, label: "Metadata Extractor", path: "/metadata-extractor" },
       { icon: Search, label: "Reverse Image Search", path: "/reverse-image-search" },
+      { icon: AlertCircle, label: "Malware Analyzer", path: "/malware-analyzer" },
+      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
+      { icon: Eye, label: "Deepfake Detector", path: "/deepfake-detector" },
     ],
   },
   {
@@ -86,6 +86,8 @@ const menuSections: MenuSection[] = [
       { icon: Code2, label: "GitHub Search", path: "/github-search" },
       { icon: AlertCircle, label: "CVE Database", path: "/cve-search" },
       { icon: Shield, label: "Vulnerability Scanner", path: "/vulnerability-scanner" },
+      { icon: Archive, label: "Supply Chain Analyzer", path: "/supply-chain-analyzer" },
+      { icon: AlertTriangle, label: "Insider Threat", path: "/insider-threat" },
     ],
   },
   {
@@ -96,6 +98,7 @@ const menuSections: MenuSection[] = [
       { icon: Smartphone, label: "SIM Swap Lookup", path: "/sim-swap-lookup" },
       { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
       { icon: CreditCard, label: "Credit Card Checker", path: "/credit-card-checker" },
+      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
     ],
   },
   {
@@ -109,18 +112,7 @@ const menuSections: MenuSection[] = [
   {
     section: "🚀 NEW OSINT TOOLS",
     items: [
-      { icon: Globe, label: "Dark Web Monitor", path: "/dark-web-monitor" },
-      { icon: Car, label: "VIN Decoder", path: "/vin-decoder" },
-      { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
-      { icon: Users, label: "Employee Enum", path: "/employee-enum" },
-      { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
-      { icon: AlertCircle, label: "Malware Analyzer", path: "/malware-analyzer" },
-      { icon: Lock, label: "Password Cracker", path: "/password-cracker" },
-      { icon: Cpu, label: "IoT Scanner", path: "/iot-scanner" },
       { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
-      { icon: Archive, label: "Supply Chain Analyzer", path: "/supply-chain-analyzer" },
-      { icon: Eye, label: "Deepfake Detector", path: "/deepfake-detector" },
-      { icon: AlertTriangle, label: "Insider Threat", path: "/insider-threat" },
     ],
   },
   {
