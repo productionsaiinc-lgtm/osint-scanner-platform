@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Search, AlertCircle, Loader2 } from 'lucide-react';
-import { useRouter } from 'wouter';
+import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 
 export function DarkWebMonitor() {
-  const [, navigate] = useRouter();
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const darkWebMonitor = trpc.osintTools.darkWebMonitor.useMutation();
   const [results, setResults] = useState<any>(null);
@@ -27,7 +27,7 @@ export function DarkWebMonitor() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <button onClick={() => setLocation('/')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4" />
           Back
         </button>
