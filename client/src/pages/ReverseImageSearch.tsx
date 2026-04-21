@@ -43,7 +43,7 @@ export function ReverseImageSearch() {
     try {
       const result = await detectObjectsMutation.mutateAsync({ imageUrl });
       toast.success(`Detected ${result.objects.length} objects`);
-      setResults(prev => ({ ...prev, detectedObjects: result.objects }));
+      setResults((prev: any) => ({ ...prev, detectedObjects: result.objects }));
     } catch (error) {
       toast.error("Object detection failed");
     } finally {
@@ -61,7 +61,7 @@ export function ReverseImageSearch() {
     try {
       const result = await extractTextMutation.mutateAsync({ imageUrl });
       toast.success("Text extraction completed");
-      setResults(prev => ({ ...prev, extractedText: result.text }));
+      setResults((prev: any) => ({ ...prev, extractedText: result.text }));
     } catch (error) {
       toast.error("Text extraction failed");
     } finally {

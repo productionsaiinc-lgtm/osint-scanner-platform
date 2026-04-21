@@ -249,11 +249,11 @@ export function LivePayoutsDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Amount</p>
-                  <p className="font-semibold">${batchDetails.totalAmount}</p>
+                  <p className="font-semibold">${(batchDetails as any)?.totalAmount || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Items Processed</p>
-                  <p className="font-semibold">{batchDetails.itemsProcessed}</p>
+                  <p className="font-semibold">{(batchDetails as any)?.itemsProcessed || batchDetails.items?.length || 0}</p>
                 </div>
               </div>
               <div>

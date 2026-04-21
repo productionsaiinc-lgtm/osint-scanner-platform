@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useRouter } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Loader2, Copy, MapPin, Globe, Smartphone, Monitor } from "lucide-react"
 
 export function TokenDetails() {
   const params = useParams<{ tokenId: string }>();
-  const navigate = useRouter()[1];
+  const [, navigate] = useLocation();
   const [copied, setCopied] = useState(false);
   const tokenId = params?.tokenId;
 
