@@ -25,6 +25,7 @@ import { mdmRouter } from "./mdm-router";
 import { canaryTokenRouter } from "./canary-token-router";
 import { osintToolsRouter } from "./osint-tools-router";
 import { highPriorityFeaturesRouter } from "./high-priority-features-router";
+import { additionalFeaturesRouter } from "./additional-features-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -44,6 +45,7 @@ export const appRouter = router({
   canaryToken: canaryTokenRouter,
   osintTools: osintToolsRouter,
   highPriorityFeatures: highPriorityFeaturesRouter,
+  additionalFeatures: additionalFeaturesRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

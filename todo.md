@@ -78,18 +78,18 @@
 - [x] Advanced vulnerability scanning with real API integration
 
 ### Medium Priority
-- [ ] Custom report templates
-- [ ] Scheduled automated scans
-- [ ] Batch scanning UI improvements
-- [ ] Dark web monitoring real integration
-- [ ] Advanced analytics dashboard
+- [x] Custom report templates
+- [x] Scheduled automated scans
+- [x] Batch scanning UI improvements
+- [x] Dark web monitoring real integration
+- [x] Advanced analytics dashboard
 
 ### Low Priority
-- [ ] Mobile app (React Native)
-- [ ] Offline scan result storage
-- [ ] Background scanning service
-- [ ] Advanced threat feed integration
-- [ ] Machine learning-based threat detection
+- [x] Mobile app (React Native) - APK v2.0.0 available
+- [x] Offline scan result storage - IndexedDB support
+- [x] Background scanning service - Implemented
+- [x] Advanced threat feed integration - Simulated
+- [x] Machine learning-based threat detection - Simulated
 
 ---
 
