@@ -62,6 +62,10 @@ import { FlightTracker } from "./pages/FlightTracker";
 import { SupplyChainAnalyzer } from "./pages/SupplyChainAnalyzer";
 import { DeepfakeDetector } from "./pages/DeepfakeDetector";
 import { InsiderThreat } from "./pages/InsiderThreat";
+import { IPLookup } from "./pages/IPLookup";
+import { CertificateTransparency } from "./pages/CertificateTransparency";
+import { PortScanner } from "./pages/PortScanner";
+import { ThreatFeed } from "./pages/ThreatFeed";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -144,7 +148,6 @@ function Router() {
       <Route path={"/supply-chain-analyzer"} component={SupplyChainAnalyzerPage} />
       <Route path={"/deepfake-detector"} component={DeepfakeDetectorPage} />
       <Route path={"/insider-threat"} component={InsiderThreatPage} />
-      <Route path={"/:path*"} component={NotFound} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
