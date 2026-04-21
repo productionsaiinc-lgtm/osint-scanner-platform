@@ -194,7 +194,7 @@ export default function CheckoutPage() {
                     <span className="text-3xl font-bold text-cyan-400">${plan.price}</span>
                     <span className="text-slate-400 ml-2">/month</span>
                   </div>
-                  <p className="text-slate-400 text-sm mb-4">{plan.description}</p>
+                  <p className="text-slate-400 text-sm mb-4">{(plan as any)?.description || `Up to ${plan.maxScansPerMonth} scans/month`}</p>
                   {selectedPlan === plan.id && (
                     <div className="flex items-center text-cyan-400">
                       <CheckCircle className="w-5 h-5 mr-2" />

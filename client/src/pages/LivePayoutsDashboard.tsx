@@ -239,12 +239,12 @@ export function LivePayoutsDashboard() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Batch ID</p>
-                  <p className="font-mono text-sm">{batchDetails.batchId}</p>
+                  <p className="font-mono text-sm">{(batchDetails as any)?.batchId || (batchDetails as any)?.batchHeader?.id || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Status</p>
-                  <Badge className={getStatusColor(batchDetails.status)}>
-                    {batchDetails.status}
+                  <Badge className={getStatusColor((batchDetails as any)?.status || 'pending')}>
+                    {(batchDetails as any)?.status || 'pending'}
                   </Badge>
                 </div>
                 <div>

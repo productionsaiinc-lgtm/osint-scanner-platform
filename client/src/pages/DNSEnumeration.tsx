@@ -46,7 +46,7 @@ export function DNSEnumeration() {
     try {
       const result = await checkZoneMutation.mutateAsync({ domain });
       toast.success(result.vulnerable ? "Zone transfer vulnerability detected!" : "No zone transfer vulnerability");
-      setResults(prev => ({ ...prev, zoneTransferVulnerable: result.vulnerable }));
+      setResults((prev: any) => ({ ...prev, zoneTransferVulnerable: result.vulnerable }));
     } catch (error) {
       toast.error("Zone transfer check failed");
     } finally {
