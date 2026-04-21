@@ -71,11 +71,11 @@
 ## Future Enhancements (Priority Order)
 
 ### High Priority
-- [ ] Email notifications for Canary Token triggers
-- [ ] Real-time threat alerts via email/SMS
-- [ ] API rate limiting and quota management
-- [ ] Webhook support for automation
-- [ ] Advanced vulnerability scanning with real API integration
+- [x] Email notifications for Canary Token triggers
+- [x] Real-time threat alerts via email/SMS
+- [x] API rate limiting and quota management
+- [x] Webhook support for automation
+- [x] Advanced vulnerability scanning with real API integration
 
 ### Medium Priority
 - [ ] Custom report templates
