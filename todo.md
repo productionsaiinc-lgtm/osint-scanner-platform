@@ -88,7 +88,7 @@
 - [x] Add UDP port scanning
 - [x] Implement SYN stealth scanning
 - [x] Add vulnerability scanning - CVE lookup (simulated)
-- [x] Integrate real Nmap scanner (advanced simulation)
+- [ ] Integrate real Nmap scanner
 - [ ] Integrate real service fingerprinting tools
 
 ### Domain & Web Reconnaissance
@@ -97,7 +97,7 @@
 - [x] Implement SPF/DKIM/DMARC record lookup
 - [x] Add HTTP header analysis (simulated)
 - [x] Implement SSL/TLS certificate chain analysis (simulated)
-- [x] Add certificate transparency log search
+- [ ] Add certificate transparency log search
 - [x] Implement web technology detection (simulated)
 - [x] Add robots.txt and sitemap enumeration
 - [ ] Integrate real DNS resolver
@@ -119,15 +119,15 @@
 - [x] Add IP reputation scoring
 - [x] Implement reverse IP lookup (simulated)
 - [x] Add IP geolocation with ISP info
-- [x] Implement netblock enumeration
-- [x] Add BGP route information
+- [ ] Implement netblock enumeration
+- [ ] Add BGP route information
 - [ ] Integrate real WHOIS service
 - [ ] Integrate real ASN database
 
 ### Vulnerability & Threat Intelligence
 - [x] Implement CVE database search (simulated)
-- [x] Add exploit database lookup
-- [x] Implement malware hash lookup (VirusTotal)
+- [ ] Add exploit database lookup
+- [ ] Implement malware hash lookup (VirusTotal)
 - [ ] Add threat feed integration
 - [ ] Implement darknet/tor monitoring
 - [x] Add credential leak database search (simulated)
@@ -135,11 +135,11 @@
 - [ ] Integrate real breach database API
 
 ### Web Application Testing
-- [x] Implement SQL injection detection
-- [x] Add XSS vulnerability scanner
-- [x] Implement CSRF detection
+- [ ] Implement SQL injection detection
+- [ ] Add XSS vulnerability scanner
+- [ ] Implement CSRF detection
 - [x] Add security header analysis (simulated)
-- [x] Implement cookie analysis
+- [ ] Implement cookie analysis
 - [ ] Add form field enumeration
 - [ ] Integrate real HTTP security scanner
 
@@ -153,9 +153,9 @@
 - [ ] Integrate GitHub API for real repository search
 
 ### Metadata & File Analysis
-- [x] Implement image EXIF data extraction
-- [x] Add document metadata analysis
-- [x] Implement file hash lookup
+- [ ] Implement image EXIF data extraction
+- [ ] Add document metadata analysis
+- [ ] Implement file hash lookup
 - [ ] Add MIME type detection
 - [ ] Implement archive content scanning
 
