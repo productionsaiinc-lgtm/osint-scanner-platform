@@ -1,4 +1,3 @@
-import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -122,7 +121,8 @@ function Router() {
       <Route path={"/payment-success"} component={PaymentSuccess} />
       <Route path={"/payment-cancel"} component={PaymentCancel} />
       <Route path={"/monitoring"} component={MonitoringPage} />
-      <Route path={"/alert-history"} component={AlertHistoryPage} />      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
+      <Route path={"/alert-history"} component={AlertHistoryPage} />
+      <Route path={"/vulnerability-scanner"} component={VulnerabilityScannerPage} />
       <Route path={"/ssl-analyzer"} component={SSLAnalyzerPage} />
       <Route path={"/reverse-image-search"} component={ReverseImageSearchPage} />
       <Route path={"/dns-enumeration"} component={DNSEnumerationPage} />
@@ -134,7 +134,8 @@ function Router() {
       <Route path={"/canary-tokens"} component={CanaryTokensPage} />
       <Route path={"/canary-tokens/:tokenId"} component={TokenDetailsPage} />
       <Route path={"/checkout"} component={CheckoutPageWrapper} />
-      <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
+      <Route path={"/payment-analytics"} component={PaymentAnalyticsPage} />
+      <Route path={"/live-payouts"} component={LivePayoutsDashboardPage} />
       <Route path={"/mdm"} component={MDMDashboardPage} />
       <Route path={"/dark-web-monitor"} component={DarkWebMonitorPage} />
       <Route path={"/vin-decoder"} component={VINDecoderPage} />
@@ -148,6 +149,10 @@ function Router() {
       <Route path={"/supply-chain-analyzer"} component={SupplyChainAnalyzerPage} />
       <Route path={"/deepfake-detector"} component={DeepfakeDetectorPage} />
       <Route path={"/insider-threat"} component={InsiderThreatPage} />
+      <Route path={"/ip-lookup"} component={IPLookupPage} />
+      <Route path={"/certificate-transparency"} component={CertificateTransparencyPage} />
+      <Route path={"/port-scanner"} component={PortScannerPage} />
+      <Route path={"/threat-feed"} component={ThreatFeedPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -482,23 +487,6 @@ function MDMDashboardPage() {
   );
 }
 
-function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
-}
-
-export default App;
-
 function DarkWebMonitorPage() {
   return (
     <DashboardLayout>
@@ -592,5 +580,49 @@ function InsiderThreatPage() {
     <DashboardLayout>
       <InsiderThreat />
     </DashboardLayout>
+  );
+}
+
+function IPLookupPage() {
+  return (
+    <DashboardLayout>
+      <IPLookup />
+    </DashboardLayout>
+  );
+}
+
+function CertificateTransparencyPage() {
+  return (
+    <DashboardLayout>
+      <CertificateTransparency />
+    </DashboardLayout>
+  );
+}
+
+function PortScannerPage() {
+  return (
+    <DashboardLayout>
+      <PortScanner />
+    </DashboardLayout>
+  );
+}
+
+function ThreatFeedPage() {
+  return (
+    <DashboardLayout>
+      <ThreatFeed />
+    </DashboardLayout>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <ThemeProvider defaultTheme="dark">
+        <TooltipProvider>
+          <Router />
+        </TooltipProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
