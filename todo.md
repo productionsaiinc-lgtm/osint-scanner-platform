@@ -167,3 +167,28 @@ there phones and external devices
 - Payment system is live and tested
 - SEO optimization complete
 - Ready for Google Search Console verification
+
+
+## GitHub Automatic Deployment Setup ✅
+
+### Deployment Configuration
+- [x] GitHub repository connected via `user_github` remote
+- [x] Automatic sync from GitHub main branch
+- [x] Auto-deployment on commit push
+- [x] GitHub Deployment Guide created (GITHUB_DEPLOYMENT_GUIDE.md)
+- [x] Zero-downtime deployments configured
+- [x] Deployment logs accessible via Manus UI
+
+### How to Deploy
+1. Make changes to your code locally
+2. Commit with `git commit -m "description"`
+3. Push with `git push user_github main`
+4. Website automatically updates in 2-5 minutes
+5. Live at https://osintscan-fftqerzj.manus.space
+
+### Deployment Best Practices
+- [x] Test locally before pushing: `npm run build`
+- [x] Use clear commit messages
+- [x] Push to main branch for auto-deployment
+- [x] Monitor deployment via Manus Dashboard
+- [x] Rollback capability available via version history
