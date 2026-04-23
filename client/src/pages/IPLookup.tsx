@@ -3,41 +3,43 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { trpc } from "@/lib/trpc";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export function IPLookup() {
   const [ipAddress, setIpAddress] = useState("");
-  const [results, setResults] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [selectedIp, setSelectedIp] = useState<string | null>(null);
+  const [showReputation, setShowReputation] = useState(false);
 
-  const handleSearch = async () => {
+  // Query for IP geolocation
+  const geoQuery = trpc.osintTools.ipGeolocation.useQuery(
+    { ip: selectedIp || "" },
+    { enabled: !!selectedIp }
+  );
+
+  // Query for IP reputation
+  const reputationQuery = trpc.osintTools.ipReputation.useQuery(
+    { ip: selectedIp || "" },
+    { enabled: !!selectedIp && showReputation }
+  );
+
+  const handleSearch = () => {
     if (!ipAddress.trim()) return;
-    
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setResults({
-        ip: ipAddress,
-        country: "United States",
-        region: "California",
-        city: "San Francisco",
-        latitude: 37.7749,
-        longitude: -122.4194,
-        isp: "Comcast Cable Communications",
-        asn: "AS7922",
-        organization: "Comcast",
-        timezone: "America/Los_Angeles",
-        currency: "USD",
-        threat_level: "LOW",
-        is_vpn: false,
-        is_proxy: false,
-        is_datacenter: false,
-        reputation_score: 85,
-        abuse_reports: 2,
-        last_seen: "2026-04-21T03:00:00Z"
-      });
-      setLoading(false);
-    }, 800);
+    // Basic IP validation
+    if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(ipAddress)) {
+      alert("Please enter a valid IP address");
+      return;
+    }
+    setSelectedIp(ipAddress);
+    setShowReputation(false);
   };
+
+  const handleLoadReputation = () => {
+    setShowReputation(true);
+  };
+
+  const geoData = geoQuery.data?.success ? geoQuery.data : null;
+  const repData = reputationQuery.data?.success ? reputationQuery.data : null;
 
   return (
     <div className="space-y-6">
@@ -59,14 +61,30 @@ export function IPLookup() {
               onChange={(e) => setIpAddress(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
-            <Button onClick={handleSearch} disabled={loading}>
-              {loading ? "Searching..." : "Search"}
+            <Button onClick={handleSearch} disabled={geoQuery.isLoading}>
+              {geoQuery.isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                "Search"
+              )}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {results && (
+      {geoQuery.error && (
+        <Card className="border-destructive">
+          <CardContent className="flex items-center gap-2 pt-6">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <p className="text-destructive">{geoQuery.error.message || "Failed to lookup IP"}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {geoData && (
         <div className="grid gap-4">
           <Card>
             <CardHeader>
@@ -74,28 +92,32 @@ export function IPLookup() {
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
+                <p className="text-sm text-muted-foreground">IP Address</p>
+                <p className="font-semibold">{geoData.ip}</p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground">Country</p>
-                <p className="font-semibold">{results.country}</p>
+                <p className="font-semibold">{geoData.country || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Region</p>
-                <p className="font-semibold">{results.region}</p>
+                <p className="font-semibold">{geoData.region || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">City</p>
-                <p className="font-semibold">{results.city}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Timezone</p>
-                <p className="font-semibold">{results.timezone}</p>
+                <p className="font-semibold">{geoData.city || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Latitude</p>
-                <p className="font-semibold">{results.latitude}</p>
+                <p className="font-semibold">{geoData.latitude || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Longitude</p>
-                <p className="font-semibold">{results.longitude}</p>
+                <p className="font-semibold">{geoData.longitude || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Timezone</p>
+                <p className="font-semibold">{geoData.timezone || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
@@ -107,19 +129,15 @@ export function IPLookup() {
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">ISP</p>
-                <p className="font-semibold">{results.isp}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">ASN</p>
-                <p className="font-semibold">{results.asn}</p>
+                <p className="font-semibold">{geoData.isp || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Organization</p>
-                <p className="font-semibold">{results.organization}</p>
+                <p className="font-semibold">{geoData.organization || "N/A"}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Currency</p>
-                <p className="font-semibold">{results.currency}</p>
+                <p className="text-sm text-muted-foreground">ASN</p>
+                <p className="font-semibold">{geoData.asn || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
@@ -129,44 +147,105 @@ export function IPLookup() {
               <CardTitle>Threat Assessment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Threat Level</p>
-                  <Badge variant={results.threat_level === "LOW" ? "default" : "destructive"}>
-                    {results.threat_level}
-                  </Badge>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Reputation Score</p>
-                  <p className="font-semibold">{results.reputation_score}/100</p>
-                </div>
-              </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">VPN</p>
-                  <Badge variant={results.is_vpn ? "destructive" : "secondary"}>
-                    {results.is_vpn ? "Yes" : "No"}
+                  <p className="text-sm text-muted-foreground">Mobile</p>
+                  <Badge variant={geoData.isMobile ? "destructive" : "secondary"}>
+                    {geoData.isMobile ? "Yes" : "No"}
                   </Badge>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Proxy</p>
-                  <Badge variant={results.is_proxy ? "destructive" : "secondary"}>
-                    {results.is_proxy ? "Yes" : "No"}
+                  <Badge variant={geoData.isProxy ? "destructive" : "secondary"}>
+                    {geoData.isProxy ? "Yes" : "No"}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Datacenter</p>
-                  <Badge variant={results.is_datacenter ? "destructive" : "secondary"}>
-                    {results.is_datacenter ? "Yes" : "No"}
+                  <p className="text-sm text-muted-foreground">Hosting</p>
+                  <Badge variant={geoData.isHosting ? "destructive" : "secondary"}>
+                    {geoData.isHosting ? "Yes" : "No"}
                   </Badge>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Abuse Reports</p>
-                <p className="font-semibold">{results.abuse_reports}</p>
-              </div>
+              <Button onClick={handleLoadReputation} disabled={reputationQuery.isLoading} className="w-full">
+                {reputationQuery.isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Reputation...
+                  </>
+                ) : (
+                  "Load IP Reputation Data"
+                )}
+              </Button>
             </CardContent>
           </Card>
+
+          {repData && (
+            <Card>
+              <CardHeader>
+                <CardTitle>IP Reputation</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Fraud Score</p>
+                    <p className="font-semibold">{repData.fraudScore}/100</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Risk Level</p>
+                    <Badge variant={repData.fraudScore > 75 ? "destructive" : repData.fraudScore > 50 ? "secondary" : "default"}>
+                      {repData.fraudScore > 75 ? "High" : repData.fraudScore > 50 ? "Medium" : "Low"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">VPN</p>
+                    <Badge variant={repData.isVPN ? "destructive" : "secondary"}>
+                      {repData.isVPN ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Proxy</p>
+                    <Badge variant={repData.isProxy ? "destructive" : "secondary"}>
+                      {repData.isProxy ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tor</p>
+                    <Badge variant={repData.isTor ? "destructive" : "secondary"}>
+                      {repData.isTor ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bot</p>
+                    <Badge variant={repData.isBot ? "destructive" : "secondary"}>
+                      {repData.isBot ? "Yes" : "No"}
+                    </Badge>
+                  </div>
+                </div>
+                {repData.threatTypes && repData.threatTypes.length > 0 && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Threat Types</p>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {repData.threatTypes.map((threat: string, i: number) => (
+                        <Badge key={i} variant="destructive">{threat}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {reputationQuery.error && (
+            <Card className="border-destructive">
+              <CardContent className="flex items-center gap-2 pt-6">
+                <AlertCircle className="h-5 w-5 text-destructive" />
+                <p className="text-destructive">{reputationQuery.error.message || "Failed to load reputation data"}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>

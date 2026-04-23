@@ -3,59 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { trpc } from "@/lib/trpc";
+import { Loader2, AlertCircle, Calendar, Lock } from "lucide-react";
 
 export function CertificateTransparency() {
   const [domain, setDomain] = useState("");
-  const [results, setResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
-  const handleSearch = async () => {
+  const query = trpc.osintTools.certificateTransparency.useQuery(
+    { domain: selectedDomain || "" },
+    { enabled: !!selectedDomain }
+  );
+
+  const handleSearch = () => {
     if (!domain.trim()) return;
-    
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setResults([
-        {
-          id: "1",
-          domain: domain,
-          issuer: "Let's Encrypt",
-          issued_date: "2026-03-21",
-          expiry_date: "2027-03-21",
-          subject_cn: domain,
-          serial: "04c8f8b3a2e1f5d9",
-          status: "Valid",
-          log_id: "ct.googleapis.com/logs/argon2023",
-          entry_id: "123456789"
-        },
-        {
-          id: "2",
-          domain: `*.${domain}`,
-          issuer: "DigiCert",
-          issued_date: "2026-01-15",
-          expiry_date: "2027-01-15",
-          subject_cn: `*.${domain}`,
-          serial: "02a1b3c4d5e6f7g8",
-          status: "Valid",
-          log_id: "ct.googleapis.com/logs/argon2024",
-          entry_id: "987654321"
-        },
-        {
-          id: "3",
-          domain: `www.${domain}`,
-          issuer: "Sectigo",
-          issued_date: "2025-12-01",
-          expiry_date: "2026-12-01",
-          subject_cn: `www.${domain}`,
-          serial: "05h2i3j4k5l6m7n8",
-          status: "Expired",
-          log_id: "ct.googleapis.com/logs/argon2022",
-          entry_id: "555666777"
-        }
-      ]);
-      setLoading(false);
-    }, 800);
+    setSelectedDomain(domain);
   };
+
+  const data = query.data?.success ? query.data : null;
 
   return (
     <div className="space-y-6">
@@ -77,53 +42,111 @@ export function CertificateTransparency() {
               onChange={(e) => setDomain(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
-            <Button onClick={handleSearch} disabled={loading}>
-              {loading ? "Searching..." : "Search"}
+            <Button onClick={handleSearch} disabled={query.isLoading}>
+              {query.isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                "Search"
+              )}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Found Certificates ({results.length})</CardTitle>
-            <CardDescription>Certificates found in Certificate Transparency logs</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {results.map((cert) => (
-              <div key={cert.id} className="border rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold">{cert.subject_cn}</p>
-                    <p className="text-sm text-muted-foreground">{cert.issuer}</p>
-                  </div>
-                  <Badge variant={cert.status === "Valid" ? "default" : "destructive"}>
-                    {cert.status}
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Issued</p>
-                    <p className="font-mono">{cert.issued_date}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Expires</p>
-                    <p className="font-mono">{cert.expiry_date}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Serial</p>
-                    <p className="font-mono text-xs">{cert.serial}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Entry ID</p>
-                    <p className="font-mono text-xs">{cert.entry_id}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {query.error && (
+        <Card className="border-destructive">
+          <CardContent className="flex items-center gap-2 pt-6">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            <p className="text-destructive">{query.error.message || "Failed to search certificates"}</p>
           </CardContent>
         </Card>
+      )}
+
+      {data && (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificate Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Domain</p>
+                <p className="font-semibold">{data.domain}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Certificates</p>
+                <p className="font-semibold text-lg">{data.certificateCount}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Last Updated</p>
+                <p className="font-semibold text-sm">{data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'N/A'}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {data.certificates && data.certificates.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold">Certificates Found</h3>
+              {data.certificates.map((cert: any, index: number) => (
+                <Card key={index}>
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Common Name</p>
+                        <p className="font-semibold break-all">{cert.commonName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Issuer</p>
+                        <p className="font-semibold">{cert.issuerName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Valid From
+                        </p>
+                        <p className="font-semibold">{cert.notBefore ? new Date(cert.notBefore).toLocaleDateString() : 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <Lock className="h-4 w-4" />
+                          Expires
+                        </p>
+                        <p className="font-semibold">{cert.notAfter ? new Date(cert.notAfter).toLocaleDateString() : 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Certificate ID</p>
+                        <p className="font-mono text-sm break-all">{cert.id}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Entry Timestamp</p>
+                        <p className="font-semibold text-sm">{cert.entryTimestamp ? new Date(cert.entryTimestamp).toLocaleDateString() : 'N/A'}</p>
+                      </div>
+                    </div>
+                    {cert.nameValue && (
+                      <div className="mt-4 pt-4 border-t">
+                        <p className="text-sm text-muted-foreground">SANs (Subject Alternative Names)</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {cert.nameValue.split(", ").map((san: string, i: number) => (
+                            <Badge key={i} variant="secondary">{san}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="pt-6">
+                <p className="text-muted-foreground">No certificates found for this domain</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
     </div>
   );

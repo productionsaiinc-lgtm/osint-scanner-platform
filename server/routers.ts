@@ -5,6 +5,7 @@ import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
 import { z } from "zod";
 import { createScan, getUserScans, updateScan, createDiscoveredHost, getScanHosts, createDomainRecord, getScanDomains, createSocialProfile, getScanProfiles, createCanaryToken, getCanaryTokens, getCanaryToken, updateCanaryToken, deleteCanaryToken, recordCanaryTokenTrigger, getCanaryTokenTriggers, getCanaryTokenStats } from "./db";
 import { invokeLLM } from "./_core/llm";
+import { notifyOwner } from "./_core/notification";
 import { getIPGeolocation, simulatePortScan, simulatePing, simulateTraceroute, simulateDNSLookup, simulateWHOISLookup, simulateSubdomainEnum, simulateSSLLookup, simulateSocialMediaSearch, advancedPortScan, osFingerprinting, reverseDNSLookup, verifyEmail, asnLookup, searchCVE, detectWebTechnology, analyzeSecurityHeaders, searchGitHubRepos, searchWaybackMachine, searchCredentialLeaks } from "./osint";
 import { getAPIStatus } from "./api-config";
 import { subscriptionRouter } from "./subscription-router";
@@ -26,6 +27,7 @@ import { canaryTokenRouter } from "./canary-token-router";
 import { osintToolsRouter } from "./osint-tools-router";
 import { highPriorityFeaturesRouter } from "./high-priority-features-router";
 import { additionalFeaturesRouter } from "./additional-features-router";
+import { rewardsRouter } from "./rewards-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -46,6 +48,7 @@ export const appRouter = router({
   osintTools: osintToolsRouter,
   highPriorityFeatures: highPriorityFeaturesRouter,
   additionalFeatures: additionalFeaturesRouter,
+  rewards: rewardsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

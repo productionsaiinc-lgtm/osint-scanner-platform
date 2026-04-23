@@ -65,6 +65,7 @@ import { IPLookup } from "./pages/IPLookup";
 import { CertificateTransparency } from "./pages/CertificateTransparency";
 import { PortScanner } from "./pages/PortScanner";
 import { ThreatFeed } from "./pages/ThreatFeed";
+import { RewardsDashboard } from "./pages/RewardsDashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -153,6 +154,7 @@ function Router() {
       <Route path={"/certificate-transparency"} component={CertificateTransparencyPage} />
       <Route path={"/port-scanner"} component={PortScannerPage} />
       <Route path={"/threat-feed"} component={ThreatFeedPage} />
+      <Route path={"/rewards"} component={RewardsDashboardPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -611,6 +613,14 @@ function ThreatFeedPage() {
   return (
     <DashboardLayout>
       <ThreatFeed />
+    </DashboardLayout>
+  );
+}
+
+function RewardsDashboardPage() {
+  return (
+    <DashboardLayout>
+      <RewardsDashboard />
     </DashboardLayout>
   );
 }

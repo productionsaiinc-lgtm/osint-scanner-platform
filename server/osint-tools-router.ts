@@ -1,6 +1,7 @@
-import { router, protectedProcedure } from "./_core/trpc";
+import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
+import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
 
 // Dark Web Monitor
 const darkWebMonitorProcedure = protectedProcedure
@@ -241,6 +242,125 @@ const insiderThreatProcedure = protectedProcedure
     }
   });
 
+// Real API Integration Procedures
+const ipGeolocationProcedure = protectedProcedure
+  .input(z.object({ ip: z.string().regex(/^(\d{1,3}\.){3}\d{1,3}$/, "Invalid IP address") }))
+  .query(async ({ input }) => {
+    try {
+      const result = await getIPGeolocationMaxMind(input.ip, process.env.MAXMIND_API_KEY);
+      return result;
+    } catch (error) {
+      return { success: false, error: "IP geolocation lookup failed" };
+    }
+  });
+
+const certificateTransparencyProcedure = protectedProcedure
+  .input(z.object({ domain: z.string().min(1) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await getCertificateTransparency(input.domain);
+      return result;
+    } catch (error) {
+      return { success: false, error: "Certificate transparency lookup failed" };
+    }
+  });
+
+const shodanPortScanProcedure = protectedProcedure
+  .input(z.object({ ip: z.string().regex(/^(\d{1,3}\.){3}\d{1,3}$/, "Invalid IP address") }))
+  .query(async ({ input }) => {
+    try {
+      const result = await getShodanPortData(input.ip, process.env.SHODAN_API_KEY);
+      return result;
+    } catch (error) {
+      return { success: false, error: "Shodan port scan failed" };
+    }
+  });
+
+const nvdVulnerabilitySearchProcedure = protectedProcedure
+  .input(z.object({ keyword: z.string().min(1), limit: z.number().min(1).max(50).default(10) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await searchNVDVulnerabilities(input.keyword, input.limit);
+      return result;
+    } catch (error) {
+      return { success: false, error: "NVD vulnerability search failed" };
+    }
+  });
+
+const virusTotalAnalysisProcedure = protectedProcedure
+  .input(z.object({ hash: z.string().min(32) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await analyzeWithVirusTotal(input.hash, process.env.VIRUSTOTAL_API_KEY);
+      return result;
+    } catch (error) {
+      return { success: false, error: "VirusTotal analysis failed" };
+    }
+  });
+
+const ipReputationProcedure = protectedProcedure
+  .input(z.object({ ip: z.string().regex(/^(\d{1,3}\.){3}\d{1,3}$/, "Invalid IP address") }))
+  .query(async ({ input }) => {
+    try {
+      const result = await checkIPReputation(input.ip, process.env.IPQUALITYSCORE_API_KEY);
+      return result;
+    } catch (error) {
+      return { success: false, error: "IP reputation check failed" };
+    }
+  });
+
+const whoisLookupProcedure = protectedProcedure
+  .input(z.object({ domain: z.string().min(1) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await getWHOISData(input.domain);
+      return result;
+    } catch (error) {
+      return { success: false, error: "WHOIS lookup failed" };
+    }
+  });
+
+const dnsEnumerationProcedure = protectedProcedure
+  .input(z.object({ domain: z.string().min(1) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await enumerateDNS(input.domain);
+      return result;
+    } catch (error) {
+      return { success: false, error: "DNS enumeration failed" };
+    }
+  });
+
+const githubSearchProcedure = protectedProcedure
+  .input(z.object({ query: z.string().min(1), limit: z.number().min(1).max(100).default(10) }))
+  .query(async ({ input }) => {
+    try {
+      const result = await searchGitHubRepos(input.query, input.limit);
+      return result;
+    } catch (error) {
+      return { success: false, error: "GitHub search failed" };
+    }
+  });
+
+const threatIntelligenceProcedure = protectedProcedure
+  .query(async () => {
+    try {
+      const result = await getThreatIntelligence();
+      return result;
+    } catch (error) {
+      return { success: false, error: "Threat intelligence retrieval failed" };
+    }
+  });
+
+const apiConfigurationProcedure = publicProcedure
+  .query(async () => {
+    try {
+      return { success: true, data: getAPIConfiguration() };
+    } catch (error) {
+      return { success: false, error: "Failed to retrieve API configuration" };
+    }
+  });
+
 export const osintToolsRouter = router({
   darkWebMonitor: darkWebMonitorProcedure,
   vinDecoder: vinDecoderProcedure,
@@ -254,4 +374,16 @@ export const osintToolsRouter = router({
   supplyChainAnalyzer: supplyChainAnalyzerProcedure,
   deepfakeDetector: deepfakeDetectorProcedure,
   insiderThreat: insiderThreatProcedure,
+  // Real API Integrations
+  ipGeolocation: ipGeolocationProcedure,
+  certificateTransparency: certificateTransparencyProcedure,
+  shodanPortScan: shodanPortScanProcedure,
+  nvdVulnerabilitySearch: nvdVulnerabilitySearchProcedure,
+  virusTotalAnalysis: virusTotalAnalysisProcedure,
+  ipReputation: ipReputationProcedure,
+  whoisLookup: whoisLookupProcedure,
+  dnsEnumeration: dnsEnumerationProcedure,
+  githubSearch: githubSearchProcedure,
+  threatIntelligence: threatIntelligenceProcedure,
+  apiConfiguration: apiConfigurationProcedure,
 });

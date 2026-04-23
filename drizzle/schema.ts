@@ -699,3 +699,82 @@ export const canaryTokenTriggers = mysqlTable("canaryTokenTriggers", {
 
 export type CanaryTokenTrigger = typeof canaryTokenTriggers.$inferSelect;
 export type InsertCanaryTokenTrigger = typeof canaryTokenTriggers.$inferInsert;
+
+
+/**
+ * Pentest Lab Rewards System - User Points and Achievements
+ */
+export const userRewards = mysqlTable("userRewards", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  totalPoints: int("totalPoints").default(0).notNull(),
+  level: int("level").default(1).notNull(),
+  currentTierPoints: int("currentTierPoints").default(0).notNull(),
+  tier: mysqlEnum("tier", ["Bronze", "Silver", "Gold", "Platinum", "Diamond"]).default("Bronze").notNull(),
+  labsCompleted: int("labsCompleted").default(0).notNull(),
+  perfectScores: int("perfectScores").default(0).notNull(),
+  streakCount: int("streakCount").default(0).notNull(),
+  lastActivityDate: timestamp("lastActivityDate"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserReward = typeof userRewards.$inferSelect;
+export type InsertUserReward = typeof userRewards.$inferInsert;
+
+/**
+ * User Achievements/Badges
+ */
+export const userAchievements = mysqlTable("userAchievements", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  achievementId: varchar("achievementId", { length: 64 }).notNull(),
+  achievementName: varchar("achievementName", { length: 255 }).notNull(),
+  description: text("description"),
+  icon: varchar("icon", { length: 255 }), // Icon name or URL
+  category: varchar("category", { length: 50 }).notNull(), // 'milestone', 'skill', 'challenge', 'streak'
+  unlockedAt: timestamp("unlockedAt").defaultNow().notNull(),
+  progress: int("progress").default(0), // For multi-step achievements
+  maxProgress: int("maxProgress").default(100),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = typeof userAchievements.$inferInsert;
+
+/**
+ * Lab Completion Records - tracks user progress on individual labs
+ */
+export const labCompletions = mysqlTable("labCompletions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  labId: int("labId").notNull(),
+  status: mysqlEnum("status", ["started", "in_progress", "completed", "failed"]).default("started").notNull(),
+  pointsEarned: int("pointsEarned").default(0),
+  attemptsCount: int("attemptsCount").default(0),
+  hintsUsed: int("hintsUsed").default(0),
+  timeSpentSeconds: int("timeSpentSeconds").default(0),
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type LabCompletion = typeof labCompletions.$inferSelect;
+export type InsertLabCompletion = typeof labCompletions.$inferInsert;
+
+/**
+ * Leaderboard Rankings
+ */
+export const leaderboard = mysqlTable("leaderboard", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  username: varchar("username", { length: 255 }).notNull(),
+  totalPoints: int("totalPoints").default(0).notNull(),
+  rank: int("rank").notNull(),
+  labsCompleted: int("labsCompleted").default(0).notNull(),
+  tier: varchar("tier", { length: 50 }).notNull(),
+  lastUpdated: timestamp("lastUpdated").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Leaderboard = typeof leaderboard.$inferSelect;
+export type InsertLeaderboard = typeof leaderboard.$inferInsert;
