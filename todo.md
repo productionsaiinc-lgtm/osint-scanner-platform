@@ -159,7 +159,11 @@ MDM (
 - [ ]  add online file analyzer
 - [ ]  add cloud storage for users to backup and sync
 there phones and external devices
-
+- [ ] add export social comments
+- [ ] add url shortener
+- [ ] add temp email service
+- [ ] add sock puppets service
+- [ ] integrate real data for Employee Enumeration 
 ## Notes
 
 - Project is production-ready for MVP launch
