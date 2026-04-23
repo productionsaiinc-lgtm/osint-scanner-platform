@@ -27,7 +27,7 @@ export function EmployeeEnum() {
         { name: 'Robert Wilson', title: 'DevOps Manager', email: 'robert.wilson@' + company.toLowerCase().replace(/\s+/g, '') + '.com', linkedIn: 'linkedin.com/in/robertwilson' },
       ],
       linkedInProfiles: Math.floor(Math.random() * 200) + 20,
-      emailPatterns: ['firstname.lastname@domain.com', 'first.last@domain.com', 'flastname@domain.com'],
+      emailPatterns: ['tim18388@gmail.com', 'first.last@domain.com', 'flastname@domain.com'],
       socialMediaPresence: {
         twitter: Math.floor(Math.random() * 50) + 5,
         github: Math.floor(Math.random() * 30) + 3,
