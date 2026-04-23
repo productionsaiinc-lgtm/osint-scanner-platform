@@ -166,7 +166,7 @@ there phones and external devices
 - [ ] integrate real data for Employee Enumeration 
 - [ ] integrate real data for Shodan device search and SecurityTrails 
 - [ ] Integrate real data for IoT Scanner
-
+- [ ] integrate real data with WEB SCRAPER
 
 ## Notes
 
