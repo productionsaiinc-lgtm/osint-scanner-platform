@@ -164,6 +164,10 @@ there phones and external devices
 - [ ] add temp email service
 - [ ] add sock puppets service
 - [ ] integrate real data for Employee Enumeration 
+- [ ] integrate real data for Shodan device search and SecurityTrails 
+
+
+
 ## Notes
 
 - Project is production-ready for MVP launch
