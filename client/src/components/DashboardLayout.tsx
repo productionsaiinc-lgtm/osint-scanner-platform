@@ -112,6 +112,14 @@ const menuSections: MenuSection[] = [
     ],
   },
   {
+    section: "Infrastructure & Computing",
+    items: [
+      { icon: Cpu, label: "Virtual Computers", path: "/virtual-computers" },
+      { icon: PhoneIcon, label: "Virtual Phones", path: "/virtual-phones" },
+      { icon: HardDrive, label: "Cloud Storage", path: "/cloud-storage" },
+    ],
+  },
+  {
     section: "Vehicle",
     items: [
       { icon: Car, label: "Ontario License Plate", path: "/ontario-license-plate" },
