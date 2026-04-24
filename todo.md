@@ -138,11 +138,11 @@
 ## Remaining Tasks (Priority Order)
 
 ### High Priority - Core Features
-- [ ] Fix network and infrastructure OSINT error handling
-- [ ] Complete Pentest Lab rewards integration with lab completion triggers
-- [ ] Add URL shortener service
-- [ ] Add temporary email service
-- [ ] Add online file analyzer
+- [ ] Implement real OSINT network/infrastructure error handling (remove console errors, add tests)
+- [ ] Wire PentestLab completion flow to rewards router for real point/achievement updates
+- [ ] Build real URL shortener backend with persistent storage and redirect routes
+- [ ] Implement real temporary email backend service with inbox polling and expiry
+- [ ] Implement real file analysis backend (VirusTotal/hash scanning integration)
 
 ### Medium Priority - Advanced Features
 - [ ] Add virtual computers for pentesting
