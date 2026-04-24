@@ -66,6 +66,9 @@ import { CertificateTransparency } from "./pages/CertificateTransparency";
 import { PortScanner } from "./pages/PortScanner";
 import { ThreatFeed } from "./pages/ThreatFeed";
 import { RewardsDashboard } from "./pages/RewardsDashboard";
+import { URLShortener } from "./pages/URLShortener";
+import { TempEmail } from "./pages/TempEmail";
+import { FileAnalyzer } from "./pages/FileAnalyzer";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -155,6 +158,9 @@ function Router() {
       <Route path={"/port-scanner"} component={PortScannerPage} />
       <Route path={"/threat-feed"} component={ThreatFeedPage} />
       <Route path={"/rewards"} component={RewardsDashboardPage} />
+      <Route path={"/url-shortener"} component={URLShortenerPage} />
+      <Route path={"/temp-email"} component={TempEmailPage} />
+      <Route path={"/file-analyzer"} component={FileAnalyzerPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -621,6 +627,30 @@ function RewardsDashboardPage() {
   return (
     <DashboardLayout>
       <RewardsDashboard />
+    </DashboardLayout>
+  );
+}
+
+function URLShortenerPage() {
+  return (
+    <DashboardLayout>
+      <URLShortener />
+    </DashboardLayout>
+  );
+}
+
+function TempEmailPage() {
+  return (
+    <DashboardLayout>
+      <TempEmail />
+    </DashboardLayout>
+  );
+}
+
+function FileAnalyzerPage() {
+  return (
+    <DashboardLayout>
+      <FileAnalyzer />
     </DashboardLayout>
   );
 }
