@@ -145,9 +145,9 @@
 - [ ] Implement real file analysis backend (VirusTotal/hash scanning integration)
 
 ### Medium Priority - Advanced Features
-- [ ] Add virtual computers for pentesting
-- [ ] Add virtual phones for pentesting
-- [ ] Add cloud storage for users (backup and sync)
+- [ ] Build real virtual computers backend with persistent VM records and lifecycle actions
+- [ ] Build real virtual phones backend with persistent device records and provisioning
+- [ ] Implement real cloud storage backend with S3 integration and persistence
 - [ ] Add export social comments functionality
 - [ ] Add sock puppets service
 

@@ -28,6 +28,8 @@ import { osintToolsRouter } from "./osint-tools-router";
 import { highPriorityFeaturesRouter } from "./high-priority-features-router";
 import { additionalFeaturesRouter } from "./additional-features-router";
 import { rewardsRouter } from "./rewards-router";
+import { urlShortenerRouter } from "./url-shortener-router";
+import { virtualComputersRouter } from "./virtual-computers-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -49,6 +51,8 @@ export const appRouter = router({
   highPriorityFeatures: highPriorityFeaturesRouter,
   additionalFeatures: additionalFeaturesRouter,
   rewards: rewardsRouter,
+  urlShortener: urlShortenerRouter,
+  virtualComputers: virtualComputersRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

@@ -778,3 +778,208 @@ export const leaderboard = mysqlTable("leaderboard", {
 
 export type Leaderboard = typeof leaderboard.$inferSelect;
 export type InsertLeaderboard = typeof leaderboard.$inferInsert;
+
+
+/**
+ * URL Shortener - Persistent storage for shortened URLs
+ */
+export const shortenedUrls = mysqlTable("shortenedUrls", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  shortCode: varchar("shortCode", { length: 20 }).notNull().unique(),
+  originalUrl: text("originalUrl").notNull(),
+  customAlias: varchar("customAlias", { length: 100 }),
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  clickCount: int("clickCount").default(0).notNull(),
+  isActive: boolean("isActive").default(true).notNull(),
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type ShortenedUrl = typeof shortenedUrls.$inferSelect;
+export type InsertShortenedUrl = typeof shortenedUrls.$inferInsert;
+
+/**
+ * URL Click Analytics
+ */
+export const urlClickAnalytics = mysqlTable("urlClickAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  shortenedUrlId: int("shortenedUrlId").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }).notNull(),
+  userAgent: text("userAgent"),
+  referer: text("referer"),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  deviceType: varchar("deviceType", { length: 50 }),
+  browser: varchar("browser", { length: 100 }),
+  clickedAt: timestamp("clickedAt").defaultNow().notNull(),
+});
+
+export type UrlClickAnalytic = typeof urlClickAnalytics.$inferSelect;
+export type InsertUrlClickAnalytic = typeof urlClickAnalytics.$inferInsert;
+
+/**
+ * Temporary Email Addresses
+ */
+export const tempEmailAddresses = mysqlTable("tempEmailAddresses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  emailAddress: varchar("emailAddress", { length: 255 }).notNull().unique(),
+  displayName: varchar("displayName", { length: 255 }),
+  isActive: boolean("isActive").default(true).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  messageCount: int("messageCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type TempEmailAddress = typeof tempEmailAddresses.$inferSelect;
+export type InsertTempEmailAddress = typeof tempEmailAddresses.$inferInsert;
+
+/**
+ * Temporary Email Messages
+ */
+export const tempEmailMessages = mysqlTable("tempEmailMessages", {
+  id: int("id").autoincrement().primaryKey(),
+  tempEmailId: int("tempEmailId").notNull(),
+  fromAddress: varchar("fromAddress", { length: 255 }).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  body: text("body").notNull(),
+  htmlBody: text("htmlBody"),
+  isRead: boolean("isRead").default(false).notNull(),
+  receivedAt: timestamp("receivedAt").defaultNow().notNull(),
+});
+
+export type TempEmailMessage = typeof tempEmailMessages.$inferSelect;
+export type InsertTempEmailMessage = typeof tempEmailMessages.$inferInsert;
+
+/**
+ * File Analysis Records
+ */
+export const fileAnalyses = mysqlTable("fileAnalyses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileHash: varchar("fileHash", { length: 128 }).notNull(),
+  fileSize: bigint("fileSize", { mode: "number" }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  s3Key: varchar("s3Key", { length: 255 }),
+  virusTotalScanId: varchar("virusTotalScanId", { length: 255 }),
+  threatLevel: mysqlEnum("threatLevel", ["clean", "suspicious", "malicious", "unknown"]).default("unknown").notNull(),
+  detectionCount: int("detectionCount").default(0).notNull(),
+  totalEngines: int("totalEngines").default(0).notNull(),
+  analysisResults: text("analysisResults"), // JSON string of detailed results
+  status: mysqlEnum("status", ["pending", "scanning", "completed", "error"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type FileAnalysis = typeof fileAnalyses.$inferSelect;
+export type InsertFileAnalysis = typeof fileAnalyses.$inferInsert;
+
+/**
+ * Virtual Computers
+ */
+export const virtualComputers = mysqlTable("virtualComputers", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  vmId: varchar("vmId", { length: 128 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  osType: varchar("osType", { length: 50 }).notNull(), // 'windows', 'linux', 'macos'
+  osVersion: varchar("osVersion", { length: 100 }),
+  ram: int("ram").notNull(), // in GB
+  storage: int("storage").notNull(), // in GB
+  cpu: int("cpu").notNull(), // number of cores
+  status: mysqlEnum("status", ["stopped", "running", "paused", "error"]).default("stopped").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  rdpPort: int("rdpPort"),
+  sshPort: int("sshPort"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastAccessedAt: timestamp("lastAccessedAt"),
+});
+
+export type VirtualComputer = typeof virtualComputers.$inferSelect;
+export type InsertVirtualComputer = typeof virtualComputers.$inferInsert;
+
+/**
+ * Virtual Phones
+ */
+export const virtualPhones = mysqlTable("virtualPhones", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  deviceId: varchar("deviceId", { length: 128 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  osType: varchar("osType", { length: 50 }).notNull(), // 'android', 'ios'
+  osVersion: varchar("osVersion", { length: 100 }),
+  phoneNumber: varchar("phoneNumber", { length: 20 }),
+  imei: varchar("imei", { length: 20 }),
+  status: mysqlEnum("status", ["offline", "online", "busy", "error"]).default("offline").notNull(),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  adbPort: int("adbPort"),
+  location: varchar("location", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastAccessedAt: timestamp("lastAccessedAt"),
+});
+
+export type VirtualPhone = typeof virtualPhones.$inferSelect;
+export type InsertVirtualPhone = typeof virtualPhones.$inferInsert;
+
+/**
+ * Cloud Storage Files
+ */
+export const cloudStorageFiles = mysqlTable("cloudStorageFiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileSize: bigint("fileSize", { mode: "number" }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  s3Key: varchar("s3Key", { length: 255 }).notNull().unique(),
+  s3Url: text("s3Url").notNull(),
+  isShared: boolean("isShared").default(false).notNull(),
+  shareToken: varchar("shareToken", { length: 64 }),
+  parentFolderId: int("parentFolderId"),
+  isFolder: boolean("isFolder").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CloudStorageFile = typeof cloudStorageFiles.$inferSelect;
+export type InsertCloudStorageFile = typeof cloudStorageFiles.$inferInsert;
+
+/**
+ * Cloud Storage Backups
+ */
+export const cloudStorageBackups = mysqlTable("cloudStorageBackups", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  backupName: varchar("backupName", { length: 255 }).notNull(),
+  backupSize: bigint("backupSize", { mode: "number" }).notNull(),
+  s3Key: varchar("s3Key", { length: 255 }).notNull(),
+  fileCount: int("fileCount").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "failed"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type CloudStorageBackup = typeof cloudStorageBackups.$inferSelect;
+export type InsertCloudStorageBackup = typeof cloudStorageBackups.$inferInsert;
+
+/**
+ * Cloud Storage Sync History
+ */
+export const cloudStorageSyncHistory = mysqlTable("cloudStorageSyncHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  syncType: mysqlEnum("syncType", ["upload", "download", "delete", "update"]).notNull(),
+  fileId: int("fileId"),
+  fileName: varchar("fileName", { length: 255 }),
+  status: mysqlEnum("status", ["pending", "in_progress", "completed", "failed"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"),
+  syncedAt: timestamp("syncedAt").defaultNow().notNull(),
+});
+
+export type CloudStorageSyncHistory = typeof cloudStorageSyncHistory.$inferSelect;
+export type InsertCloudStorageSyncHistory = typeof cloudStorageSyncHistory.$inferInsert;

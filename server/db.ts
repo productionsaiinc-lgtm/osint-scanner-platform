@@ -1,6 +1,6 @@
 import { eq, and, gte, inArray, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger } from "../drizzle/schema";
+import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger, shortenedUrls, ShortenedUrl, InsertShortenedUrl, tempEmailAddresses, TempEmailAddress, InsertTempEmailAddress, virtualComputers, VirtualComputer, InsertVirtualComputer } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -362,5 +362,171 @@ export async function getScanDomains(scanId: number): Promise<DomainRecord[]> {
   } catch (error) {
     console.error("[Database] Failed to get scan domains:", error);
     return [];
+  }
+}
+
+
+// URL Shortener operations
+export async function createShortenedUrl(url: InsertShortenedUrl): Promise<ShortenedUrl | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(shortenedUrls).values(url);
+    const urlId = result[0].insertId;
+    const created = await db.select().from(shortenedUrls).where(eq(shortenedUrls.id, urlId as number)).limit(1);
+    return created.length > 0 ? created[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to create shortened URL:", error);
+    return null;
+  }
+}
+
+export async function getShortenedUrl(shortCode: string): Promise<ShortenedUrl | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.select().from(shortenedUrls).where(eq(shortenedUrls.shortCode, shortCode)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get shortened URL:", error);
+    return null;
+  }
+}
+
+export async function getUserShortenedUrls(userId: number): Promise<ShortenedUrl[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(shortenedUrls).where(eq(shortenedUrls.userId, userId)).orderBy(desc(shortenedUrls.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get user shortened URLs:", error);
+    return [];
+  }
+}
+
+export async function updateShortenedUrl(id: number, updates: Partial<ShortenedUrl>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.update(shortenedUrls).set(updates).where(eq(shortenedUrls.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update shortened URL:", error);
+  }
+}
+
+export async function deleteShortenedUrl(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.delete(shortenedUrls).where(eq(shortenedUrls.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete shortened URL:", error);
+  }
+}
+
+// Temporary Email operations
+export async function createTempEmail(email: InsertTempEmailAddress): Promise<TempEmailAddress | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(tempEmailAddresses).values(email);
+    const emailId = result[0].insertId;
+    const created = await db.select().from(tempEmailAddresses).where(eq(tempEmailAddresses.id, emailId as number)).limit(1);
+    return created.length > 0 ? created[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to create temp email:", error);
+    return null;
+  }
+}
+
+export async function getTempEmail(emailAddress: string): Promise<TempEmailAddress | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.select().from(tempEmailAddresses).where(eq(tempEmailAddresses.emailAddress, emailAddress)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get temp email:", error);
+    return null;
+  }
+}
+
+export async function getUserTempEmails(userId: number): Promise<TempEmailAddress[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(tempEmailAddresses).where(eq(tempEmailAddresses.userId, userId)).orderBy(desc(tempEmailAddresses.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get user temp emails:", error);
+    return [];
+  }
+}
+
+export async function deleteTempEmail(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.delete(tempEmailAddresses).where(eq(tempEmailAddresses.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete temp email:", error);
+  }
+}
+
+// Virtual Computers operations
+export async function createVirtualComputer(computer: InsertVirtualComputer): Promise<VirtualComputer | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(virtualComputers).values(computer);
+    const computerId = result[0].insertId;
+    const created = await db.select().from(virtualComputers).where(eq(virtualComputers.id, computerId as number)).limit(1);
+    return created.length > 0 ? created[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to create virtual computer:", error);
+    return null;
+  }
+}
+
+export async function getUserVirtualComputers(userId: number): Promise<VirtualComputer[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(virtualComputers).where(eq(virtualComputers.userId, userId)).orderBy(desc(virtualComputers.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get user virtual computers:", error);
+    return [];
+  }
+}
+
+export async function updateVirtualComputer(id: number, updates: Partial<VirtualComputer>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.update(virtualComputers).set(updates).where(eq(virtualComputers.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update virtual computer:", error);
+  }
+}
+
+export async function deleteVirtualComputer(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.delete(virtualComputers).where(eq(virtualComputers.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete virtual computer:", error);
   }
 }
