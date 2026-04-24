@@ -140,12 +140,12 @@
 ### High Priority - Core Features
 - [ ] Implement real OSINT network/infrastructure error handling (remove console errors, add tests)
 - [ ] Wire PentestLab completion flow to rewards router for real point/achievement updates
-- [ ] Build real URL shortener backend with persistent storage and redirect routes
+- [x] Build real URL shortener backend with persistent storage and redirect routes
 - [ ] Implement real temporary email backend service with inbox polling and expiry
 - [ ] Implement real file analysis backend (VirusTotal/hash scanning integration)
 
 ### Medium Priority - Advanced Features
-- [ ] Build real virtual computers backend with persistent VM records and lifecycle actions
+- [x] Build real virtual computers backend with persistent VM records and lifecycle actions
 - [ ] Build real virtual phones backend with persistent device records and provisioning
 - [ ] Implement real cloud storage backend with S3 integration and persistence
 - [ ] Add export social comments functionality

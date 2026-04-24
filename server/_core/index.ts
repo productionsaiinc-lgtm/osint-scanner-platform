@@ -50,6 +50,35 @@ async function startServer() {
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   
+  // URL Shortener Redirect Endpoint
+  app.get("/s/:shortCode", async (req, res) => {
+    try {
+      const { shortCode } = req.params;
+      const { getShortenedUrl, updateShortenedUrl } = await import("../db");
+      
+      const urlRecord = await getShortenedUrl(shortCode);
+      
+      if (!urlRecord) {
+        return res.status(404).json({ error: "Short URL not found" });
+      }
+      
+      // Check if URL is expired
+      if (urlRecord.expiresAt && new Date(urlRecord.expiresAt) < new Date()) {
+        return res.status(410).json({ error: "Short URL has expired" });
+      }
+      
+      // Increment click count
+      const newClickCount = (urlRecord.clickCount || 0) + 1;
+      await updateShortenedUrl(urlRecord.id, { clickCount: newClickCount });
+      
+      // Redirect to original URL
+      res.redirect(301, urlRecord.originalUrl);
+    } catch (error) {
+      console.error("[URL Shortener] Error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Canary Token Trigger Endpoint
   app.get("/api/canary/:tokenId", async (req, res) => {
     try {
