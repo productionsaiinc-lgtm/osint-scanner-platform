@@ -284,8 +284,8 @@ Provide the analysis in a clear, structured format suitable for security profess
         try {
           await updateScan(input.scanId, { status: "running" } as any);
 
-          // Run all network scans in parallel
-          const [geoData, portData, pingData, traceData] = await Promise.all([
+          // Run all network scans in parallel with individual error handling
+          const [geoData, portData, pingData, traceData] = await Promise.allSettled([
             getIPGeolocation(input.target),
             simulatePortScan(input.target),
             simulatePing(input.target),
@@ -293,24 +293,26 @@ Provide the analysis in a clear, structured format suitable for security profess
           ]);
 
           const results = {
-            geolocation: geoData,
-            ports: portData,
-            ping: pingData,
-            traceroute: traceData,
+            geolocation: geoData.status === "fulfilled" ? geoData.value : { success: false, error: "Geolocation service unavailable" },
+            ports: portData.status === "fulfilled" ? portData.value : { success: false, error: "Port scan service unavailable" },
+            ping: pingData.status === "fulfilled" ? pingData.value : { success: false, error: "Ping service unavailable" },
+            traceroute: traceData.status === "fulfilled" ? traceData.value : { success: false, error: "Traceroute service unavailable" },
           };
 
           // Store discovered host if geolocation succeeded
-          if (geoData.success) {
+          if (geoData.status === "fulfilled" && geoData.value.success) {
+            const geo = geoData.value;
+            const ports = portData.status === "fulfilled" ? portData.value : null;
             await createDiscoveredHost({
               scanId: input.scanId,
               ipAddress: input.target,
-              openPorts: portData.success ? JSON.stringify(portData.openPorts) : null,
-              services: portData.success && portData.ports ? JSON.stringify(portData.ports.map((p: any) => p.service)) : null,
+              openPorts: ports?.success ? JSON.stringify(ports.openPorts) : null,
+              services: ports?.success && ports.ports ? JSON.stringify(ports.ports.map((p: any) => p.service)) : null,
               geolocation: JSON.stringify({
-                latitude: geoData.latitude,
-                longitude: geoData.longitude,
-                country: geoData.country,
-                city: geoData.city,
+                latitude: geo.latitude,
+                longitude: geo.longitude,
+                country: geo.country,
+                city: geo.city,
               }),
             } as any);
           }
@@ -323,8 +325,9 @@ Provide the analysis in a clear, structured format suitable for security profess
           return { success: true, results };
         } catch (error) {
           console.error("Network scan error:", error);
-          await updateScan(input.scanId, { status: "error" } as any);
-          return { success: false, error: "Network scan failed" };
+          await updateScan(input.scanId, { status: "error" } as any).catch(() => {});
+          const message = error instanceof Error ? error.message : "Network scan failed";
+          return { success: false, error: message };
         }
       }),
 
@@ -338,8 +341,8 @@ Provide the analysis in a clear, structured format suitable for security profess
         try {
           await updateScan(input.scanId, { status: "running" } as any);
 
-          // Run all domain scans in parallel
-          const [dnsData, whoisData, subdomainData, sslData] = await Promise.all([
+          // Run all domain scans in parallel with individual error handling
+          const [dnsData, whoisData, subdomainData, sslData] = await Promise.allSettled([
             simulateDNSLookup(input.target),
             simulateWHOISLookup(input.target),
             simulateSubdomainEnum(input.target),
@@ -347,23 +350,27 @@ Provide the analysis in a clear, structured format suitable for security profess
           ]);
 
           const results = {
-            dns: dnsData,
-            whois: whoisData,
-            subdomains: subdomainData,
-            ssl: sslData,
+            dns: dnsData.status === "fulfilled" ? dnsData.value : { success: false, error: "DNS service unavailable" },
+            whois: whoisData.status === "fulfilled" ? whoisData.value : { success: false, error: "WHOIS service unavailable" },
+            subdomains: subdomainData.status === "fulfilled" ? subdomainData.value : { success: false, error: "Subdomain enum service unavailable" },
+            ssl: sslData.status === "fulfilled" ? sslData.value : { success: false, error: "SSL lookup service unavailable" },
           };
 
-          // Store domain record
+          const whois = whoisData.status === "fulfilled" ? whoisData.value : null;
+          const dns = dnsData.status === "fulfilled" ? dnsData.value : null;
+          const ssl = sslData.status === "fulfilled" ? sslData.value : null;
+          const sub = subdomainData.status === "fulfilled" ? subdomainData.value : null;
+
           await createDomainRecord({
             scanId: input.scanId,
             domain: input.target,
-            registrar: whoisData.success ? whoisData.registrar : undefined,
-            registrationDate: whoisData.success ? whoisData.registrationDate : undefined,
-            expirationDate: whoisData.success ? whoisData.expirationDate : undefined,
-            nameservers: whoisData.success ? JSON.stringify(whoisData.nameservers) : null,
-            dnsRecords: dnsData.success ? JSON.stringify(dnsData.records) : null,
-            sslCertificate: sslData.success ? JSON.stringify(sslData.certificate) : null,
-            subdomains: subdomainData.success ? JSON.stringify(subdomainData.subdomains) : null,
+            registrar: whois?.success ? whois.registrar : undefined,
+            registrationDate: whois?.success ? whois.registrationDate : undefined,
+            expirationDate: whois?.success ? whois.expirationDate : undefined,
+            nameservers: whois?.success ? JSON.stringify(whois.nameservers) : null,
+            dnsRecords: dns?.success ? JSON.stringify(dns.records) : null,
+            sslCertificate: ssl?.success ? JSON.stringify(ssl.certificate) : null,
+            subdomains: sub?.success ? JSON.stringify(sub.subdomains) : null,
           } as any);
 
           await updateScan(input.scanId, {
@@ -374,8 +381,9 @@ Provide the analysis in a clear, structured format suitable for security profess
           return { success: true, results };
         } catch (error) {
           console.error("Domain scan error:", error);
-          await updateScan(input.scanId, { status: "error" } as any);
-          return { success: false, error: "Domain scan failed" };
+          await updateScan(input.scanId, { status: "error" } as any).catch(() => {});
+          const message = error instanceof Error ? error.message : "Domain scan failed";
+          return { success: false, error: message };
         }
       }),
 
