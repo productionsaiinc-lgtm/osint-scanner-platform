@@ -5,8 +5,24 @@ import { Button } from '@/components/ui/button';
 import { DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle, Download, Bell, Settings, Calendar } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 export function PayoutDashboardEnhanced() {
+  const { user } = useAuth();
+
+  // Admin-only access
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="space-y-6 p-6">
+        <Alert className="border-red-500/30 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-400">
+            Access Denied: This page is only available to administrators.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   const { data: payoutHistory } = trpc.subscription.paymentHistory.useQuery();
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv');

@@ -3,9 +3,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DollarSign, TrendingUp, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 export function PayoutDashboard() {
+  const { user } = useAuth();
   const { data: payoutHistory } = trpc.subscription.paymentHistory.useQuery();
+
+  // Admin-only access
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="space-y-6 p-6">
+        <Alert className="border-red-500/30 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-400">
+            Access Denied: This page is only available to administrators.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {

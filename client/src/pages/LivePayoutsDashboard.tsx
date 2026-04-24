@@ -5,8 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, CheckCircle, Clock, AlertCircle, RefreshCw } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function LivePayoutsDashboard() {
+  const { user } = useAuth();
+
+  // Admin-only access
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="space-y-6 p-6">
+        <Alert className="border-red-500/30 bg-red-500/10">
+          <AlertCircle className="h-4 w-4 text-red-500" />
+          <AlertDescription className="text-red-400">
+            Access Denied: This page is only available to administrators.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   const [selectedBatch, setSelectedBatch] = useState<string | null>(null);
   const [manualPayoutAmount, setManualPayoutAmount] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
