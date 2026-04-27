@@ -30,6 +30,8 @@ import { additionalFeaturesRouter } from "./additional-features-router";
 import { rewardsRouter } from "./rewards-router";
 import { urlShortenerRouter } from "./url-shortener-router";
 import { virtualComputersRouter } from "./virtual-computers-router";
+import { temporaryEmailRouter } from "./temporary-email-router";
+import { fileAnalysisRouter } from "./file-analysis-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -53,6 +55,8 @@ export const appRouter = router({
   rewards: rewardsRouter,
   urlShortener: urlShortenerRouter,
   virtualComputers: virtualComputersRouter,
+  temporaryEmail: temporaryEmailRouter,
+  fileAnalysis: fileAnalysisRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

@@ -249,8 +249,8 @@ const ipGeolocationProcedure = protectedProcedure
     try {
       const result = await getIPGeolocationMaxMind(input.ip, process.env.MAXMIND_API_KEY);
       return result;
-    } catch (error) {
-      return { success: false, error: "IP geolocation lookup failed" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "IP geolocation lookup failed", code: error.code };
     }
   });
 
@@ -260,8 +260,8 @@ const certificateTransparencyProcedure = protectedProcedure
     try {
       const result = await getCertificateTransparency(input.domain);
       return result;
-    } catch (error) {
-      return { success: false, error: "Certificate transparency lookup failed" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Certificate transparency lookup failed", code: error.code };
     }
   });
 
@@ -271,8 +271,8 @@ const shodanPortScanProcedure = protectedProcedure
     try {
       const result = await getShodanPortData(input.ip, process.env.SHODAN_API_KEY);
       return result;
-    } catch (error) {
-      return { success: false, error: "Shodan port scan failed" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Shodan port scan failed", code: error.code };
     }
   });
 
@@ -282,8 +282,8 @@ const nvdVulnerabilitySearchProcedure = protectedProcedure
     try {
       const result = await searchNVDVulnerabilities(input.keyword, input.limit);
       return result;
-    } catch (error) {
-      return { success: false, error: "NVD vulnerability search failed" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "NVD vulnerability search failed", code: error.code };
     }
   });
 
@@ -293,8 +293,8 @@ const virusTotalAnalysisProcedure = protectedProcedure
     try {
       const result = await analyzeWithVirusTotal(input.hash, process.env.VIRUSTOTAL_API_KEY);
       return result;
-    } catch (error) {
-      return { success: false, error: "VirusTotal analysis failed" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "VirusTotal analysis failed", code: error.code };
     }
   });
 

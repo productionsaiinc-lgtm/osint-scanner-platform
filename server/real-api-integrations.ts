@@ -40,9 +40,15 @@ export async function getIPGeolocationMaxMind(ip: string, apiKey?: string) {
       };
     }
     return { success: false, error: "IP lookup failed" };
-  } catch (error) {
-    console.error("MaxMind IP geolocation error:", error);
-    return { success: false, error: "Failed to lookup IP geolocation" };
+  } catch (error: any) {
+    console.error("MaxMind IP geolocation error:", error.message);
+    const errorMessage = error.response?.data?.message || error.message || "Failed to lookup IP geolocation";
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.status || 500,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
@@ -76,9 +82,15 @@ export async function getCertificateTransparency(domain: string) {
       };
     }
     return { success: false, error: "No certificates found" };
-  } catch (error) {
-    console.error("Certificate transparency error:", error);
-    return { success: false, error: "Failed to retrieve certificate data" };
+  } catch (error: any) {
+    console.error("Certificate transparency error:", error.message);
+    const errorMessage = error.response?.data?.message || error.message || "Failed to retrieve certificate data";
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.status || 500,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
@@ -118,9 +130,15 @@ export async function getShodanPortData(ip: string, apiKey?: string) {
   } catch (error: any) {
     console.error("Shodan error:", error.message);
     if (error.response?.status === 401) {
-      return { success: false, error: "Invalid Shodan API key" };
+      return { success: false, error: "Invalid Shodan API key", code: 401 };
     }
-    return { success: false, error: "Failed to retrieve Shodan data" };
+    const errorMessage = error.response?.data?.error || error.message || "Failed to retrieve Shodan data";
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.status || 500,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
@@ -162,9 +180,15 @@ export async function searchNVDVulnerabilities(keyword: string, limit: number = 
       };
     }
     return { success: false, error: "No vulnerabilities found" };
-  } catch (error) {
-    console.error("NVD search error:", error);
-    return { success: false, error: "Failed to search NVD database" };
+  } catch (error: any) {
+    console.error("NVD search error:", error.message);
+    const errorMessage = error.response?.data?.message || error.message || "Failed to search NVD database";
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.status || 500,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
@@ -201,9 +225,15 @@ export async function analyzeWithVirusTotal(hash: string, apiKey?: string) {
   } catch (error: any) {
     console.error("VirusTotal error:", error.message);
     if (error.response?.status === 401) {
-      return { success: false, error: "Invalid VirusTotal API key" };
+      return { success: false, error: "Invalid VirusTotal API key", code: 401 };
     }
-    return { success: false, error: "Failed to analyze file with VirusTotal" };
+    const errorMessage = error.response?.data?.error?.message || error.message || "Failed to analyze file with VirusTotal";
+    return { 
+      success: false, 
+      error: errorMessage,
+      code: error.response?.status || 500,
+      timestamp: new Date().toISOString()
+    };
   }
 }
 
