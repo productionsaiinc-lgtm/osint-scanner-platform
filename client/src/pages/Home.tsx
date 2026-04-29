@@ -52,7 +52,7 @@ export default function Home() {
               OSINT SCANNER PLATFORM
             </h1>
             <p className="text-xl text-neon-cyan mb-8 max-w-2xl mx-auto">
-              Professional-grade reconnaissance and threat intelligence tools for security professionals
+              reconnaissance and threat intelligence tools for security professionals
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button
