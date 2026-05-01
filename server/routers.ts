@@ -30,12 +30,7 @@ import { additionalFeaturesRouter } from "./additional-features-router";
 import { rewardsRouter } from "./rewards-router";
 import { urlShortenerRouter } from "./url-shortener-router";
 import { virtualComputersRouter } from "./virtual-computers-router";
-<<<<<<< Updated upstream
-import { temporaryEmailRouter } from "./temporary-email-router";
-import { fileAnalysisRouter } from "./file-analysis-router";
-=======
 import { tempEmailRouter } from "./temp-email-router";
->>>>>>> Stashed changes
 
 export const appRouter = router({
   system: systemRouter,
@@ -59,12 +54,7 @@ export const appRouter = router({
   rewards: rewardsRouter,
   urlShortener: urlShortenerRouter,
   virtualComputers: virtualComputersRouter,
-<<<<<<< Updated upstream
-  temporaryEmail: temporaryEmailRouter,
-  fileAnalysis: fileAnalysisRouter,
-=======
   tempEmail: tempEmailRouter,
->>>>>>> Stashed changes
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

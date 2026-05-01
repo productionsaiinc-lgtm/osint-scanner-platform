@@ -138,11 +138,12 @@
 ## Remaining Tasks (Priority Order)
 
 ### High Priority - Core Features
-- [x] Implement real OSINT network/infrastructure error handling (remove console errors, add tests)
-- [x] Wire PentestLab completion flow to rewards router for real point/achievement updates
+- [ ] Implement real OSINT network/infrastructure error handling (remove console errors, add tests)
+- [ ] Wire PentestLab completion flow to rewards router for real point/achievement updates
 - [x] Build real URL shortener backend with persistent storage and redirect routes (/s/:shortCode endpoint + click tracking)
-- [x] Implement real temporary email backend service with inbox polling and expiry
-- [x] Implement real file analysis backend (VirusTotal/hash scanning integration)
+- [x] Build real temporary email backend (DB helpers, tRPC router, tests)
+- [x] Connect TempEmail frontend to tRPC backend (replace mock SAMPLE_EMAILS with real data)
+- [ ] Implement real file analysis backend (VirusTotal/hash scanning integration)
 
 ### Medium Priority - Advanced Features
 - [x] Build real virtual computers backend with persistent VM records and lifecycle actions
