@@ -1,6 +1,6 @@
 import { eq, and, gte, inArray, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger, shortenedUrls, ShortenedUrl, InsertShortenedUrl, tempEmailAddresses, TempEmailAddress, InsertTempEmailAddress, virtualComputers, VirtualComputer, InsertVirtualComputer } from "../drizzle/schema";
+import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger, shortenedUrls, ShortenedUrl, InsertShortenedUrl, tempEmailAddresses, TempEmailAddress, InsertTempEmailAddress, tempEmailMessages, TempEmailMessage, InsertTempEmailMessage, virtualComputers, VirtualComputer, InsertVirtualComputer } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -528,5 +528,55 @@ export async function deleteVirtualComputer(id: number): Promise<void> {
     await db.delete(virtualComputers).where(eq(virtualComputers.id, id));
   } catch (error) {
     console.error("[Database] Failed to delete virtual computer:", error);
+  }
+}
+
+// Temporary Email Messages operations
+export async function createTempEmailMessage(message: InsertTempEmailMessage): Promise<TempEmailMessage | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(tempEmailMessages).values(message);
+    const messageId = result[0].insertId;
+    const created = await db.select().from(tempEmailMessages).where(eq(tempEmailMessages.id, messageId as number)).limit(1);
+    return created.length > 0 ? created[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to create temp email message:", error);
+    return null;
+  }
+}
+
+export async function getTempEmailMessages(tempEmailId: number): Promise<TempEmailMessage[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(tempEmailMessages).where(eq(tempEmailMessages.tempEmailId, tempEmailId)).orderBy(desc(tempEmailMessages.receivedAt));
+  } catch (error) {
+    console.error("[Database] Failed to get temp email messages:", error);
+    return [];
+  }
+}
+
+export async function markTempEmailMessageAsRead(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.update(tempEmailMessages).set({ isRead: true }).where(eq(tempEmailMessages.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to mark message as read:", error);
+  }
+}
+
+export async function deleteTempEmailMessage(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.delete(tempEmailMessages).where(eq(tempEmailMessages.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete temp email message:", error);
   }
 }
