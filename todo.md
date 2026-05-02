@@ -139,7 +139,7 @@
 
 ### High Priority - Core Features
 - [x] Implement real OSINT network/infrastructure error handling (remove console errors, add tests)
-- [ ] Wire PentestLab completion flow to rewards router for real point/achievement updates
+- [x] Wire PentestLab completion flow to rewards router for real point/achievement updates
 - [x] Build real URL shortener backend with persistent storage and redirect routes (/s/:shortCode endpoint + click tracking)
 - [x] Build real temporary email backend (DB helpers, tRPC router, tests)
 - [x] Connect TempEmail frontend to tRPC backend (replace mock SAMPLE_EMAILS with real data)
