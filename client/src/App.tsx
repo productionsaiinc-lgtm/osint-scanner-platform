@@ -73,6 +73,7 @@ import { CloudStoragePage } from "./pages/CloudStoragePage";
 import { URLShortener } from "./pages/URLShortener";
 import { TempEmail } from "./pages/TempEmail";
 import { FileAnalyzer } from "./pages/FileAnalyzer";
+import { SockPuppets } from "./pages/SockPuppets";
 
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
@@ -169,6 +170,7 @@ function Router() {
       <Route path={"/url-shortener"} component={URLShortenerPage} />
       <Route path={"/temp-email"} component={TempEmailPage} />
       <Route path={"/file-analyzer"} component={FileAnalyzerPage} />
+      <Route path={"/sock-puppets"} component={SockPuppetsPage} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -675,6 +677,14 @@ function FileAnalyzerPage() {
   return (
     <DashboardLayout>
       <FileAnalyzer />
+    </DashboardLayout>
+  );
+}
+
+function SockPuppetsPage() {
+  return (
+    <DashboardLayout>
+      <SockPuppets />
     </DashboardLayout>
   );
 }

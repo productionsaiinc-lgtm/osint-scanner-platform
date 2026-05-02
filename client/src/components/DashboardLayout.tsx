@@ -109,6 +109,7 @@ const menuSections: MenuSection[] = [
       { icon: Link2, label: "URL Shortener", path: "/url-shortener" },
       { icon: Mail, label: "Temp Email", path: "/temp-email" },
       { icon: FileSearch, label: "File Analyzer", path: "/file-analyzer" },
+      { icon: Users, label: "Sock Puppets", path: "/sock-puppets" },
     ],
   },
   {
