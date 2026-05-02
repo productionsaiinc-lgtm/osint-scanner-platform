@@ -22,12 +22,6 @@ import { createReceiptData, generateHTMLReceipt, generateTextReceipt } from "./r
 import { getDb } from "./db";
 import { payments } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-import {
-  createProduct,
-  createPlan,
-  getSubscription,
-  cancelSubscription,
-} from "./paypal";
 import { getPayPalClient } from "./paypal-integration";
 
 export const subscriptionRouter = router({

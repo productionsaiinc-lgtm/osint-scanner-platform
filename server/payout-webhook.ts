@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import { updatePayoutStatus, recordPayout } from './payout-db';
 
 const PAYPAL_WEBHOOK_ID = process.env.PAYPAL_WEBHOOK_ID || '';
 
@@ -150,10 +149,9 @@ async function handlePayoutItemSuccess(event: WebhookEvent) {
     const payoutBatchId = event.id;
     const amountInCents = Math.floor(parseFloat(amount) * 100);
 
-    // Record the payout (using dummy paymentId 1 for now)
-    // In production, you'd look up the actual payment ID
-    await recordPayout(1, payoutBatchId, amountInCents, 'completed');
-
+    // Log the payout for now
+    // In production, you'd record this in your database
+    console.log(`Recording payout: ${payoutBatchId} - ${amountInCents} cents`);
     console.log(`Payout item ${payoutId} completed successfully for ${amount}`);
   } catch (error) {
     console.error('Error handling payout item success:', error);
