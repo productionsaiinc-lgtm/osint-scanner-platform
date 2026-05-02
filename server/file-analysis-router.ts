@@ -4,6 +4,7 @@ import { getDb } from "./db";
 import { fileAnalyses } from "../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 import { analyzeWithVirusTotal } from "./real-api-integrations";
+import { ErrorHandler } from "./error-handler";
 
 export const fileAnalysisRouter = router({
   // Start file analysis
@@ -18,11 +19,16 @@ export const fileAnalysisRouter = router({
       const db = await getDb();
       if (!db) throw new Error("Database not available");
 
-      // Check if file has already been analyzed
+      // Check if file has already been analyzed by THIS USER
       const [existing] = await db
         .select()
         .from(fileAnalyses)
-        .where(eq(fileAnalyses.fileHash, input.fileHash))
+        .where(
+          and(
+            eq(fileAnalyses.fileHash, input.fileHash),
+            eq(fileAnalyses.userId, ctx.user.id)
+          )
+        )
         .limit(1);
 
       if (existing) {
@@ -67,7 +73,8 @@ export const fileAnalysisRouter = router({
             .where(eq(fileAnalyses.id, analysisId));
         }
       } catch (error) {
-        console.error("Background analysis failed:", error);
+        const osintError = ErrorHandler.handleExternalAPIError(error, "VirusTotal Analysis");
+        console.error("Background analysis failed:", osintError.message);
         await db.update(fileAnalyses)
           .set({ status: "error" })
           .where(eq(fileAnalyses.id, analysisId));

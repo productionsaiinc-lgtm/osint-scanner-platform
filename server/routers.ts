@@ -32,6 +32,7 @@ import { urlShortenerRouter } from "./url-shortener-router";
 import { virtualComputersRouter } from "./virtual-computers-router";
 import { tempEmailRouter } from "./temp-email-router";
 import { errorMonitoringRouter } from "./error-monitoring-router";
+import { fileAnalysisRouter } from "./file-analysis-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -57,6 +58,7 @@ export const appRouter = router({
   virtualComputers: virtualComputersRouter,
   tempEmail: tempEmailRouter,
   errorMonitoring: errorMonitoringRouter,
+  fileAnalysis: fileAnalysisRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
