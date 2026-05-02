@@ -4,6 +4,7 @@
  */
 
 import axios from "axios";
+import { ErrorHandler, ErrorCategory } from "./error-handler";
 
 // IP Geolocation using ip-api.com (free, no key required)
 export async function getIPGeolocation(ip: string) {
@@ -29,8 +30,8 @@ export async function getIPGeolocation(ip: string) {
       return { success: false, error: "IP lookup failed" };
     }
   } catch (error) {
-    console.error("IP geolocation error:", error);
-    return { success: false, error: "Failed to lookup IP" };
+    const osintError = ErrorHandler.handleExternalAPIError(error, "IP Geolocation");
+    return { success: false, error: osintError.message };
   }
 }
 
@@ -53,8 +54,8 @@ export async function simulatePortScan(host: string, ports: number[] = [22, 80, 
       openPorts: results.filter(p => p.status === "open").map(p => p.port),
     };
   } catch (error) {
-    console.error("Port scan error:", error);
-    return { success: false, error: "Port scan failed" };
+    const osintError = ErrorHandler.handleNetworkError(error, "Port Scan");
+    return { success: false, error: osintError.message };
   }
 }
 

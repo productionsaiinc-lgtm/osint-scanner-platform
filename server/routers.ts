@@ -31,6 +31,7 @@ import { rewardsRouter } from "./rewards-router";
 import { urlShortenerRouter } from "./url-shortener-router";
 import { virtualComputersRouter } from "./virtual-computers-router";
 import { tempEmailRouter } from "./temp-email-router";
+import { errorMonitoringRouter } from "./error-monitoring-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -55,6 +56,7 @@ export const appRouter = router({
   urlShortener: urlShortenerRouter,
   virtualComputers: virtualComputersRouter,
   tempEmail: tempEmailRouter,
+  errorMonitoring: errorMonitoringRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
