@@ -33,6 +33,9 @@ import { virtualComputersRouter } from "./virtual-computers-router";
 import { tempEmailRouter } from "./temp-email-router";
 import { errorMonitoringRouter } from "./error-monitoring-router";
 import { fileAnalysisRouter } from "./file-analysis-router";
+import { virtualPhonesRouter } from "./virtual-phones-router";
+import { cloudStorageRouter } from "./cloud-storage-router";
+import { sockPuppetsRouter } from "./sock-puppets-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,6 +59,9 @@ export const appRouter = router({
   rewards: rewardsRouter,
   urlShortener: urlShortenerRouter,
   virtualComputers: virtualComputersRouter,
+  virtualPhones: virtualPhonesRouter,
+  cloudStorage: cloudStorageRouter,
+  sockPuppets: sockPuppetsRouter,
   tempEmail: tempEmailRouter,
   errorMonitoring: errorMonitoringRouter,
   fileAnalysis: fileAnalysisRouter,
