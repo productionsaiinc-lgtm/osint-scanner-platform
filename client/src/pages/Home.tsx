@@ -10,6 +10,7 @@ export default function Home() {
 
   const features = [
     {
+      icon: Zap,
       title: "New Features",
       description: "MDM Mobile Device Management, License plate lookup/vin, Cloud storage and sync, virtual phones, Computers, Canary tokens, Temporary Emails, Pentest Labs, Url Shortener, Sim/phone Querys, Imei and CreditCard checks, password cracker, deepfake search, VPN services and much more."
     },
