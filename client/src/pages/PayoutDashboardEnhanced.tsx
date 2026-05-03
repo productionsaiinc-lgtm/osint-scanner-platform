@@ -270,7 +270,7 @@ export function PayoutDashboardEnhanced() {
                         </div>
                         <div>
                           <div className="font-mono text-sm text-cyan-400">
-                            ${(payout.amount / 100).toFixed(2)} {payout.currency || 'USD'}
+                            $20.00 {payout.currency || 'USD'}
                           </div>
                           <div className="text-xs text-gray-500">
                             {new Date(payout.createdAt).toLocaleDateString()} at{' '}
