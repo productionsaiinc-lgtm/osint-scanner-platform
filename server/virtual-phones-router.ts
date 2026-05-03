@@ -11,9 +11,7 @@ export const virtualPhonesRouter = router({
       z.object({
         name: z.string().min(1),
         osType: z.enum(["android", "ios"]),
-        osVersion: z.string(),
-        manufacturer: z.string(),
-        model: z.string(),
+        osVersion: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -27,9 +25,7 @@ export const virtualPhonesRouter = router({
           deviceId,
           name: input.name,
           osType: input.osType,
-          osVersion: input.osVersion,
-          manufacturer: input.manufacturer,
-          model: input.model,
+          osVersion: input.osVersion || null,
           imei,
           phoneNumber,
           status: "offline",
@@ -70,8 +66,6 @@ export const virtualPhonesRouter = router({
         name: p.name,
         osType: p.osType,
         osVersion: p.osVersion,
-        manufacturer: p.manufacturer,
-        model: p.model,
         imei: p.imei,
         phoneNumber: p.phoneNumber,
         status: p.status,
@@ -280,7 +274,6 @@ export const virtualPhonesRouter = router({
           ios: phones.filter((p) => p.osType === "ios").length,
           android: phones.filter((p) => p.osType === "android").length,
         },
-        manufacturers: Array.from(new Set(phones.map((p) => p.manufacturer))).length,
       };
 
       return stats;
