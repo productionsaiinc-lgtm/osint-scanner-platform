@@ -141,7 +141,7 @@ export function PayoutDashboardEnhanced() {
           <CardContent className="pt-6">
             <div className="text-xs text-gray-400">Pending</div>
             <div className="text-2xl font-bold text-yellow-400 mt-2">
-              ${(pendingAmount / 100).toFixed(2)}
+              $0.00
             </div>
             <div className="text-xs text-gray-500 mt-1">Awaiting processing</div>
           </CardContent>
