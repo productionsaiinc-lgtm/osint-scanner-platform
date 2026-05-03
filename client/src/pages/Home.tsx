@@ -53,8 +53,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-neon-pink/10 via-transparent to-transparent"></div>
         <div className="max-w-6xl mx-auto px-4 py-20 relative">
           <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold text-neon-pink mb-4 neon-glow">
-              OSINT SCANNER PLATFORM
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 neon-glow" style={{ color: '#ff00ff' }}>
+              OSINT & PENTESTING SERVICES
             </h1>
             <p className="text-xl text-neon-cyan mb-8 max-w-2xl mx-auto">
               reconnaissance and threat intelligence tools for security professionals
