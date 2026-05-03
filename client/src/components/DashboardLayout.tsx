@@ -431,7 +431,7 @@ function DashboardLayoutContent({
         <div className="flex flex-col flex-1">
           {/* Mobile hamburger menu */}
           <div className="md:hidden flex items-center gap-2 p-4 border-b border-neon-pink/30">
-            <SidebarTrigger className="text-neon-cyan" />
+            <SidebarTrigger className="text-neon-cyan" style={{ color: '#ff00ff', backgroundColor: '#ffffff' }} />
             <span className="font-bold text-neon-cyan neon-cyan-glow">OSINT</span>
           </div>
           {children}
