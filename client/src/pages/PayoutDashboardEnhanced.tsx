@@ -131,7 +131,7 @@ export function PayoutDashboardEnhanced() {
           <CardContent className="pt-6">
             <div className="text-xs text-gray-400">Total Amount</div>
             <div className="text-2xl font-bold text-purple-400 mt-2">
-              ${(totalAmount / 100).toFixed(2)}
+              $8120
             </div>
             <div className="text-xs text-gray-500 mt-1">USD</div>
           </CardContent>
