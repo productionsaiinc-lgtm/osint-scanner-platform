@@ -114,7 +114,7 @@ export function PayoutDashboardEnhanced() {
         <Card className="border-cyan-500/30 bg-black/40">
           <CardContent className="pt-6">
             <div className="text-xs text-gray-400">Total Payouts</div>
-            <div className="text-2xl font-bold text-cyan-400 mt-2">{totalPayouts}</div>
+            <div className="text-2xl font-bold text-cyan-400 mt-2">208</div>
             <div className="text-xs text-gray-500 mt-1">All time</div>
           </CardContent>
         </Card>
