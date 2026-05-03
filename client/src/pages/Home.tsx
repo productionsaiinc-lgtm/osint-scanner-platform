@@ -69,7 +69,8 @@ export default function Home() {
               <Button
                 onClick={() => setLocation("/pricing")}
                 variant="outline"
-                className="border-neon-cyan text-neon-cyan hover:bg-neon-cyan/10 font-bold px-8 py-3"
+                className="border-neon-cyan hover:bg-neon-cyan/10 font-bold px-8 py-3"
+                style={{ color: '#ffff00' }}
               >
                 View Pricing
               </Button>
