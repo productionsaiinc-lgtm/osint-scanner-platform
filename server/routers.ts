@@ -33,6 +33,7 @@ import { virtualComputersRouter } from "./virtual-computers-router";
 import { tempEmailRouter } from "./temp-email-router";
 import { errorMonitoringRouter } from "./error-monitoring-router";
 import { fileAnalysisRouter } from "./file-analysis-router";
+import { virtualPhonesRouter } from "./virtual-phones-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -59,6 +60,7 @@ export const appRouter = router({
   tempEmail: tempEmailRouter,
   errorMonitoring: errorMonitoringRouter,
   fileAnalysis: fileAnalysisRouter,
+  virtualPhones: virtualPhonesRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

@@ -1,6 +1,6 @@
 import { eq, and, gte, inArray, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger, shortenedUrls, ShortenedUrl, InsertShortenedUrl, tempEmailAddresses, TempEmailAddress, InsertTempEmailAddress, tempEmailMessages, TempEmailMessage, InsertTempEmailMessage, virtualComputers, VirtualComputer, InsertVirtualComputer } from "../drizzle/schema";
+import { InsertUser, User, users, scans, discoveredHosts, domainRecords, socialMediaProfiles, Scan, InsertScan, DiscoveredHost, InsertDiscoveredHost, DomainRecord, InsertDomainRecord, SocialMediaProfile, InsertSocialMediaProfile, canaryTokens, canaryTokenTriggers, CanaryToken, InsertCanaryToken, CanaryTokenTrigger, InsertCanaryTokenTrigger, shortenedUrls, ShortenedUrl, InsertShortenedUrl, tempEmailAddresses, TempEmailAddress, InsertTempEmailAddress, tempEmailMessages, TempEmailMessage, InsertTempEmailMessage, virtualComputers, VirtualComputer, InsertVirtualComputer, virtualPhones, VirtualPhone, InsertVirtualPhone } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -528,6 +528,69 @@ export async function deleteVirtualComputer(id: number): Promise<void> {
     await db.delete(virtualComputers).where(eq(virtualComputers.id, id));
   } catch (error) {
     console.error("[Database] Failed to delete virtual computer:", error);
+  }
+}
+
+// Virtual Phones operations
+export async function createVirtualPhone(phone: InsertVirtualPhone): Promise<VirtualPhone | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.insert(virtualPhones).values(phone);
+    const phoneId = result[0].insertId;
+    const created = await db.select().from(virtualPhones).where(eq(virtualPhones.id, phoneId as number)).limit(1);
+    return created.length > 0 ? created[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to create virtual phone:", error);
+    return null;
+  }
+}
+
+export async function getUserVirtualPhones(userId: number): Promise<VirtualPhone[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return await db.select().from(virtualPhones).where(eq(virtualPhones.userId, userId)).orderBy(desc(virtualPhones.createdAt));
+  } catch (error) {
+    console.error("[Database] Failed to get user virtual phones:", error);
+    return [];
+  }
+}
+
+export async function getVirtualPhone(id: number): Promise<VirtualPhone | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  try {
+    const result = await db.select().from(virtualPhones).where(eq(virtualPhones.id, id)).limit(1);
+    return result.length > 0 ? result[0] : null;
+  } catch (error) {
+    console.error("[Database] Failed to get virtual phone:", error);
+    return null;
+  }
+}
+
+export async function updateVirtualPhone(id: number, updates: Partial<VirtualPhone>): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.update(virtualPhones).set(updates).where(eq(virtualPhones.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to update virtual phone:", error);
+  }
+}
+
+export async function deleteVirtualPhone(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  try {
+    await db.delete(virtualPhones).where(eq(virtualPhones.id, id));
+  } catch (error) {
+    console.error("[Database] Failed to delete virtual phone:", error);
   }
 }
 
