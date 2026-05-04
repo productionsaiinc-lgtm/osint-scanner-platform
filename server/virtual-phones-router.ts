@@ -32,7 +32,6 @@ export const virtualPhonesRouter = router({
           ipAddress: null,
           adbPort: null,
           location: null,
-          lastAccessedAt: null,
         });
 
         if (!phone) {

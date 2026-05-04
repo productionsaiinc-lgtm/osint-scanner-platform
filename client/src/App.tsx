@@ -29,8 +29,7 @@ import WebScraper from "./pages/WebScraper";
 import CreditCardChecker from "./pages/CreditCardChecker";
 import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 import SimSwapLookup from "./pages/SimSwapLookup";
-import aichatbot from "./pages/
-aichatbot";
+import aichatbot from "./pages/aichatbot";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
 import { DownloadAPK } from "./pages/DownloadAPK";
@@ -108,8 +107,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={DashboardHome} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
-      <Route path={"/aichatbot"}
-component={AiChatBotPage"} />
+      <Route path={"/aichatbot"} component={AiChatBotPage} />
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
       <Route path={"/history"} component={ScanHistoryPage} />
@@ -209,7 +207,7 @@ function AiChatBotPage() {
  return (
    <DashboardLayout>
      <aichatbot />
-   <DashboardLayout>
+   </DashboardLayout>
   );
 }
 
