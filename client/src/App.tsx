@@ -29,6 +29,8 @@ import WebScraper from "./pages/WebScraper";
 import CreditCardChecker from "./pages/CreditCardChecker";
 import OntarioLicensePlate from "./pages/OntarioLicensePlate";
 import SimSwapLookup from "./pages/SimSwapLookup";
+import aichatbot from "./pages/
+aichatbot";
 import { PaymentSuccess } from "./pages/PaymentSuccess";
 import { PaymentCancel } from "./pages/PaymentCancel";
 import { DownloadAPK } from "./pages/DownloadAPK";
