@@ -108,6 +108,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={DashboardHome} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
+      <Route path={"/aichatbot"}
+component={AiChatBotPage"} />
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
       <Route path={"/history"} component={ScanHistoryPage} />
@@ -200,6 +202,14 @@ function SocialOsintPage() {
     <DashboardLayout>
       <SocialOsint />
     </DashboardLayout>
+  );
+}
+
+function AiChatBotPage() {
+ return (
+   <DashboardLayout>
+     <aichatbot />
+   <DashboardLayout>
   );
 }
 
