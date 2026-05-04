@@ -44,6 +44,7 @@ const menuSections: MenuSection[] = [
       { icon: Bell, label: "Notifications", path: "/notifications" },
       { icon: Globe, label: "Dark Web Monitor", path: "/dark-web-monitor" },
       { icon: TrendingUp, label: "Crypto Tracker", path: "/crypto-tracker" },
+      {label: "Ai Chat Assistant", path: "/aichatbot" },
       { icon: Users, label: "Employee Enum", path: "/employee-enum" },
       { icon: Map, label: "Geo Reverse", path: "/geo-reverse" },
       { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
