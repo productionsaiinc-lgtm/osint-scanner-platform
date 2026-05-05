@@ -34,9 +34,6 @@ import { tempEmailRouter } from "./temp-email-router";
 import { errorMonitoringRouter } from "./error-monitoring-router";
 import { fileAnalysisRouter } from "./file-analysis-router";
 import { virtualPhonesRouter } from "./virtual-phones-router";
-import { cloudStorageRouter } from "./cloud-storage-router";
-import { exportSocialCommentsRouter } from "./export-social-comments-router";
-import { sockPuppetsRouter } from "./sock-puppets-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -64,9 +61,6 @@ export const appRouter = router({
   errorMonitoring: errorMonitoringRouter,
   fileAnalysis: fileAnalysisRouter,
   virtualPhones: virtualPhonesRouter,
-  cloudStorage: cloudStorageRouter,
-  exportSocialComments: exportSocialCommentsRouter,
-  sockPuppets: sockPuppetsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
