@@ -4,23 +4,13 @@ import axios from "axios";
 import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
 import { decodeVINReal, trackCryptoAddressReal, checkPasswordStrengthReal, lookupIMEIReal } from "./real-api-integrations-phase1";
 import { searchShodanReal, trackFlightReal, scrapeWebsiteReal, scanIoTDevicesReal } from "./real-api-integrations-phase2";
+import { monitorDarkWebReal, detectDeepfakeReal, getMDMDeviceStatusReal, applyMDMSecurityPolicyReal, analyzeFileWithVirusTotalReal, scanURLWithVirusTotalReal } from "./real-api-integrations-phase3";
 
-// Dark Web Monitor
+// Dark Web Monitor - Real Have I Been Pwned + Breach Database API
 const darkWebMonitorProcedure = protectedProcedure
   .input(z.object({ query: z.string().min(1) }))
   .mutation(async ({ input, ctx }) => {
-    try {
-      // Simulate dark web monitoring - in production, integrate with actual APIs
-      const results = {
-        mentions: Math.floor(Math.random() * 50),
-        lastSeen: new Date(),
-        sources: ["Dark Web Forum 1", "Dark Web Forum 2", "Leaked Database"],
-        severity: ["high", "medium", "low"][Math.floor(Math.random() * 3)],
-      };
-      return { success: true, data: results };
-    } catch (error) {
-      return { success: false, error: "Failed to monitor dark web" };
-    }
+    return await monitorDarkWebReal(input.query);
   });
 
 // VIN Decoder - Real NHTSA API
@@ -223,27 +213,11 @@ const supplyChainAnalyzerProcedure = protectedProcedure
     }
   });
 
-// Deepfake Detector
+// Deepfake Detector - Real AWS Rekognition API
 const deepfakeDetectorProcedure = protectedProcedure
-  .input(z.object({ imageUrl: z.string().url() }))
+  .input(z.object({ imageUrl: z.string().url(), videoUrl: z.string().url().optional() }))
   .mutation(async ({ input }) => {
-    try {
-      const detection = {
-        imageUrl: input.imageUrl,
-        isDeepfake: Math.random() > 0.7,
-        confidence: Math.random() * 100,
-        manipulationIndicators: ["Face Swap", "Expression Manipulation", "Lighting Inconsistency"],
-        analysis: {
-          faceConsistency: Math.random() * 100,
-          eyeTracking: Math.random() * 100,
-          blinkPattern: Math.random() * 100,
-          audioSync: Math.random() * 100,
-        },
-      };
-      return { success: true, data: detection };
-    } catch (error) {
-      return { success: false, error: "Failed to detect deepfake" };
-    }
+    return await detectDeepfakeReal(input.imageUrl, input.videoUrl);
   });
 
 // Insider Threat
