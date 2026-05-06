@@ -3,6 +3,7 @@ import { z } from "zod";
 import axios from "axios";
 import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
 import { decodeVINReal, trackCryptoAddressReal, checkPasswordStrengthReal, lookupIMEIReal } from "./real-api-integrations-phase1";
+import { searchShodanReal, trackFlightReal, scrapeWebsiteReal, scanIoTDevicesReal } from "./real-api-integrations-phase2";
 
 // Dark Web Monitor
 const darkWebMonitorProcedure = protectedProcedure
@@ -188,103 +189,18 @@ const passwordCrackerProcedure = protectedProcedure
     return await checkPasswordStrengthReal(input.password);
   });
 
-// IoT Scanner — Shodan search for IoT devices
+// IoT Scanner - Real Shodan API
 const iotScannerProcedure = protectedProcedure
-  .input(z.object({ ipRange: z.string().min(1) }))
+  .input(z.object({ ipRange: z.string().min(1), limit: z.number().optional().default(10) }))
   .mutation(async ({ input }) => {
-    try {
-      const query = input.ipRange.trim();
-      const shodanKey = process.env.SHODAN_API_KEY;
-      const devices: Array<{ ip: string; device: string; status: string; ports: number[]; os?: string; org?: string; country?: string; vulnerabilities?: string[] }> = [];
-      let shodanUsed = false;
-
-      if (shodanKey) {
-        try {
-          // Build Shodan query: if it looks like an IP use that, otherwise use as keyword
-          const isIp = /^\d{1,3}(\.\d{1,3}){1,3}/.test(query);
-          const shodanQuery = isIp ? `net:${query}` : `category:iot ${query}`;
-          const res = await axios.get(
-            `https://api.shodan.io/shodan/host/search?key=${shodanKey}&query=${encodeURIComponent(shodanQuery)}&minify=true`,
-            { timeout: 10000 }
-          );
-          const matches = (res.data?.matches || []).slice(0, 20);
-          for (const m of matches) {
-            const ports: number[] = m.port ? [m.port] : [];
-            if (m.ports) ports.push(...m.ports);
-            devices.push({
-              ip: m.ip_str || m.ip,
-              device: m.product || m.devicetype || m.tags?.[0] || 'IoT Device',
-              status: 'Online',
-              ports: [...new Set(ports)],
-              os: m.os || undefined,
-              org: m.org || m.isp || undefined,
-              country: m.location?.country_name || undefined,
-              vulnerabilities: m.vulns ? Object.keys(m.vulns).slice(0, 3) : undefined,
-            });
-          }
-          shodanUsed = true;
-        } catch (e: any) {
-          // Fall through to simulated scan
-        }
-      }
-
-      // Fallback: realistic simulated scan
-      if (!shodanUsed || devices.length === 0) {
-        const iotTypes = [
-          { device: 'IP Camera (Hikvision)', ports: [80, 554, 8000, 8080] },
-          { device: 'Smart Router (Mikrotik)', ports: [80, 443, 8291] },
-          { device: 'Smart TV (Samsung)', ports: [8080, 9090, 52235] },
-          { device: 'NAS Device (Synology)', ports: [80, 443, 5000, 5001] },
-          { device: 'Smart Plug (TP-Link)', ports: [80, 9999] },
-          { device: 'DVR/NVR', ports: [80, 554, 8000, 37777] },
-          { device: 'Printer (HP)', ports: [80, 443, 631, 9100] },
-        ];
-        const base = query.replace('/24','').replace('/16','').split('.').slice(0,3).join('.');
-        const count = Math.floor(Math.random() * 6) + 3;
-        for (let i = 0; i < count; i++) {
-          const t = iotTypes[i % iotTypes.length];
-          devices.push({
-            ip: `${base || '192.168.1'}.${Math.floor(Math.random() * 200) + 1}`,
-            device: t.device, status: 'Online', ports: t.ports,
-            country: 'Unknown', org: 'ISP Provider',
-          });
-        }
-      }
-
-      return {
-        success: true,
-        data: {
-          ipRange: query,
-          devices,
-          count: devices.length,
-          shodanPowered: shodanUsed,
-          note: shodanUsed ? 'Results from Shodan API' : 'Simulated scan — add SHODAN_API_KEY for real data',
-        },
-      };
-    } catch (error: any) {
-      return { success: false, error: error.message || 'Failed to scan IoT devices' };
-    }
+    return await scanIoTDevicesReal(input.ipRange, input.limit);
   });
 
-// Flight Tracker
+// Flight Tracker - Real OpenSky Network API
 const flightTrackerProcedure = protectedProcedure
   .input(z.object({ flightNumber: z.string().min(1) }))
   .mutation(async ({ input }) => {
-    try {
-      const flight = {
-        flightNumber: input.flightNumber,
-        airline: "Airline Name",
-        departure: { airport: "JFK", time: new Date(), city: "New York" },
-        arrival: { airport: "LAX", time: new Date(Date.now() + 5 * 60 * 60 * 1000), city: "Los Angeles" },
-        status: ["On Time", "Delayed", "Cancelled"][Math.floor(Math.random() * 3)],
-        aircraft: "Boeing 737",
-        altitude: Math.floor(Math.random() * 35000),
-        speed: Math.floor(Math.random() * 500),
-      };
-      return { success: true, data: flight };
-    } catch (error) {
-      return { success: false, error: "Failed to track flight" };
-    }
+    return await trackFlightReal(input.flightNumber);
   });
 
 // Supply Chain Analyzer
@@ -472,150 +388,18 @@ const apiConfigurationProcedure = publicProcedure
     }
   });
 
-// Web Scraper — real HTTP fetch + parse
+// Web Scraper - Real Puppeteer + Cheerio API
 const webScraperProcedure = protectedProcedure
-  .input(z.object({ url: z.string().url(), selector: z.string().optional() }))
+  .input(z.object({ url: z.string().url(), selector: z.string().optional(), headless: z.boolean().optional().default(true), timeout: z.number().optional().default(15000) }))
   .mutation(async ({ input }) => {
-    try {
-      const res = await axios.get(input.url, {
-        timeout: 15000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; OSINTScanner/2.0)',
-          Accept: 'text/html,application/xhtml+xml',
-        },
-        maxRedirects: 5,
-      });
-
-      const html: string = res.data;
-
-      // Extract title
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const title = titleMatch ? titleMatch[1].trim() : 'N/A';
-
-      // Extract meta description
-      const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
-        || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
-      const metaDescription = metaDescMatch ? metaDescMatch[1].trim() : 'N/A';
-
-      // Count links
-      const linkMatches = html.match(/<a\s[^>]*href=[^>]*>/gi) || [];
-      const linksFound = linkMatches.length;
-
-      // Count images
-      const imgMatches = html.match(/<img\s[^>]*>/gi) || [];
-      const imagesFound = imgMatches.length;
-
-      // Extract all unique external links
-      const hrefRe = /href=["']((https?:\/\/)[^"']+)["']/gi;
-      let m;
-      const externalLinks: string[] = [];
-      while ((m = hrefRe.exec(html)) !== null) {
-        if (!externalLinks.includes(m[1])) externalLinks.push(m[1]);
-      }
-
-      // Extract h1-h3 headings
-      const headingRe = /<h[1-3][^>]*>([^<]+)<\/h[1-3]>/gi;
-      const headings: string[] = [];
-      while ((m = headingRe.exec(html)) !== null) {
-        headings.push(m[1].trim());
-        if (headings.length >= 10) break;
-      }
-
-      // Detect technologies from HTML
-      const techs: string[] = [];
-      if (html.includes('react')) techs.push('React');
-      if (html.includes('vue')) techs.push('Vue.js');
-      if (html.includes('angular')) techs.push('Angular');
-      if (html.includes('jquery')) techs.push('jQuery');
-      if (html.includes('bootstrap')) techs.push('Bootstrap');
-      if (html.includes('wp-content') || html.includes('wordpress')) techs.push('WordPress');
-      if (html.includes('shopify')) techs.push('Shopify');
-      if (html.includes('next')) techs.push('Next.js');
-      if (html.includes('tailwind')) techs.push('Tailwind CSS');
-
-      // Word count (approximate)
-      const textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-      const wordCount = textContent.split(' ').filter(Boolean).length;
-
-      return {
-        success: true,
-        data: {
-          url: input.url,
-          selector: input.selector || 'all',
-          statusCode: res.status,
-          title,
-          metaDescription,
-          linksFound,
-          imagesFound,
-          wordCount,
-          headings,
-          externalLinks: externalLinks.slice(0, 15),
-          technologies: techs,
-          extractedData: [
-            { type: 'Title', value: title },
-            { type: 'Meta Description', value: metaDescription },
-            { type: 'Links Found', value: String(linksFound) },
-            { type: 'Images Found', value: String(imagesFound) },
-            { type: 'Word Count', value: String(wordCount) },
-            { type: 'Technologies', value: techs.join(', ') || 'None detected' },
-          ],
-          itemsFound: linksFound + imagesFound + headings.length,
-          dataTypes: ['Text', 'Links', 'Images', 'Metadata', 'Headings'],
-          scrapedAt: new Date().toISOString(),
-          contentLength: html.length,
-        },
-      };
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        return { success: false, error: `HTTP ${error.response?.status || 'Error'}: ${error.message}` };
-      }
-      return { success: false, error: error.message || 'Failed to scrape website' };
-    }
+    return await scrapeWebsiteReal(input.url, { headless: input.headless, timeout: input.timeout });
   });
 
-// Shodan device + SecurityTrails domain search
+// Shodan device search - Real Shodan API
 const shodanDeviceSearchProcedure = protectedProcedure
-  .input(z.object({ query: z.string().min(1) }))
+  .input(z.object({ query: z.string().min(1), page: z.number().optional().default(1) }))
   .query(async ({ input }) => {
-    try {
-      const shodanKey = process.env.SHODAN_API_KEY;
-      if (!shodanKey) {
-        return {
-          success: false,
-          error: 'Shodan API key not configured. Set SHODAN_API_KEY in environment variables.',
-          needsKey: true,
-        };
-      }
-      const res = await axios.get(
-        `https://api.shodan.io/shodan/host/search?key=${shodanKey}&query=${encodeURIComponent(input.query)}&minify=false`,
-        { timeout: 12000 }
-      );
-      const data = res.data;
-      return {
-        success: true,
-        total: data.total,
-        matches: (data.matches || []).slice(0, 20).map((m: any) => ({
-          ip: m.ip_str,
-          port: m.port,
-          product: m.product,
-          version: m.version,
-          os: m.os,
-          org: m.org,
-          isp: m.isp,
-          country: m.location?.country_name,
-          city: m.location?.city,
-          tags: m.tags || [],
-          vulns: m.vulns ? Object.keys(m.vulns) : [],
-          timestamp: m.timestamp,
-          hostnames: m.hostnames || [],
-          domains: m.domains || [],
-          transport: m.transport,
-          data: (m.data || '').substring(0, 200),
-        })),
-      };
-    } catch (error: any) {
-      return { success: false, error: error.response?.data?.error || error.message || 'Shodan search failed' };
-    }
+    return await searchShodanReal(input.query, input.page);
   });
 
 const securityTrailsProcedure = protectedProcedure
