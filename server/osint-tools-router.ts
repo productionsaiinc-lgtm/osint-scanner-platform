@@ -2,6 +2,7 @@ import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
 import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
+import { decodeVINReal, trackCryptoAddressReal, checkPasswordStrengthReal, lookupIMEIReal } from "./real-api-integrations-phase1";
 
 // Dark Web Monitor
 const darkWebMonitorProcedure = protectedProcedure
@@ -21,45 +22,18 @@ const darkWebMonitorProcedure = protectedProcedure
     }
   });
 
-// VIN Decoder
+// VIN Decoder - Real NHTSA API
 const vinDecoderProcedure = protectedProcedure
   .input(z.object({ vin: z.string().min(17).max(17) }))
   .mutation(async ({ input }) => {
-    try {
-      // Decode VIN
-      const decoded = {
-        manufacturer: "Vehicle Manufacturer",
-        year: 2020,
-        make: "Make",
-        model: "Model",
-        bodyType: "Sedan",
-        engine: "4-cylinder",
-        transmission: "Automatic",
-        driveType: "AWD",
-      };
-      return { success: true, data: decoded };
-    } catch (error) {
-      return { success: false, error: "Failed to decode VIN" };
-    }
+    return await decodeVINReal(input.vin);
   });
 
-// Crypto Tracker
+// Crypto Tracker - Real Etherscan API
 const cryptoTrackerProcedure = protectedProcedure
-  .input(z.object({ address: z.string().min(1) }))
+  .input(z.object({ address: z.string().min(1), chain: z.enum(["ethereum", "bitcoin"]).optional().default("ethereum") }))
   .mutation(async ({ input }) => {
-    try {
-      const cryptoData = {
-        address: input.address,
-        balance: Math.random() * 100,
-        transactions: Math.floor(Math.random() * 1000),
-        firstSeen: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-        lastActive: new Date(),
-        riskLevel: ["low", "medium", "high"][Math.floor(Math.random() * 3)],
-      };
-      return { success: true, data: cryptoData };
-    } catch (error) {
-      return { success: false, error: "Failed to track crypto address" };
-    }
+    return await trackCryptoAddressReal(input.address, input.chain);
   });
 
 // Employee Enum — real GitHub + Hunter.io integration
@@ -207,26 +181,11 @@ const malwareAnalyzerProcedure = protectedProcedure
     }
   });
 
-// Password Cracker (Educational - shows strength only)
+// Password Strength Checker - Real zxcvbn + Have I Been Pwned API
 const passwordCrackerProcedure = protectedProcedure
   .input(z.object({ password: z.string().min(1) }))
   .mutation(async ({ input }) => {
-    try {
-      const strength = {
-        password: "***",
-        length: input.password.length,
-        hasUppercase: /[A-Z]/.test(input.password),
-        hasLowercase: /[a-z]/.test(input.password),
-        hasNumbers: /[0-9]/.test(input.password),
-        hasSpecialChars: /[!@#$%^&*]/.test(input.password),
-        score: Math.floor(Math.random() * 100),
-        strength: ["Weak", "Fair", "Good", "Strong"][Math.floor(Math.random() * 4)],
-        suggestions: ["Add uppercase letters", "Add special characters", "Increase length"],
-      };
-      return { success: true, data: strength };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze password" };
-    }
+    return await checkPasswordStrengthReal(input.password);
   });
 
 // IoT Scanner — Shodan search for IoT devices
