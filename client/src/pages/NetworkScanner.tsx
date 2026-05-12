@@ -6,6 +6,34 @@ import { Network, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
+function flattenDnsRecords(records: any): Array<{ type: string; value: string }> {
+  if (!records || typeof records !== "object") return [];
+  if (Array.isArray(records)) {
+    return records.map((record: any) => ({
+      type: String(record?.type ?? "Record"),
+      value: String(record?.value ?? record?.data ?? record ?? ""),
+    }));
+  }
+
+  return Object.entries(records).flatMap(([type, values]) => {
+    const items = Array.isArray(values) ? values : [values];
+    return items.map((value: any) => ({
+      type,
+      value: typeof value === "object" && value !== null
+        ? Object.entries(value).map(([key, val]) => `${key}: ${String(val)}`).join(", ")
+        : String(value ?? ""),
+    }));
+  });
+}
+
+function normalizeSubdomain(value: any): string {
+  if (typeof value === "string") return value;
+  if (value && typeof value === "object") {
+    return [value.subdomain, value.ip].filter(Boolean).join(" -> ");
+  }
+  return String(value ?? "");
+}
+
 export default function NetworkScanner() {
   const [target, setTarget] = useState("");
   const [isScanning, setIsScanning] = useState(false);
@@ -223,7 +251,7 @@ export default function NetworkScanner() {
           ) : (
             // Domain scan results
             <div className="space-y-4">
-              {scanResults.whois && (
+              {scanResults.whois?.success && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">WHOIS Information</h3>
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
@@ -233,21 +261,21 @@ export default function NetworkScanner() {
                     </div>
                     <div>
                       <span className="text-gray-400">Created:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.whois.created}</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.whois.created || scanResults.whois.registrationDate || "Unknown"}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Expires:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.whois.expires}</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.whois.expires || scanResults.whois.expirationDate || "Unknown"}</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {scanResults.dns && Array.isArray(scanResults.dns.records) && (
+              {scanResults.dns?.success && flattenDnsRecords(scanResults.dns.records).length > 0 && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">DNS Records</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {scanResults.dns.records.map((record: any, idx: number) => (
+                    {flattenDnsRecords(scanResults.dns.records).map((record: any, idx: number) => (
                       <div
                         key={idx}
                         className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm"
@@ -260,17 +288,17 @@ export default function NetworkScanner() {
                 </div>
               )}
 
-              {scanResults.subdomains && Array.isArray(scanResults.subdomains.subdomains) && (
+              {scanResults.subdomains?.success && Array.isArray(scanResults.subdomains.subdomains) && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">Subdomains Found</h3>
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3">
                     <div className="flex flex-wrap gap-2">
-                      {scanResults.subdomains.subdomains.map((sub: string, idx: number) => (
+                      {scanResults.subdomains.subdomains.map((sub: any, idx: number) => (
                         <span
                           key={idx}
                           className="px-2 py-1 bg-neon-cyan/10 border border-neon-cyan/30 rounded text-xs text-neon-cyan font-mono"
                         >
-                          {sub}
+                          {normalizeSubdomain(sub)}
                         </span>
                       ))}
                     </div>
@@ -278,19 +306,28 @@ export default function NetworkScanner() {
                 </div>
               )}
 
-              {scanResults.ssl && (
+              {scanResults.ssl?.success && (
                 <div className="space-y-2">
                   <h3 className="font-semibold text-neon-cyan">SSL Certificate</h3>
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
                     <div>
                       <span className="text-gray-400">Issuer:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.issuer}</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.issuer || scanResults.ssl.certificate?.issuer || "Unknown"}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Valid Until:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.validUntil}</span>
+                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.validUntil || scanResults.ssl.certificate?.expiryDate || "Unknown"}</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {[scanResults.whois, scanResults.dns, scanResults.subdomains, scanResults.ssl].some((result: any) => result?.error) && (
+                <div className="bg-red-950/30 border border-red-500/30 rounded p-3 text-sm text-red-300 space-y-1">
+                  {scanResults.whois?.error && <div>WHOIS: {scanResults.whois.error}</div>}
+                  {scanResults.dns?.error && <div>DNS: {scanResults.dns.error}</div>}
+                  {scanResults.subdomains?.error && <div>Subdomains: {scanResults.subdomains.error}</div>}
+                  {scanResults.ssl?.error && <div>SSL: {scanResults.ssl.error}</div>}
                 </div>
               )}
             </div>
