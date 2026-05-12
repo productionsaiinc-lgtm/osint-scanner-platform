@@ -205,6 +205,14 @@
 
 ---
 
+## TODO IMPORTANT
+- [] check all tools and make sure they have real data and not mock data
+- [] retrive missing api keys for any tools that need
+- [] make a complete markdown file of the website and source for what it offers and all technoligies link to website: https://osintscan-fftqerzj.manus.space link to github source: https://github.com/productionsaiinc-lgtm/osint-scanner-platform.git
+- [] mdm mobile device managemant needs to have a option to enroll real devices
+- [] virtual computors/phones needs to have a graphical enviroment
+- [] update the dashboard to show all features
+
 ## Notes
 
 - Project is production-ready for MVP launch

@@ -64,16 +64,42 @@ const darkWebMonitorProcedure = protectedProcedure
   .input(z.object({ query: z.string().min(1) }))
   .mutation(async ({ input, ctx }) => {
     try {
-      // Simulate dark web monitoring - in production, integrate with actual APIs
-      const results = {
-        mentions: Math.floor(Math.random() * 50),
-        lastSeen: new Date(),
-        sources: ["Dark Web Forum 1", "Dark Web Forum 2", "Leaked Database"],
-        severity: ["high", "medium", "low"][Math.floor(Math.random() * 3)],
+      if (!process.env.HIBP_API_KEY) {
+        return {
+          success: false,
+          error: "Dark web/breach monitoring requires HIBP_API_KEY or another breach-intelligence provider.",
+          needsKey: true,
+        };
+      }
+
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.query);
+      if (!isEmail) {
+        return {
+          success: false,
+          error: "Real breach monitoring currently supports email queries through Have I Been Pwned.",
+        };
+      }
+
+      const res = await axios.get(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(input.query)}`, {
+        params: { truncateResponse: false },
+        headers: { "hibp-api-key": process.env.HIBP_API_KEY, "User-Agent": "OSINT-Scanner-Platform" },
+        timeout: API_TIMEOUT,
+        validateStatus: (status) => status === 200 || status === 404,
+      });
+      const breaches = res.status === 404 ? [] : res.data;
+      return {
+        success: true,
+        data: {
+          query: input.query,
+          mentions: breaches.length,
+          lastSeen: breaches[0]?.ModifiedDate || null,
+          sources: breaches.map((breach: any) => breach.Name),
+          severity: breaches.length > 0 ? "high" : "low",
+          breaches,
+        },
       };
-      return { success: true, data: results };
-    } catch (error) {
-      return { success: false, error: "Failed to monitor dark web" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to monitor breach sources" };
     }
   });
 
@@ -82,20 +108,27 @@ const vinDecoderProcedure = protectedProcedure
   .input(z.object({ vin: z.string().min(17).max(17) }))
   .mutation(async ({ input }) => {
     try {
-      // Decode VIN
+      const res = await axios.get(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(input.vin)}`, {
+        params: { format: "json" },
+        timeout: API_TIMEOUT,
+      });
+      const vehicle = res.data?.Results?.[0] || {};
       const decoded = {
-        manufacturer: "Vehicle Manufacturer",
-        year: 2020,
-        make: "Make",
-        model: "Model",
-        bodyType: "Sedan",
-        engine: "4-cylinder",
-        transmission: "Automatic",
-        driveType: "AWD",
+        vin: input.vin,
+        manufacturer: vehicle.Manufacturer || vehicle.ManufacturerName || "Unknown",
+        year: vehicle.ModelYear || "Unknown",
+        make: vehicle.Make || "Unknown",
+        model: vehicle.Model || "Unknown",
+        bodyType: vehicle.BodyClass || "Unknown",
+        engine: [vehicle.EngineCylinders, vehicle.DisplacementL, vehicle.FuelTypePrimary].filter(Boolean).join(" / ") || "Unknown",
+        transmission: vehicle.TransmissionStyle || "Unknown",
+        driveType: vehicle.DriveType || "Unknown",
+        plantCountry: vehicle.PlantCountry || undefined,
+        source: "NHTSA vPIC",
       };
       return { success: true, data: decoded };
-    } catch (error) {
-      return { success: false, error: "Failed to decode VIN" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to decode VIN" };
     }
   });
 
@@ -104,17 +137,34 @@ const cryptoTrackerProcedure = protectedProcedure
   .input(z.object({ address: z.string().min(1) }))
   .mutation(async ({ input }) => {
     try {
+      const address = input.address.trim();
+      if (!/^[13bc1][a-zA-HJ-NP-Z0-9]{25,90}$/i.test(address)) {
+        return {
+          success: false,
+          error: "Real crypto tracking currently supports Bitcoin addresses through Blockstream public API.",
+        };
+      }
+      const [addressRes, txRes] = await Promise.all([
+        axios.get(`https://blockstream.info/api/address/${address}`, { timeout: API_TIMEOUT }),
+        axios.get(`https://blockstream.info/api/address/${address}/txs`, { timeout: API_TIMEOUT }),
+      ]);
+      const chainStats = addressRes.data?.chain_stats || {};
+      const mempoolStats = addressRes.data?.mempool_stats || {};
+      const funded = (chainStats.funded_txo_sum || 0) + (mempoolStats.funded_txo_sum || 0);
+      const spent = (chainStats.spent_txo_sum || 0) + (mempoolStats.spent_txo_sum || 0);
       const cryptoData = {
-        address: input.address,
-        balance: Math.random() * 100,
-        transactions: Math.floor(Math.random() * 1000),
-        firstSeen: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-        lastActive: new Date(),
-        riskLevel: ["low", "medium", "high"][Math.floor(Math.random() * 3)],
+        address,
+        network: "bitcoin",
+        balance: (funded - spent) / 100_000_000,
+        transactions: chainStats.tx_count || 0,
+        firstSeen: txRes.data?.at(-1)?.status?.block_time ? new Date(txRes.data.at(-1).status.block_time * 1000) : null,
+        lastActive: txRes.data?.[0]?.status?.block_time ? new Date(txRes.data[0].status.block_time * 1000) : null,
+        riskLevel: "unknown",
+        source: "Blockstream public API",
       };
       return { success: true, data: cryptoData };
-    } catch (error) {
-      return { success: false, error: "Failed to track crypto address" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to track crypto address" };
     }
   });
 
@@ -233,17 +283,24 @@ const geoReverseProcedure = protectedProcedure
   .input(z.object({ latitude: z.number(), longitude: z.number() }))
   .mutation(async ({ input }) => {
     try {
+      const res = await axios.get("https://nominatim.openstreetmap.org/reverse", {
+        params: { format: "jsonv2", lat: input.latitude, lon: input.longitude, addressdetails: 1 },
+        headers: { "User-Agent": "OSINT-Scanner-Platform/1.0" },
+        timeout: API_TIMEOUT,
+      });
+      const address = res.data?.address || {};
       const location = {
-        address: "123 Main Street, City, Country",
-        city: "City",
-        country: "Country",
-        zipCode: "12345",
+        address: res.data?.display_name || "Unknown",
+        city: address.city || address.town || address.village || address.hamlet || "Unknown",
+        country: address.country || "Unknown",
+        zipCode: address.postcode || "",
         coordinates: { lat: input.latitude, lng: input.longitude },
-        nearbyPlaces: ["Park", "School", "Hospital"],
+        nearbyPlaces: [],
+        source: "OpenStreetMap Nominatim",
       };
       return { success: true, data: location };
-    } catch (error) {
-      return { success: false, error: "Failed to reverse geocode" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to reverse geocode" };
     }
   });
 
@@ -252,18 +309,25 @@ const malwareAnalyzerProcedure = protectedProcedure
   .input(z.object({ fileHash: z.string().min(1) }))
   .mutation(async ({ input }) => {
     try {
+      const vt = await analyzeWithVirusTotal(input.fileHash, process.env.VIRUSTOTAL_API_KEY);
+      if (!vt.success) return vt;
+      const stats = vt.lastAnalysisStats || {};
       const analysis = {
         hash: input.fileHash,
-        detected: Math.random() > 0.5,
-        detectionCount: Math.floor(Math.random() * 50),
-        malwareType: ["Trojan", "Ransomware", "Spyware", "Adware"][Math.floor(Math.random() * 4)],
-        firstSeen: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-        lastSeen: new Date(),
-        vendors: ["Kaspersky", "McAfee", "Avast"],
+        detected: (stats.malicious || 0) > 0,
+        detectionCount: stats.malicious || 0,
+        suspiciousCount: stats.suspicious || 0,
+        malwareType: vt.fileType || "Unknown",
+        firstSeen: null,
+        lastSeen: vt.timestamp,
+        vendors: Object.entries(vt.lastAnalysisResults || {})
+          .filter(([, result]: any) => ["malicious", "suspicious"].includes(result.category))
+          .map(([vendor]) => vendor),
+        source: "VirusTotal",
       };
       return { success: true, data: analysis };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze malware" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to analyze malware" };
     }
   });
 
@@ -272,20 +336,30 @@ const passwordCrackerProcedure = protectedProcedure
   .input(z.object({ password: z.string().min(1) }))
   .mutation(async ({ input }) => {
     try {
-      const strength = {
-        password: "***",
-        length: input.password.length,
+      const checks = {
         hasUppercase: /[A-Z]/.test(input.password),
         hasLowercase: /[a-z]/.test(input.password),
         hasNumbers: /[0-9]/.test(input.password),
-        hasSpecialChars: /[!@#$%^&*]/.test(input.password),
-        score: Math.floor(Math.random() * 100),
-        strength: ["Weak", "Fair", "Good", "Strong"][Math.floor(Math.random() * 4)],
-        suggestions: ["Add uppercase letters", "Add special characters", "Increase length"],
+        hasSpecialChars: /[^A-Za-z0-9]/.test(input.password),
+      };
+      const score = Math.min(100, input.password.length * 4 + Object.values(checks).filter(Boolean).length * 15);
+      const label = score >= 80 ? "Strong" : score >= 60 ? "Good" : score >= 40 ? "Fair" : "Weak";
+      const strength = {
+        password: "***",
+        length: input.password.length,
+        ...checks,
+        score,
+        strength: label,
+        suggestions: [
+          input.password.length < 14 ? "Use at least 14 characters" : null,
+          !checks.hasUppercase ? "Add uppercase letters" : null,
+          !checks.hasNumbers ? "Add numbers" : null,
+          !checks.hasSpecialChars ? "Add special characters" : null,
+        ].filter(Boolean),
       };
       return { success: true, data: strength };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze password" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to analyze password" };
     }
   });
 
@@ -352,19 +426,34 @@ const flightTrackerProcedure = protectedProcedure
   .input(z.object({ flightNumber: z.string().min(1) }))
   .mutation(async ({ input }) => {
     try {
+      const apiKey = process.env.AVIATIONSTACK_API_KEY;
+      if (!apiKey) {
+        return {
+          success: false,
+          error: "Flight tracking requires AVIATIONSTACK_API_KEY or another aviation-data provider.",
+          needsKey: true,
+        };
+      }
+      const res = await axios.get("http://api.aviationstack.com/v1/flights", {
+        params: { access_key: apiKey, flight_iata: input.flightNumber },
+        timeout: API_TIMEOUT,
+      });
+      const item = res.data?.data?.[0];
+      if (!item) return { success: false, error: "No live flight data found" };
       const flight = {
         flightNumber: input.flightNumber,
-        airline: "Airline Name",
-        departure: { airport: "JFK", time: new Date(), city: "New York" },
-        arrival: { airport: "LAX", time: new Date(Date.now() + 5 * 60 * 60 * 1000), city: "Los Angeles" },
-        status: ["On Time", "Delayed", "Cancelled"][Math.floor(Math.random() * 3)],
-        aircraft: "Boeing 737",
-        altitude: Math.floor(Math.random() * 35000),
-        speed: Math.floor(Math.random() * 500),
+        airline: item.airline?.name || "Unknown",
+        departure: { airport: item.departure?.iata, time: item.departure?.scheduled, city: item.departure?.airport },
+        arrival: { airport: item.arrival?.iata, time: item.arrival?.scheduled, city: item.arrival?.airport },
+        status: item.flight_status || "Unknown",
+        aircraft: item.aircraft?.registration || item.aircraft?.iata || "Unknown",
+        altitude: item.live?.altitude || null,
+        speed: item.live?.speed_horizontal || null,
+        source: "Aviationstack",
       };
       return { success: true, data: flight };
-    } catch (error) {
-      return { success: false, error: "Failed to track flight" };
+    } catch (error: any) {
+      return { success: false, error: error.message || "Failed to track flight" };
     }
   });
 
@@ -372,66 +461,36 @@ const flightTrackerProcedure = protectedProcedure
 const supplyChainAnalyzerProcedure = protectedProcedure
   .input(z.object({ productId: z.string().min(1) }))
   .mutation(async ({ input }) => {
-    try {
-      const chain = {
-        productId: input.productId,
-        manufacturer: "Manufacturer Name",
-        suppliers: ["Supplier 1", "Supplier 2", "Supplier 3"],
-        distributors: ["Distributor A", "Distributor B"],
-        retailers: ["Retailer X", "Retailer Y"],
-        riskFactors: ["Geopolitical", "Environmental", "Financial"],
-        transparency: Math.floor(Math.random() * 100),
-      };
-      return { success: true, data: chain };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze supply chain" };
-    }
+    return {
+      success: false,
+      error: "Supply-chain analysis requires a real product or vendor intelligence provider. No mock data returned.",
+      data: { productId: input.productId },
+      needsProvider: true,
+    };
   });
 
 // Deepfake Detector
 const deepfakeDetectorProcedure = protectedProcedure
   .input(z.object({ imageUrl: z.string().url() }))
   .mutation(async ({ input }) => {
-    try {
-      const detection = {
-        imageUrl: input.imageUrl,
-        isDeepfake: Math.random() > 0.7,
-        confidence: Math.random() * 100,
-        manipulationIndicators: ["Face Swap", "Expression Manipulation", "Lighting Inconsistency"],
-        analysis: {
-          faceConsistency: Math.random() * 100,
-          eyeTracking: Math.random() * 100,
-          blinkPattern: Math.random() * 100,
-          audioSync: Math.random() * 100,
-        },
-      };
-      return { success: true, data: detection };
-    } catch (error) {
-      return { success: false, error: "Failed to detect deepfake" };
-    }
+    return {
+      success: false,
+      error: "Deepfake detection requires a configured media-forensics provider. No mock detection returned.",
+      data: { imageUrl: input.imageUrl },
+      needsProvider: true,
+    };
   });
 
 // Insider Threat
 const insiderThreatProcedure = protectedProcedure
   .input(z.object({ userId: z.string().min(1) }))
   .mutation(async ({ input }) => {
-    try {
-      const threat = {
-        userId: input.userId,
-        riskScore: Math.floor(Math.random() * 100),
-        riskLevel: ["Low", "Medium", "High"][Math.floor(Math.random() * 3)],
-        indicators: [
-          { type: "Unusual Access Patterns", severity: "High" },
-          { type: "Large File Downloads", severity: "Medium" },
-          { type: "After Hours Activity", severity: "Low" },
-        ],
-        lastFlaggedDate: new Date(),
-        recommendations: ["Monitor closely", "Review access logs", "Conduct interview"],
-      };
-      return { success: true, data: threat };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze insider threat" };
-    }
+    return {
+      success: false,
+      error: "Insider-threat scoring requires real audit/access logs. No mock risk score returned.",
+      data: { userId: input.userId },
+      needsDataSource: true,
+    };
   });
 
 // Real API Integration Procedures
