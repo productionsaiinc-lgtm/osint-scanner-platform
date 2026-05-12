@@ -36,6 +36,11 @@ export function EmployeeEnum() {
     a.click();
   };
 
+  const profileHref = (value: string) => {
+    if (!value) return '';
+    return value.startsWith('http') ? value : `https://${value}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-4xl mx-auto p-6">
@@ -116,6 +121,11 @@ export function EmployeeEnum() {
                     <p className="text-2xl font-bold">{results.socialMediaPresence.github}</p>
                   </div>
                 </div>
+                {results.source && (
+                  <div className="text-xs text-muted-foreground bg-background p-2 rounded mb-3">
+                    {results.source}
+                  </div>
+                )}
                 {results.errors && results.errors.length > 0 && (
                   <div className="text-xs text-yellow-400 bg-yellow-900/20 p-2 rounded">
                     <p className="font-medium mb-1">API Warnings:</p>
@@ -136,24 +146,30 @@ export function EmployeeEnum() {
                         <div className="space-y-1">
                           <p className="font-semibold">{emp.name}</p>
                           <p className="text-sm text-muted-foreground">{emp.title}</p>
-                          <div className="flex items-center gap-1 text-sm text-blue-400">
-                            <Mail className="w-3 h-3" />
-                            <span className="font-mono">{emp.email}</span>
-                          </div>
+                          {emp.email ? (
+                            <div className="flex items-center gap-1 text-sm text-blue-400">
+                              <Mail className="w-3 h-3" />
+                              <span className="font-mono">{emp.email}</span>
+                            </div>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">No public email disclosed</p>
+                          )}
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <Badge variant="outline" className="text-xs">
                             {emp.source === 'GitHub' ? <Github className="w-3 h-3 mr-1" /> : <Linkedin className="w-3 h-3 mr-1" />}
                             {emp.source}
                           </Badge>
-                          <a
-                            href={`https://${emp.linkedin}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-500 hover:underline flex items-center gap-1"
-                          >
-                            <Linkedin className="w-3 h-3" /> View Profile
-                          </a>
+                          {emp.linkedin && (
+                            <a
+                              href={profileHref(emp.linkedin)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-blue-500 hover:underline flex items-center gap-1"
+                            >
+                              {emp.source === 'GitHub' ? <Github className="w-3 h-3" /> : <Linkedin className="w-3 h-3" />} View Profile
+                            </a>
+                          )}
                         </div>
                       </div>
                     </div>

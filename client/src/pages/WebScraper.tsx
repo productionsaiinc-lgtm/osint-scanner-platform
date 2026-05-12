@@ -181,6 +181,26 @@ export default function WebScraper() {
             </Card>
           )}
 
+          {results.selectedText && results.selectedText.length > 0 && (
+            <Card className="bg-gray-900 border-pink-500/30">
+              <CardHeader>
+                <CardTitle className="text-pink-400 text-sm">SELECTOR MATCHES</CardTitle>
+                <CardDescription className="text-gray-400">
+                  {results.selector} · {results.selectedText.length} matched item{results.selectedText.length === 1 ? '' : 's'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {results.selectedText.map((text: string, i: number) => (
+                    <p key={i} className="text-sm text-gray-300 bg-gray-800 border border-pink-500/20 rounded p-2">
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* External Links */}
           {results.externalLinks && results.externalLinks.length > 0 && (
             <Card className="bg-gray-900 border-cyan-500/30">

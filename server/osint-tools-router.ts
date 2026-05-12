@@ -1,7 +1,63 @@
 import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
+import dns from "node:dns/promises";
 import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
+
+const API_TIMEOUT = 12000;
+
+function normalizeDomain(value: string) {
+  const trimmed = value.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split("/")[0];
+  return /^[a-z0-9.-]+\.[a-z]{2,}$/.test(trimmed) ? trimmed : "";
+}
+
+function domainFromCompany(value: string) {
+  const normalized = normalizeDomain(value);
+  if (normalized) return normalized;
+  return `${value.toLowerCase().replace(/[^a-z0-9]+/g, "").replace(/^www/, "")}.com`;
+}
+
+function decodeHtml(value: string) {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stripTags(value: string) {
+  return decodeHtml(value.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
+}
+
+function extractSelectorText(html: string, selector?: string) {
+  if (!selector) return [];
+  const trimmed = selector.trim();
+  if (!trimmed || /[>,+~:[\]]/.test(trimmed)) return [];
+
+  let pattern: RegExp;
+  if (trimmed.startsWith("#")) {
+    const id = trimmed.slice(1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    pattern = new RegExp(`<([a-z0-9-]+)(?=[^>]*\\bid=["']${id}["'])[^>]*>([\\s\\S]*?)<\\/\\1>`, "gi");
+  } else if (trimmed.startsWith(".")) {
+    const klass = trimmed.slice(1).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    pattern = new RegExp(`<([a-z0-9-]+)(?=[^>]*\\bclass=["'][^"']*\\b${klass}\\b[^"']*["'])[^>]*>([\\s\\S]*?)<\\/\\1>`, "gi");
+  } else if (/^[a-z][a-z0-9-]*$/i.test(trimmed)) {
+    pattern = new RegExp(`<${trimmed}\\b[^>]*>([\\s\\S]*?)<\\/${trimmed}>`, "gi");
+  } else {
+    return [];
+  }
+
+  const matches: string[] = [];
+  let match;
+  while ((match = pattern.exec(html)) !== null && matches.length < 25) {
+    const content = stripTags(match[2] || match[1] || "");
+    if (content) matches.push(content.slice(0, 500));
+  }
+  return matches;
+}
 
 // Dark Web Monitor
 const darkWebMonitorProcedure = protectedProcedure
@@ -62,54 +118,23 @@ const cryptoTrackerProcedure = protectedProcedure
     }
   });
 
-// Employee Enum — real GitHub + Hunter.io integration
+// Employee Enum — real public-source enrichment from Hunter.io and GitHub profiles.
 const employeeEnumProcedure = protectedProcedure
   .input(z.object({ company: z.string().min(1) }))
   .mutation(async ({ input }) => {
     try {
       const company = input.company.trim();
-      const domain = company.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
-      const employees: Array<{ name: string; title: string; email: string; linkedin: string; source: string }> = [];
+      const domain = domainFromCompany(company);
+      const employees: Array<{ name: string; title: string; email: string; linkedin: string; source: string; confidence?: number }> = [];
       const errors: string[] = [];
 
-      // 1. GitHub search — find org members / contributors
-      try {
-        const ghHeaders: Record<string, string> = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
-        const ghToken = process.env.GITHUB_TOKEN || process.env.GITHUB_API_KEY;
-        if (ghToken) ghHeaders.Authorization = `Bearer ${ghToken}`;
-
-        // Search for users affiliated with company
-        const ghRes = await axios.get(
-          `https://api.github.com/search/users?q=${encodeURIComponent(company)}+type:user&per_page=10`,
-          { headers: ghHeaders, timeout: 8000 }
-        );
-        const ghUsers = (ghRes.data?.items || []).slice(0, 8);
-        for (const user of ghUsers) {
-          try {
-            const profileRes = await axios.get(`https://api.github.com/users/${user.login}`, { headers: ghHeaders, timeout: 5000 });
-            const p = profileRes.data;
-            if (p.company && p.company.toLowerCase().includes(company.toLowerCase().split(' ')[0])) {
-              employees.push({
-                name: p.name || p.login,
-                title: p.bio?.substring(0, 60) || 'GitHub User',
-                email: p.email || `${p.login}@${domain}`,
-                linkedin: `linkedin.com/search/results/people/?keywords=${encodeURIComponent(p.name || p.login)}`,
-                source: 'GitHub',
-              });
-            }
-          } catch { /* skip individual profile errors */ }
-        }
-      } catch (e: any) {
-        errors.push(`GitHub: ${e.message}`);
-      }
-
-      // 2. Hunter.io domain search (free tier: 25 reqs/month)
+      // 1. Hunter.io domain search returns verified public email records when configured.
       const hunterKey = process.env.HUNTER_API_KEY;
       if (hunterKey) {
         try {
           const hunterRes = await axios.get(
             `https://api.hunter.io/v2/domain-search?domain=${domain}&api_key=${hunterKey}&limit=10`,
-            { timeout: 8000 }
+            { timeout: API_TIMEOUT }
           );
           const hunterEmails: any[] = hunterRes.data?.data?.emails || [];
           for (const e of hunterEmails) {
@@ -119,33 +144,67 @@ const employeeEnumProcedure = protectedProcedure
               email: e.value,
               linkedin: e.linkedin || `linkedin.com/search/results/people/?keywords=${encodeURIComponent([e.first_name, e.last_name].filter(Boolean).join(' '))}`,
               source: 'Hunter.io',
+              confidence: e.confidence,
             });
           }
         } catch (e: any) {
           errors.push(`Hunter.io: ${e.message}`);
         }
+      } else {
+        errors.push('Hunter.io: HUNTER_API_KEY is not configured');
       }
 
-      // 3. Fallback: enrich with realistic generated data if no real data found
-      if (employees.length === 0) {
-        const titles = ['CEO', 'CTO', 'VP Engineering', 'Senior Developer', 'Security Engineer', 'Product Manager', 'DevOps Lead'];
-        const firstNames = ['James', 'Sarah', 'Michael', 'Emily', 'David', 'Jessica', 'Robert'];
-        const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller'];
-        for (let i = 0; i < 5; i++) {
-          const first = firstNames[i]; const last = lastNames[i];
-          employees.push({
-            name: `${first} ${last}`,
-            title: titles[i],
-            email: `${first.toLowerCase()}.${last.toLowerCase()}@${domain}`,
-            linkedin: `linkedin.com/in/${first.toLowerCase()}${last.toLowerCase()}`,
-            source: 'Generated (enable GITHUB_TOKEN / HUNTER_API_KEY for real data)',
-          });
+      // 2. GitHub public user search can identify staff profiles without inventing emails.
+      try {
+        const ghHeaders: Record<string, string> = {
+          Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+          'User-Agent': 'OSINT-Scanner-Platform',
+        };
+        const ghToken = process.env.GITHUB_TOKEN || process.env.GITHUB_API_KEY;
+        if (ghToken) ghHeaders.Authorization = `Bearer ${ghToken}`;
+
+        const terms = [domain, company].filter(Boolean);
+        const ghRes = await axios.get("https://api.github.com/search/users", {
+          params: { q: `${terms.join(" ")} in:company type:user`, per_page: 20 },
+          headers: ghHeaders,
+          timeout: API_TIMEOUT,
+        });
+
+        const ghUsers = (ghRes.data?.items || []).slice(0, 12);
+        for (const user of ghUsers) {
+          try {
+            const profileRes = await axios.get(`https://api.github.com/users/${user.login}`, { headers: ghHeaders, timeout: 6000 });
+            const p = profileRes.data;
+            const profileCompany = String(p.company || '').toLowerCase();
+            const profileEmail = String(p.email || '');
+            const companyToken = company.toLowerCase().split(/[.\s-]/)[0];
+            const matchesCompany = profileCompany.includes(companyToken) || profileEmail.endsWith(`@${domain}`);
+            if (!matchesCompany) continue;
+
+            employees.push({
+              name: p.name || p.login,
+              title: p.bio?.substring(0, 80) || 'GitHub profile',
+              email: profileEmail || '',
+              linkedin: p.blog || `https://github.com/${p.login}`,
+              source: 'GitHub',
+            });
+          } catch {
+            // Skip individual profile failures; the aggregate result remains useful.
+          }
         }
+      } catch (e: any) {
+        errors.push(`GitHub: ${e.response?.data?.message || e.message}`);
       }
 
       // Deduplicate by email
       const seen = new Set<string>();
-      const unique = employees.filter(e => { if (seen.has(e.email)) return false; seen.add(e.email); return true; });
+      const unique = employees.filter(e => {
+        const key = e.email || `${e.name}:${e.source}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
 
       return {
         success: true,
@@ -154,9 +213,10 @@ const employeeEnumProcedure = protectedProcedure
           domain,
           employees: unique,
           count: unique.length,
+          source: unique.length > 0 ? 'Real public OSINT sources' : 'No matching public employee records found',
           emailPatterns: [`first.last@${domain}`, `flast@${domain}`, `first@${domain}`],
           socialMediaPresence: {
-            twitter: unique.filter(e => e.source === 'GitHub').length * 3,
+            twitter: 0,
             github: unique.filter(e => e.source === 'GitHub').length,
             linkedIn: unique.filter(e => e.source === 'Hunter.io').length + unique.length,
           },
@@ -229,7 +289,7 @@ const passwordCrackerProcedure = protectedProcedure
     }
   });
 
-// IoT Scanner — Shodan search for IoT devices
+// IoT Scanner — Shodan-backed search for internet-exposed IoT devices.
 const iotScannerProcedure = protectedProcedure
   .input(z.object({ ipRange: z.string().min(1) }))
   .mutation(async ({ input }) => {
@@ -237,73 +297,53 @@ const iotScannerProcedure = protectedProcedure
       const query = input.ipRange.trim();
       const shodanKey = process.env.SHODAN_API_KEY;
       const devices: Array<{ ip: string; device: string; status: string; ports: number[]; os?: string; org?: string; country?: string; vulnerabilities?: string[] }> = [];
-      let shodanUsed = false;
 
-      if (shodanKey) {
-        try {
-          // Build Shodan query: if it looks like an IP use that, otherwise use as keyword
-          const isIp = /^\d{1,3}(\.\d{1,3}){1,3}/.test(query);
-          const shodanQuery = isIp ? `net:${query}` : `category:iot ${query}`;
-          const res = await axios.get(
-            `https://api.shodan.io/shodan/host/search?key=${shodanKey}&query=${encodeURIComponent(shodanQuery)}&minify=true`,
-            { timeout: 10000 }
-          );
-          const matches = (res.data?.matches || []).slice(0, 20);
-          for (const m of matches) {
-            const ports: number[] = m.port ? [m.port] : [];
-            if (m.ports) ports.push(...m.ports);
-            devices.push({
-              ip: m.ip_str || m.ip,
-              device: m.product || m.devicetype || m.tags?.[0] || 'IoT Device',
-              status: 'Online',
-              ports: [...new Set(ports)],
-              os: m.os || undefined,
-              org: m.org || m.isp || undefined,
-              country: m.location?.country_name || undefined,
-              vulnerabilities: m.vulns ? Object.keys(m.vulns).slice(0, 3) : undefined,
-            });
-          }
-          shodanUsed = true;
-        } catch (e: any) {
-          // Fall through to simulated scan
-        }
+      if (!shodanKey) {
+        return {
+          success: false,
+          error: 'Shodan API key not configured. Set SHODAN_API_KEY for real IoT device data.',
+          needsKey: true,
+        };
       }
 
-      // Fallback: realistic simulated scan
-      if (!shodanUsed || devices.length === 0) {
-        const iotTypes = [
-          { device: 'IP Camera (Hikvision)', ports: [80, 554, 8000, 8080] },
-          { device: 'Smart Router (Mikrotik)', ports: [80, 443, 8291] },
-          { device: 'Smart TV (Samsung)', ports: [8080, 9090, 52235] },
-          { device: 'NAS Device (Synology)', ports: [80, 443, 5000, 5001] },
-          { device: 'Smart Plug (TP-Link)', ports: [80, 9999] },
-          { device: 'DVR/NVR', ports: [80, 554, 8000, 37777] },
-          { device: 'Printer (HP)', ports: [80, 443, 631, 9100] },
-        ];
-        const base = query.replace('/24','').replace('/16','').split('.').slice(0,3).join('.');
-        const count = Math.floor(Math.random() * 6) + 3;
-        for (let i = 0; i < count; i++) {
-          const t = iotTypes[i % iotTypes.length];
-          devices.push({
-            ip: `${base || '192.168.1'}.${Math.floor(Math.random() * 200) + 1}`,
-            device: t.device, status: 'Online', ports: t.ports,
-            country: 'Unknown', org: 'ISP Provider',
-          });
-        }
+      // Build Shodan query: if it looks like an IP/network use net:, otherwise preserve Shodan syntax and bias toward IoT.
+      const isNetwork = /^\d{1,3}(\.\d{1,3}){1,3}(\/\d{1,2})?$/.test(query);
+      const hasShodanFilter = /\b(port|product|org|country|city|vuln|hostname|net):/i.test(query);
+      const shodanQuery = isNetwork ? `net:${query}` : hasShodanFilter ? query : `category:iot ${query}`;
+      const res = await axios.get("https://api.shodan.io/shodan/host/search", {
+        params: { key: shodanKey, query: shodanQuery, minify: false },
+        timeout: API_TIMEOUT,
+      });
+      const matches = (res.data?.matches || []).slice(0, 20);
+      for (const m of matches) {
+        const ports: number[] = m.port ? [m.port] : [];
+        if (Array.isArray(m.ports)) ports.push(...m.ports);
+        devices.push({
+          ip: m.ip_str || m.ip,
+          device: m.product || m.devicetype || m._shodan?.module || m.tags?.[0] || 'IoT Device',
+          status: 'Online',
+          ports: Array.from(new Set(ports)),
+          os: m.os || undefined,
+          org: m.org || m.isp || undefined,
+          country: m.location?.country_name || undefined,
+          vulnerabilities: m.vulns ? Object.keys(m.vulns).slice(0, 5) : undefined,
+        });
       }
 
       return {
         success: true,
         data: {
           ipRange: query,
+          shodanQuery,
           devices,
           count: devices.length,
-          shodanPowered: shodanUsed,
-          note: shodanUsed ? 'Results from Shodan API' : 'Simulated scan — add SHODAN_API_KEY for real data',
+          shodanPowered: true,
+          total: res.data?.total || devices.length,
+          note: devices.length > 0 ? 'Results from Shodan API' : 'No Shodan matches for this query',
         },
       };
     } catch (error: any) {
-      return { success: false, error: error.message || 'Failed to scan IoT devices' };
+      return { success: false, error: error.response?.data?.error || error.message || 'Failed to scan IoT devices' };
     }
   });
 
@@ -518,6 +558,18 @@ const webScraperProcedure = protectedProcedure
   .input(z.object({ url: z.string().url(), selector: z.string().optional() }))
   .mutation(async ({ input }) => {
     try {
+      const target = new URL(input.url);
+      if (!["http:", "https:"].includes(target.protocol)) {
+        return { success: false, error: "Only HTTP and HTTPS URLs are supported" };
+      }
+      const addresses = await dns.lookup(target.hostname, { all: true }).catch(() => []);
+      const privateAddress = addresses.find(({ address }) =>
+        /^(10\.|127\.|169\.254\.|172\.(1[6-9]|2\d|3[0-1])\.|192\.168\.|::1$|fc|fd)/i.test(address)
+      );
+      if (privateAddress) {
+        return { success: false, error: "Private and loopback network targets are blocked" };
+      }
+
       const res = await axios.get(input.url, {
         timeout: 15000,
         headers: {
@@ -525,18 +577,21 @@ const webScraperProcedure = protectedProcedure
           Accept: 'text/html,application/xhtml+xml',
         },
         maxRedirects: 5,
+        responseType: "text",
+        maxContentLength: 2 * 1024 * 1024,
       });
 
       const html: string = res.data;
+      const selectedText = extractSelectorText(html, input.selector);
 
       // Extract title
       const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      const title = titleMatch ? titleMatch[1].trim() : 'N/A';
+      const title = titleMatch ? decodeHtml(titleMatch[1]) : 'N/A';
 
       // Extract meta description
       const metaDescMatch = html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i)
         || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
-      const metaDescription = metaDescMatch ? metaDescMatch[1].trim() : 'N/A';
+      const metaDescription = metaDescMatch ? decodeHtml(metaDescMatch[1]) : 'N/A';
 
       // Count links
       const linkMatches = html.match(/<a\s[^>]*href=[^>]*>/gi) || [];
@@ -558,24 +613,25 @@ const webScraperProcedure = protectedProcedure
       const headingRe = /<h[1-3][^>]*>([^<]+)<\/h[1-3]>/gi;
       const headings: string[] = [];
       while ((m = headingRe.exec(html)) !== null) {
-        headings.push(m[1].trim());
+        headings.push(decodeHtml(m[1]));
         if (headings.length >= 10) break;
       }
 
       // Detect technologies from HTML
+      const lowerHtml = html.toLowerCase();
       const techs: string[] = [];
-      if (html.includes('react')) techs.push('React');
-      if (html.includes('vue')) techs.push('Vue.js');
-      if (html.includes('angular')) techs.push('Angular');
-      if (html.includes('jquery')) techs.push('jQuery');
-      if (html.includes('bootstrap')) techs.push('Bootstrap');
-      if (html.includes('wp-content') || html.includes('wordpress')) techs.push('WordPress');
-      if (html.includes('shopify')) techs.push('Shopify');
-      if (html.includes('next')) techs.push('Next.js');
-      if (html.includes('tailwind')) techs.push('Tailwind CSS');
+      if (lowerHtml.includes('react')) techs.push('React');
+      if (lowerHtml.includes('vue')) techs.push('Vue.js');
+      if (lowerHtml.includes('angular')) techs.push('Angular');
+      if (lowerHtml.includes('jquery')) techs.push('jQuery');
+      if (lowerHtml.includes('bootstrap')) techs.push('Bootstrap');
+      if (lowerHtml.includes('wp-content') || lowerHtml.includes('wordpress')) techs.push('WordPress');
+      if (lowerHtml.includes('shopify')) techs.push('Shopify');
+      if (lowerHtml.includes('/_next/') || lowerHtml.includes('__next_data__')) techs.push('Next.js');
+      if (lowerHtml.includes('tailwind')) techs.push('Tailwind CSS');
 
       // Word count (approximate)
-      const textContent = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      const textContent = stripTags(html);
       const wordCount = textContent.split(' ').filter(Boolean).length;
 
       return {
@@ -592,6 +648,7 @@ const webScraperProcedure = protectedProcedure
           headings,
           externalLinks: externalLinks.slice(0, 15),
           technologies: techs,
+          selectedText,
           extractedData: [
             { type: 'Title', value: title },
             { type: 'Meta Description', value: metaDescription },
@@ -599,8 +656,9 @@ const webScraperProcedure = protectedProcedure
             { type: 'Images Found', value: String(imagesFound) },
             { type: 'Word Count', value: String(wordCount) },
             { type: 'Technologies', value: techs.join(', ') || 'None detected' },
+            ...(input.selector ? [{ type: `Selector Matches (${input.selector})`, value: String(selectedText.length) }] : []),
           ],
-          itemsFound: linksFound + imagesFound + headings.length,
+          itemsFound: linksFound + imagesFound + headings.length + selectedText.length,
           dataTypes: ['Text', 'Links', 'Images', 'Metadata', 'Headings'],
           scrapedAt: new Date().toISOString(),
           contentLength: html.length,

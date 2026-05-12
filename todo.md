@@ -155,10 +155,10 @@
 - [ ] Add sock puppets service
 
 ### Low Priority - Data Integration
-- [ ] Integrate real data for Employee Enumeration
-- [ ] Integrate real data for Shodan device search and SecurityTrails
-- [ ] Integrate real data for IoT Scanner
-- [ ] Integrate real data with Web Scraper
+- [x] Integrate real data for Employee Enumeration
+- [x] Integrate real data for Shodan device search and SecurityTrails
+- [x] Integrate real data for IoT Scanner
+- [x] Integrate real data with Web Scraper
 
 ### MDM Enhancements
 - [ ] Enhanced Security Policies (Biometric requirements, encryption enforcement, VPN mandates)
