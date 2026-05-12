@@ -6,7 +6,7 @@ GitHub source: https://github.com/productionsaiinc-lgtm/osint-scanner-platform.g
 
 ## Summary
 
-OSINT Scanner Platform is an authenticated web application for open-source intelligence, network reconnaissance, security monitoring, device management, reporting, and billing workflows. The application combines a React dashboard, an Express/tRPC backend, persistent database records, live third-party API integrations, export/reporting tools, and Manus deployment.
+OSINT Scanner Platform is an authenticated web application for open-source intelligence, network reconnaissance, security monitoring, device management, AI-assisted guidance, reporting, and billing workflows. The application combines a React dashboard, an Express/tRPC backend, persistent database records, live third-party API integrations, an AI assistant, export/reporting tools, and Manus deployment.
 
 The product is organized around operational OSINT tasks: network and domain scanning, public data enrichment, social and threat intelligence, forensics, monitoring, canary tokens, virtual infrastructure management, mobile device management, cloud storage, and payment/subscription workflows.
 
@@ -21,6 +21,7 @@ The main application routes are defined in `client/src/App.tsx`, and the sidebar
 ### Core
 
 - Dashboard: Overview landing page for authenticated users.
+- AI Assistant: Built-in assistant for tool selection, scan interpretation, safe OSINT workflows, and configuration help.
 - Scan History: Historical scan records and result review.
 - Monitoring: Asset monitoring and alert workflow.
 - Alert History: Review of generated alerts.

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Radar, Globe, Map, Zap, Shield, Fingerprint, Smartphone, Cpu, CreditCard, Car, Cloud, Link2, Mail, FileSearch, Bell, Lock } from "lucide-react";
+import { Radar, Globe, Map, Zap, Shield, Fingerprint, Smartphone, Cpu, CreditCard, Car, Cloud, Link2, Mail, FileSearch, Bell, Lock, Bot } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -10,7 +10,7 @@ export default function Home() {
     {
       icon: Bell,
       title: "Core Operations",
-      tools: ["Dashboard", "Scan History", "Monitoring", "Alert History", "Notifications", "Dark Web Monitor", "Crypto Tracker", "Employee Enum", "Geo Reverse", "Flight Tracker"],
+      tools: ["Dashboard", "AI Assistant", "Scan History", "Monitoring", "Alert History", "Notifications", "Dark Web Monitor", "Crypto Tracker", "Employee Enum", "Geo Reverse", "Flight Tracker"],
     },
     {
       icon: Radar,
@@ -65,13 +65,13 @@ export default function Home() {
   ];
 
   const quickActions = [
+    { label: "AI Assistant", path: "/ai-assistant", icon: Bot },
     { label: "Network Scanner", path: "/network-scanner", icon: Radar },
     { label: "MDM Dashboard", path: "/mdm", icon: Smartphone },
     { label: "Virtual Computers", path: "/virtual-computers", icon: Cpu },
     { label: "Virtual Phones", path: "/virtual-phones", icon: Smartphone },
     { label: "Cloud Storage", path: "/cloud-storage", icon: Cloud },
     { label: "URL Shortener", path: "/url-shortener", icon: Link2 },
-    { label: "Temp Email", path: "/temp-email", icon: Mail },
     { label: "File Analyzer", path: "/file-analyzer", icon: FileSearch },
   ];
 

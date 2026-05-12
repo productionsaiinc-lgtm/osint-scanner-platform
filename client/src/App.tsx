@@ -74,6 +74,7 @@ import { URLShortener } from "./pages/URLShortener";
 import { TempEmail } from "./pages/TempEmail";
 import { FileAnalyzer } from "./pages/FileAnalyzer";
 import { SockPuppets } from "./pages/SockPuppets";
+import { AIAssistant } from "./pages/AIAssistant";
 
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
@@ -105,6 +106,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={DashboardHome} />
+      <Route path={"/ai-assistant"} component={AIAssistantPage} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
       <Route path={"/social-osint"} component={SocialOsintPage} />
       <Route path={"/map"} component={MapViewPage} />
@@ -181,6 +183,14 @@ function DashboardHome() {
   return (
     <DashboardLayout>
       <Home />
+    </DashboardLayout>
+  );
+}
+
+function AIAssistantPage() {
+  return (
+    <DashboardLayout>
+      <AIAssistant />
     </DashboardLayout>
   );
 }

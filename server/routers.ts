@@ -36,6 +36,7 @@ import { fileAnalysisRouter } from "./file-analysis-router";
 import { virtualPhonesRouter } from "./virtual-phones-router";
 import { cloudStorageRouter } from "./cloud-storage-router";
 import { sockPuppetsRouter } from "./sock-puppets-router";
+import { aiAssistantRouter } from "./ai-assistant-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -65,6 +66,7 @@ export const appRouter = router({
   virtualPhones: virtualPhonesRouter,
   cloudStorage: cloudStorageRouter,
   sockPuppets: sockPuppetsRouter,
+  aiAssistant: aiAssistantRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
