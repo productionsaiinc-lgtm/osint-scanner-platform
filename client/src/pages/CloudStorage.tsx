@@ -318,7 +318,11 @@ export function CloudStorage() {
                           <h3 className={`font-bold text-white ${file.isFolder ? "hover:text-cyan-400 transition-colors" : ""}`}>
                             {file.fileName}
                           </h3>
-                          {!file.isFolder && <Lock className="w-3 h-3 text-green-400" title="Stored securely" />}
+                          {!file.isFolder && (
+                            <span title="Stored securely">
+                              <Lock className="w-3 h-3 text-green-400" />
+                            </span>
+                          )}
                           {file.isShared && <span className="text-xs bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded">Shared</span>}
                         </div>
                         {!file.isFolder && (
