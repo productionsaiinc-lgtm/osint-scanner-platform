@@ -1,7 +1,10 @@
 /**
- * WHOIS Lookup Service
- * Retrieves domain registration and ownership information
+ * WHOIS/RDAP Lookup Service
+ * Retrieves live domain registration information through RDAP. Historical
+ * WHOIS and private contact data require a paid WHOIS history provider.
  */
+
+import axios from "axios";
 
 export interface WHOISData {
   domain: string;
@@ -36,265 +39,162 @@ export interface ContactInfo {
   postal_code: string;
 }
 
-/**
- * Perform WHOIS lookup for domain
- */
+const emptyContact: ContactInfo = {
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+  city: "",
+  state: "",
+  postal_code: "",
+};
+
 export async function performWHOISLookup(domain: string): Promise<WHOISData> {
   try {
-    const registrar = selectRandomRegistrar();
-    const registrant = generateRegistrantInfo();
-    const nameservers = generateNameservers(domain);
-    const dates = generateDates();
+    const normalized = domain.trim().toLowerCase().replace(/^https?:\/\//, "").split("/")[0];
+    const response = await axios.get(`https://rdap.org/domain/${encodeURIComponent(normalized)}`, {
+      timeout: 12000,
+      validateStatus: (status) => status >= 200 && status < 500,
+      headers: { "User-Agent": "OSINT-Scanner-Platform/1.0" },
+    });
+    if (response.status >= 400) {
+      throw new Error(`RDAP returned HTTP ${response.status}`);
+    }
+    const data = response.data || {};
+    const registrarEntity = (data.entities || []).find((entity: any) => entity.roles?.includes("registrar")) || {};
+    const abuseEntity = (registrarEntity.entities || []).find((entity: any) => entity.roles?.includes("abuse")) || {};
+    const registrantEntity = (data.entities || []).find((entity: any) => entity.roles?.includes("registrant"));
+    const admin = mapEntity((data.entities || []).find((entity: any) => entity.roles?.includes("administrative")));
+    const technical = mapEntity((data.entities || []).find((entity: any) => entity.roles?.includes("technical")));
+    const billing = mapEntity((data.entities || []).find((entity: any) => entity.roles?.includes("billing")));
+    const registrantContact = mapEntity(registrantEntity);
 
     return {
-      domain,
-      registrar: registrar.name,
-      registrar_url: registrar.url,
-      registrar_email: registrar.email,
-      registrant,
-      admin: generateContactInfo(),
-      technical: generateContactInfo(),
-      billing: generateContactInfo(),
-      nameservers,
-      creation_date: dates.creation,
-      expiration_date: dates.expiration,
-      updated_date: dates.updated,
-      status: generateDomainStatus(),
-      dnssec: Math.random() > 0.5 ? 'signedDelegationSigner' : 'unsigned',
-      raw_data: generateRawWHOISData(domain, registrar),
+      domain: normalized,
+      registrar: vcardValue(registrarEntity, "fn") || registrarEntity.handle || "Unknown",
+      registrar_url: firstLink(registrarEntity.links) || "",
+      registrar_email: vcardValue(abuseEntity, "email") || vcardValue(registrarEntity, "email") || "",
+      registrant: {
+        ...registrantContact,
+        organization: vcardValue(registrantEntity, "org") || "",
+        country: registrantContact.state || "",
+      },
+      admin,
+      technical,
+      billing,
+      nameservers: (data.nameservers || []).map((ns: any) => ns.ldhName || ns.unicodeName).filter(Boolean),
+      creation_date: eventDate(data.events, "registration"),
+      expiration_date: eventDate(data.events, "expiration"),
+      updated_date: eventDate(data.events, "last changed") || eventDate(data.events, "last update of RDAP database"),
+      status: data.status || [],
+      dnssec: data.secureDNS?.delegationSigned ? "signedDelegation" : "unsigned",
+      raw_data: JSON.stringify(data, null, 2),
     };
   } catch (error) {
     throw new Error(`WHOIS lookup failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-/**
- * Select random registrar
- */
-export function selectRandomRegistrar(): {
-  name: string;
-  url: string;
-  email: string;
-} {
-  const registrars = [
-    {
-      name: 'GoDaddy',
-      url: 'https://www.godaddy.com',
-      email: 'abuse@godaddy.com',
-    },
-    {
-      name: 'Namecheap',
-      url: 'https://www.namecheap.com',
-      email: 'abuse@namecheap.com',
-    },
-    {
-      name: 'Network Solutions',
-      url: 'https://www.networksolutions.com',
-      email: 'abuse@networksolutions.com',
-    },
-    {
-      name: 'Verisign',
-      url: 'https://www.verisign.com',
-      email: 'abuse@verisign.com',
-    },
-    {
-      name: 'Tucows',
-      url: 'https://www.tucows.com',
-      email: 'abuse@tucows.com',
-    },
-  ];
-
-  return registrars[Math.floor(Math.random() * registrars.length)];
+export function selectRandomRegistrar() {
+  return { name: "Provider required", url: "", email: "" };
 }
 
-/**
- * Generate registrant information
- */
 export function generateRegistrantInfo(): RegistrantInfo {
-  const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'];
-  const companies = ['Tech Corp', 'Digital Solutions', 'Web Services', 'Cloud Systems', 'Data Labs'];
-  const countries = ['US', 'UK', 'CA', 'AU', 'DE'];
-
-  return {
-    name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-    email: `contact@example.com`,
-    phone: `+1.${Math.floor(Math.random() * 900) + 100}.${Math.floor(Math.random() * 900) + 100}.${Math.floor(Math.random() * 9000) + 1000}`,
-    address: `${Math.floor(Math.random() * 9000) + 1000} Main Street`,
-    city: 'San Francisco',
-    state: 'CA',
-    postal_code: `${Math.floor(Math.random() * 90000) + 10000}`,
-    organization: companies[Math.floor(Math.random() * companies.length)],
-    country: countries[Math.floor(Math.random() * countries.length)],
-  };
+  return { ...emptyContact, organization: "", country: "" };
 }
 
-/**
- * Generate contact information
- */
 export function generateContactInfo(): ContactInfo {
-  const firstNames = ['John', 'Jane', 'Michael', 'Sarah', 'David'];
-  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'];
-
-  return {
-    name: `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`,
-    email: `admin@example.com`,
-    phone: `+1.${Math.floor(Math.random() * 900) + 100}.${Math.floor(Math.random() * 900) + 100}.${Math.floor(Math.random() * 9000) + 1000}`,
-    address: `${Math.floor(Math.random() * 9000) + 1000} Oak Avenue`,
-    city: 'New York',
-    state: 'NY',
-    postal_code: `${Math.floor(Math.random() * 90000) + 10000}`,
-  };
+  return { ...emptyContact };
 }
 
-/**
- * Generate nameservers
- */
-export function generateNameservers(domain: string): string[] {
-  return [
-    `ns1.${domain}`,
-    `ns2.${domain}`,
-    `ns3.${domain}`,
-    `ns4.${domain}`,
-  ];
+export function generateNameservers(_domain: string): string[] {
+  return [];
 }
 
-/**
- * Generate domain dates
- */
-export function generateDates(): {
-  creation: string;
-  expiration: string;
-  updated: string;
-} {
-  const creationDate = new Date(Date.now() - Math.random() * 315360000000); // 0-10 years ago
-  const expirationDate = new Date(creationDate.getTime() + 31536000000); // 1 year from creation
-  const updatedDate = new Date(Date.now() - Math.random() * 2592000000); // 0-30 days ago
-
-  return {
-    creation: creationDate.toISOString(),
-    expiration: expirationDate.toISOString(),
-    updated: updatedDate.toISOString(),
-  };
+export function generateDates() {
+  return { creation: "", expiration: "", updated: "" };
 }
 
-/**
- * Generate domain status
- */
 export function generateDomainStatus(): string[] {
-  const statuses = [
-    'clientTransferProhibited',
-    'clientUpdateProhibited',
-    'clientDeleteProhibited',
-    'serverTransferProhibited',
-    'ok',
-  ];
-
-  const selected: string[] = [];
-  for (let i = 0; i < Math.floor(Math.random() * 3) + 1; i++) {
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    if (!selected.includes(status)) {
-      selected.push(status);
-    }
-  }
-
-  return selected;
+  return [];
 }
 
-/**
- * Generate raw WHOIS data
- */
-export function generateRawWHOISData(domain: string, registrar: any): string {
-  return `Domain Name: ${domain.toUpperCase()}
-Registry Domain ID: D123456789-LROR
-Registrar WHOIS Server: whois.${registrar.name.toLowerCase()}.com
-Registrar URL: ${registrar.url}
-Updated Date: ${new Date().toISOString()}
-Creation Date: ${new Date(Date.now() - 315360000000).toISOString()}
-Registry Expiry Date: ${new Date(Date.now() + 31536000000).toISOString()}
-Registrar: ${registrar.name}
-Registrar IANA ID: 123456
-Registrar Abuse Contact Email: ${registrar.email}
-Registrar Abuse Contact Phone: +1.5551234567
-Domain Status: clientTransferProhibited
-Registry Registrant ID: C123456789-LROR
-Registrant Name: Example Owner
-Registrant Organization: Example Corp
-Registrant Street: 123 Main St
-Registrant City: San Francisco
-Registrant State/Province: CA
-Registrant Postal Code: 94102
-Registrant Country: US
-Registrant Phone: +1.4155551234
-Registrant Email: contact@example.com
-Name Server: ns1.${domain}
-Name Server: ns2.${domain}
-Name Server: ns3.${domain}
-DNSSEC: signedDelegationSigner`;
+export function generateRawWHOISData(domain: string, _registrar: any): string {
+  return `RDAP provider required for ${domain}. No mock WHOIS data returned.`;
 }
 
-/**
- * Check domain expiration
- */
 export async function checkDomainExpiration(domain: string): Promise<{
   domain: string;
   expiration_date: string;
   days_until_expiration: number;
   status: 'active' | 'expiring_soon' | 'expired';
 }> {
-  const expirationDate = new Date(Date.now() + Math.random() * 315360000000);
-  const daysUntilExpiration = Math.floor((expirationDate.getTime() - Date.now()) / 86400000);
-
+  const whois = await performWHOISLookup(domain);
+  const expirationDate = whois.expiration_date ? new Date(whois.expiration_date) : null;
+  const daysUntilExpiration = expirationDate ? Math.floor((expirationDate.getTime() - Date.now()) / 86400000) : 0;
   let status: 'active' | 'expiring_soon' | 'expired' = 'active';
-  if (daysUntilExpiration < 0) status = 'expired';
-  else if (daysUntilExpiration < 30) status = 'expiring_soon';
-
+  if (expirationDate && daysUntilExpiration < 0) status = 'expired';
+  else if (expirationDate && daysUntilExpiration < 30) status = 'expiring_soon';
   return {
     domain,
-    expiration_date: expirationDate.toISOString(),
+    expiration_date: whois.expiration_date,
     days_until_expiration: Math.max(0, daysUntilExpiration),
     status,
   };
 }
 
-/**
- * Get registrant privacy status
- */
-export async function getPrivacyStatus(domain: string): Promise<{
-  domain: string;
-  privacy_enabled: boolean;
-  privacy_service: string | null;
-  protected_fields: string[];
-}> {
-  const privacyEnabled = Math.random() > 0.4;
-
+export async function getPrivacyStatus(domain: string) {
+  const whois = await performWHOISLookup(domain);
+  const protectedFields = [
+    !whois.registrant.email ? "registrant_email" : null,
+    !whois.registrant.phone ? "registrant_phone" : null,
+    !whois.registrant.address ? "registrant_address" : null,
+  ].filter(Boolean) as string[];
   return {
     domain,
-    privacy_enabled: privacyEnabled,
-    privacy_service: privacyEnabled ? 'WhoisGuard' : null,
-    protected_fields: privacyEnabled
-      ? ['registrant_email', 'registrant_phone', 'registrant_address']
-      : [],
+    privacy_enabled: protectedFields.length > 0,
+    privacy_service: protectedFields.length > 0 ? "Redacted by registry/registrar RDAP policy" : null,
+    protected_fields: protectedFields,
   };
 }
 
-/**
- * Get WHOIS history
- */
-export async function getWHOISHistory(domain: string): Promise<Array<{
-  date: string;
-  changes: string[];
-}>> {
-  const history = [];
-  for (let i = 0; i < 5; i++) {
-    history.push({
-      date: new Date(Date.now() - i * 86400000).toISOString(),
-      changes: [
-        'Nameserver updated',
-        'Registrant email changed',
-        'Domain renewed',
-      ].slice(0, Math.floor(Math.random() * 3) + 1),
-    });
-  }
-  return history;
+export async function getWHOISHistory(domain: string) {
+  const whois = await performWHOISLookup(domain);
+  return [{
+    date: new Date().toISOString(),
+    changes: [`Current RDAP status: ${whois.status.join(", ") || "unknown"}`],
+  }];
+}
+
+function eventDate(events: any[] = [], action: string) {
+  return events.find((event) => String(event.eventAction || "").toLowerCase() === action)?.eventDate || "";
+}
+
+function firstLink(links: any[] = []) {
+  return links.find((link) => link.href)?.href || "";
+}
+
+function mapEntity(entity: any): ContactInfo {
+  if (!entity) return { ...emptyContact };
+  const adr = vcardArray(entity, "adr")?.[0] || [];
+  return {
+    name: vcardValue(entity, "fn") || entity.handle || "",
+    email: vcardValue(entity, "email") || "",
+    phone: vcardValue(entity, "tel") || "",
+    address: [adr[2], adr[3]].filter(Boolean).join(" "),
+    city: adr[4] || "",
+    state: adr[5] || "",
+    postal_code: adr[6] || "",
+  };
+}
+
+function vcardValue(entity: any, key: string): string {
+  return vcardArray(entity, key)?.[0] || "";
+}
+
+function vcardArray(entity: any, key: string): any[] | null {
+  const item = entity?.vcardArray?.[1]?.find((entry: any[]) => entry[0] === key);
+  const value = item?.[3];
+  if (!value) return null;
+  return Array.isArray(value) ? value : [value];
 }

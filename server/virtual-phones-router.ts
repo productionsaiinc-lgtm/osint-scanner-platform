@@ -17,8 +17,8 @@ export const virtualPhonesRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         const deviceId = `device-${crypto.randomBytes(8).toString("hex")}`;
-        const imei = generateIMEI();
-        const phoneNumber = generatePhoneNumber();
+        const imei = "";
+        const phoneNumber = "";
 
         const phone = await createVirtualPhone({
           userId: ctx.user.id,
@@ -114,8 +114,8 @@ export const virtualPhonesRouter = router({
 
         await updateVirtualPhone(input.id, {
           status: "online",
-          ipAddress: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-          adbPort: 5037 + Math.floor(Math.random() * 1000),
+          ipAddress: null,
+          adbPort: null,
           lastAccessedAt: new Date(),
         });
 
@@ -287,18 +287,9 @@ export const virtualPhonesRouter = router({
 
 // Helper functions to generate realistic device identifiers
 function generateIMEI(): string {
-  // IMEI format: 15 digits
-  const imei = Array(15)
-    .fill(0)
-    .map(() => Math.floor(Math.random() * 10))
-    .join("");
-  return imei;
+  return "";
 }
 
 function generatePhoneNumber(): string {
-  // Generate realistic phone number
-  const areaCode = Math.floor(Math.random() * 900) + 100;
-  const exchange = Math.floor(Math.random() * 900) + 100;
-  const number = Math.floor(Math.random() * 9000) + 1000;
-  return `+1${areaCode}${exchange}${number}`;
+  return "";
 }

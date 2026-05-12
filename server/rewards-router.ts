@@ -97,23 +97,22 @@ export const rewardsRouter = router({
       const db = await getDb();
       if (!db) return { success: false, error: "Database not available" };
 
-      // Simulated rewards data - in production, query from database
-      const mockRewards = {
+      const rewards = {
         id: 1,
         userId: ctx.user.id,
-        totalPoints: 1250,
-        level: 3,
-        currentTierPoints: 1250,
-        tier: "Gold",
-        labsCompleted: 12,
-        perfectScores: 3,
-        streakCount: 5,
+        totalPoints: 0,
+        level: 1,
+        currentTierPoints: 0,
+        tier: "Bronze",
+        labsCompleted: 0,
+        perfectScores: 0,
+        streakCount: 0,
         lastActivityDate: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
-      return { success: true, data: mockRewards };
+      return { success: true, data: rewards };
     } catch (error) {
       console.error("Failed to get user rewards:", error);
       return { success: false, error: "Failed to retrieve rewards" };
@@ -126,50 +125,7 @@ export const rewardsRouter = router({
       const db = await getDb();
       if (!db) return { success: false, error: "Database not available" };
 
-      // Simulated achievements
-      const mockAchievements = [
-        {
-          id: 1,
-          userId: ctx.user.id,
-          achievementId: "first_lab",
-          achievementName: "First Steps",
-          description: "Complete your first lab",
-          icon: "🎯",
-          category: "milestone",
-          unlockedAt: new Date(),
-          progress: 100,
-          maxProgress: 100,
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          userId: ctx.user.id,
-          achievementId: "five_labs",
-          achievementName: "Lab Enthusiast",
-          description: "Complete 5 labs",
-          icon: "⭐",
-          category: "milestone",
-          unlockedAt: new Date(),
-          progress: 100,
-          maxProgress: 100,
-          createdAt: new Date(),
-        },
-        {
-          id: 3,
-          userId: ctx.user.id,
-          achievementId: "gold_tier",
-          achievementName: "Golden Achievement",
-          description: "Reach Gold tier",
-          icon: "🏆",
-          category: "milestone",
-          unlockedAt: new Date(),
-          progress: 100,
-          maxProgress: 100,
-          createdAt: new Date(),
-        },
-      ];
-
-      return { success: true, data: mockAchievements };
+      return { success: true, data: [] };
     } catch (error) {
       console.error("Failed to get achievements:", error);
       return { success: false, error: "Failed to retrieve achievements" };
@@ -216,51 +172,7 @@ export const rewardsRouter = router({
     .input(z.object({ limit: z.number().min(1).max(100).default(10) }))
     .query(async () => {
       try {
-        // Simulated leaderboard data
-        const mockLeaderboard = [
-          {
-            rank: 1,
-            userId: 1,
-            username: "SecurityMaster",
-            totalPoints: 5250,
-            labsCompleted: 25,
-            tier: "Diamond",
-          },
-          {
-            rank: 2,
-            userId: 2,
-            username: "PentestPro",
-            totalPoints: 3800,
-            labsCompleted: 18,
-            tier: "Platinum",
-          },
-          {
-            rank: 3,
-            userId: 3,
-            username: "HackerElite",
-            totalPoints: 2100,
-            labsCompleted: 12,
-            tier: "Gold",
-          },
-          {
-            rank: 4,
-            userId: 4,
-            username: "CyberNinja",
-            totalPoints: 1500,
-            labsCompleted: 8,
-            tier: "Silver",
-          },
-          {
-            rank: 5,
-            userId: 5,
-            username: "SecuritySeeker",
-            totalPoints: 850,
-            labsCompleted: 5,
-            tier: "Bronze",
-          },
-        ];
-
-        return { success: true, data: mockLeaderboard };
+        return { success: true, data: [] };
       } catch (error) {
         console.error("Failed to get leaderboard:", error);
         return { success: false, error: "Failed to retrieve leaderboard" };
@@ -270,37 +182,7 @@ export const rewardsRouter = router({
   // Get user's lab completion history
   getLabHistory: protectedProcedure.query(async ({ ctx }) => {
     try {
-      // Simulated lab history
-      const mockHistory = [
-        {
-          id: 1,
-          userId: ctx.user.id,
-          labId: 1,
-          status: "completed",
-          pointsEarned: 175,
-          attemptsCount: 2,
-          hintsUsed: 0,
-          timeSpentSeconds: 420,
-          completedAt: new Date(Date.now() - 86400000),
-          createdAt: new Date(Date.now() - 86400000),
-          updatedAt: new Date(Date.now() - 86400000),
-        },
-        {
-          id: 2,
-          userId: ctx.user.id,
-          labId: 2,
-          status: "completed",
-          pointsEarned: 150,
-          attemptsCount: 1,
-          hintsUsed: 1,
-          timeSpentSeconds: 600,
-          completedAt: new Date(Date.now() - 172800000),
-          createdAt: new Date(Date.now() - 172800000),
-          updatedAt: new Date(Date.now() - 172800000),
-        },
-      ];
-
-      return { success: true, data: mockHistory };
+      return { success: true, data: [] };
     } catch (error) {
       console.error("Failed to get lab history:", error);
       return { success: false, error: "Failed to retrieve history" };
@@ -312,7 +194,7 @@ export const rewardsRouter = router({
     try {
       return {
         success: true,
-        data: { rank: 15, totalUsers: 342 },
+        data: { rank: null, totalUsers: 0 },
       };
     } catch (error) {
       console.error("Failed to get user rank:", error);

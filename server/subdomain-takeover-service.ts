@@ -1,7 +1,11 @@
 /**
  * Subdomain Takeover Detection Service
- * Identifies vulnerable subdomains that can be taken over
+ * Performs live DNS/CNAME resolution and checks known dangling-service
+ * fingerprints without inventing vulnerable hosts.
  */
+
+import dns from "node:dns/promises";
+import axios from "axios";
 
 export interface SubdomainTakeoverResult {
   subdomain: string;
@@ -30,9 +34,15 @@ export interface SubdomainTakeoverScan {
   total_risk_score: number;
 }
 
-/**
- * Scan for subdomain takeover vulnerabilities
- */
+const SERVICE_PATTERNS = [
+  { service: "GitHub Pages", pattern: /github\.io$/i, body: /There isn't a GitHub Pages site here|For root URLs/i, method: "Claim the GitHub Pages custom domain or remove the CNAME." },
+  { service: "Heroku", pattern: /herokuapp\.com$/i, body: /No such app|herokuapp/i, method: "Create the matching Heroku app or remove the DNS record." },
+  { service: "AWS S3", pattern: /s3[.-].*amazonaws\.com$/i, body: /NoSuchBucket|The specified bucket does not exist/i, method: "Create the exact S3 bucket name or remove the DNS record." },
+  { service: "Azure", pattern: /azurewebsites\.net$/i, body: /404 Web Site not found/i, method: "Create the matching Azure app service or remove the DNS record." },
+  { service: "Firebase", pattern: /firebaseapp\.com$/i, body: /Site Not Found|Firebase Hosting/i, method: "Claim the Firebase Hosting site or remove the DNS record." },
+  { service: "Netlify", pattern: /netlify\.app$/i, body: /Not Found|No site found/i, method: "Claim the Netlify custom domain or remove the DNS record." },
+];
+
 export async function scanSubdomainTakeover(domain: string): Promise<SubdomainTakeoverScan> {
   try {
     const subdomains = generateCommonSubdomains(domain);
@@ -59,190 +69,75 @@ export async function scanSubdomainTakeover(domain: string): Promise<SubdomainTa
   }
 }
 
-/**
- * Check individual subdomain for takeover vulnerability
- */
 export async function checkSubdomainTakeover(subdomain: string): Promise<SubdomainTakeoverResult> {
-  const vulnerable = Math.random() > 0.7; // 30% chance
-  const services = ['GitHub Pages', 'Heroku', 'AWS S3', 'Azure', 'Firebase', 'Netlify'];
-  const service = vulnerable ? services[Math.floor(Math.random() * services.length)] : null;
+  const cname = await dns.resolveCname(subdomain).then((records) => records[0] || null).catch(() => null);
+  const addresses = await dns.resolve4(subdomain).catch(() => []);
+  const resolutionStatus: SubdomainTakeoverResult["resolution_status"] = addresses.length > 0 ? "resolved" : cname ? "unresolved" : "nxdomain";
+  const servicePattern = cname ? SERVICE_PATTERNS.find((entry) => entry.pattern.test(cname)) : undefined;
+  const fingerprints = cname ? generateFingerprints(subdomain, servicePattern?.service || null, cname) : [];
+  let vulnerable = false;
 
-  const fingerprints = generateFingerprints(subdomain, service);
+  if (servicePattern) {
+    const body = await axios.get(`https://${subdomain}`, {
+      timeout: 8000,
+      validateStatus: () => true,
+      headers: { "User-Agent": "OSINT-Scanner-Platform/1.0" },
+    }).then((res) => String(res.data).slice(0, 5000)).catch(() => "");
+    vulnerable = servicePattern.body.test(body) || resolutionStatus === "unresolved";
+    if (vulnerable) fingerprints.push({ service: servicePattern.service, indicator: "Dangling service error or unresolved target detected", confidence: 90 });
+  }
 
   return {
     subdomain,
     vulnerable,
-    riskLevel: vulnerable ? getRandomRiskLevel() : 'none',
-    cname: vulnerable ? `${service?.toLowerCase().replace(' ', '-')}.example.com` : null,
-    service,
-    takeover_method: vulnerable ? generateTakeoverMethod(service) : null,
-    resolution_status: getResolutionStatus(),
-    ip_address: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+    riskLevel: vulnerable ? "high" : "none",
+    cname,
+    service: servicePattern?.service || null,
+    takeover_method: vulnerable ? servicePattern?.method || null : null,
+    resolution_status: resolutionStatus,
+    ip_address: addresses[0] || null,
     fingerprints,
     recommendations: generateSubdomainRecommendations(vulnerable),
   };
 }
 
-/**
- * Generate common subdomains to check
- */
 export function generateCommonSubdomains(domain: string): string[] {
-  const commonSubs = [
-    'www',
-    'mail',
-    'ftp',
-    'api',
-    'admin',
-    'test',
-    'staging',
-    'dev',
-    'blog',
-    'shop',
-    'cdn',
-    'static',
-    'app',
-    'mobile',
-    'secure',
-    'support',
-  ];
-
-  return commonSubs.map(sub => `${sub}.${domain}`);
+  return ['www', 'mail', 'ftp', 'api', 'admin', 'test', 'staging', 'dev', 'blog', 'shop', 'cdn', 'static', 'app', 'mobile', 'secure', 'support']
+    .map(sub => `${sub}.${domain}`);
 }
 
-/**
- * Generate fingerprints for service detection
- */
-export function generateFingerprints(subdomain: string, service: string | null): Fingerprint[] {
+export function generateFingerprints(_subdomain: string, service: string | null, cname?: string | null): Fingerprint[] {
   if (!service) return [];
-
-  const fingerprintMap: { [key: string]: Fingerprint[] } = {
-    'GitHub Pages': [
-      {
-        service: 'GitHub Pages',
-        indicator: 'CNAME points to github.io',
-        confidence: 95,
-      },
-      {
-        service: 'GitHub Pages',
-        indicator: '404 page contains GitHub branding',
-        confidence: 85,
-      },
-    ],
-    'Heroku': [
-      {
-        service: 'Heroku',
-        indicator: 'CNAME points to herokuapp.com',
-        confidence: 95,
-      },
-      {
-        service: 'Heroku',
-        indicator: 'Heroku error page detected',
-        confidence: 90,
-      },
-    ],
-    'AWS S3': [
-      {
-        service: 'AWS S3',
-        indicator: 'CNAME points to s3.amazonaws.com',
-        confidence: 95,
-      },
-      {
-        service: 'AWS S3',
-        indicator: 'NoSuchBucket error',
-        confidence: 100,
-      },
-    ],
-  };
-
-  return fingerprintMap[service] || [];
+  return [{
+    service,
+    indicator: cname ? `CNAME points to ${cname}` : "Known takeover-prone service target",
+    confidence: 75,
+  }];
 }
 
-/**
- * Generate takeover method
- */
 export function generateTakeoverMethod(service: string | null): string | null {
-  if (!service) return null;
-
-  const methods: { [key: string]: string } = {
-    'GitHub Pages': 'Create repository with matching name and push content',
-    'Heroku': 'Create Heroku app and claim the subdomain',
-    'AWS S3': 'Create S3 bucket with exact subdomain name',
-    'Azure': 'Create Azure app service with matching name',
-    'Firebase': 'Create Firebase project and configure hosting',
-    'Netlify': 'Create Netlify site and configure custom domain',
-  };
-
-  return methods[service] || 'Register service with matching subdomain name';
+  return SERVICE_PATTERNS.find((entry) => entry.service === service)?.method || null;
 }
 
-/**
- * Get resolution status
- */
 export function getResolutionStatus(): 'resolved' | 'unresolved' | 'nxdomain' {
-  const rand = Math.random();
-  if (rand > 0.7) return 'resolved';
-  if (rand > 0.3) return 'unresolved';
-  return 'nxdomain';
+  return 'unresolved';
 }
 
-/**
- * Get random risk level
- */
 export function getRandomRiskLevel(): 'critical' | 'high' | 'medium' | 'low' {
-  const rand = Math.random();
-  if (rand > 0.7) return 'critical';
-  if (rand > 0.5) return 'high';
-  if (rand > 0.25) return 'medium';
-  return 'low';
+  return 'medium';
 }
 
-/**
- * Get risk score for level
- */
 export function getRiskScore(level: string): number {
-  const scores: { [key: string]: number } = {
-    critical: 100,
-    high: 75,
-    medium: 50,
-    low: 25,
-    none: 0,
-  };
-  return scores[level] || 0;
+  return { critical: 100, high: 75, medium: 50, low: 25, none: 0 }[level] || 0;
 }
 
-/**
- * Generate recommendations
- */
 export function generateSubdomainRecommendations(vulnerable: boolean): string[] {
-  if (!vulnerable) {
-    return [
-      'Subdomain is not vulnerable to takeover',
-      'Continue monitoring for changes',
-    ];
-  }
-
-  return [
-    'Immediately register the service to claim the subdomain',
-    'Remove the CNAME record if no longer needed',
-    'Monitor subdomain for unauthorized changes',
-    'Implement DNS monitoring alerts',
-    'Document all subdomains in use',
-    'Conduct regular subdomain audits',
-  ];
+  return vulnerable
+    ? ['Claim the dangling service target or remove the DNS record', 'Add DNS monitoring for CNAME changes', 'Audit all inactive subdomains']
+    : ['Subdomain is not vulnerable based on current DNS and service fingerprints', 'Continue monitoring for DNS changes'];
 }
 
-/**
- * Monitor subdomain for changes
- */
-export async function monitorSubdomainChanges(
-  subdomain: string,
-  interval: number = 3600000
-): Promise<{
-  subdomain: string;
-  monitoring: boolean;
-  interval: number;
-  lastCheck: string;
-}> {
+export async function monitorSubdomainChanges(subdomain: string, interval: number = 3600000) {
   return {
     subdomain,
     monitoring: true,
@@ -251,23 +146,12 @@ export async function monitorSubdomainChanges(
   };
 }
 
-/**
- * Get subdomain history
- */
-export async function getSubdomainHistory(subdomain: string): Promise<Array<{
-  date: string;
-  status: string;
-  service: string | null;
-  ip: string;
-}>> {
-  const history = [];
-  for (let i = 0; i < 5; i++) {
-    history.push({
-      date: new Date(Date.now() - i * 86400000).toISOString(),
-      status: Math.random() > 0.5 ? 'resolved' : 'unresolved',
-      service: Math.random() > 0.6 ? 'GitHub Pages' : null,
-      ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-    });
-  }
-  return history;
+export async function getSubdomainHistory(subdomain: string) {
+  const current = await checkSubdomainTakeover(subdomain);
+  return [{
+    date: new Date().toISOString(),
+    status: current.resolution_status,
+    service: current.service,
+    ip: current.ip_address || "",
+  }];
 }
