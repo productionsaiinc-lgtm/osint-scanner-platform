@@ -117,6 +117,149 @@ async function startServer() {
     }
   });
 
+  // MDM Real Device Enrollment Endpoint
+  app.get("/api/mdm/enroll/:token", async (req, res) => {
+    const { token } = req.params;
+    res.type("html").send(`<!doctype html>
+<html>
+  <head>
+    <title>MDM Device Enrollment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, sans-serif; background: #050816; color: #e5f7ff; padding: 24px; }
+      main { max-width: 680px; margin: 0 auto; border: 1px solid #155e75; border-radius: 8px; padding: 24px; background: rgba(8, 13, 35, .92); }
+      code, pre { background: #020617; color: #67e8f9; padding: 12px; border-radius: 6px; display: block; overflow-x: auto; }
+      button { background: #0891b2; color: white; border: 0; border-radius: 6px; padding: 10px 14px; font-weight: 600; }
+      input, select { width: 100%; margin: 6px 0 12px; padding: 10px; border-radius: 6px; border: 1px solid #155e75; background: #020617; color: white; }
+      label { color: #a5f3fc; font-size: 13px; }
+      .muted { color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MDM Device Enrollment</h1>
+      <p class="muted">Submit this form from the real device to complete enrollment. Device metadata is recorded in the MDM dashboard.</p>
+      <form id="enroll">
+        <label>Device ID</label>
+        <input name="deviceId" required placeholder="serial, asset tag, hostname, or UUID" />
+        <label>Device Name</label>
+        <input name="deviceName" required placeholder="Corp-Phone-001" />
+        <label>Device Type</label>
+        <select name="deviceType">
+          <option value="android">android</option>
+          <option value="ios">ios</option>
+          <option value="windows">windows</option>
+          <option value="macos">macos</option>
+          <option value="linux">linux</option>
+        </select>
+        <label>OS Version</label>
+        <input name="osVersion" placeholder="17.4" />
+        <label>Manufacturer</label>
+        <input name="manufacturer" placeholder="Apple, Samsung, Dell..." />
+        <label>Model</label>
+        <input name="model" placeholder="iPhone 15, Galaxy S24..." />
+        <label>Serial Number</label>
+        <input name="serialNumber" />
+        <button type="submit">Complete Enrollment</button>
+      </form>
+      <p id="result" class="muted"></p>
+      <h2>Programmatic Enrollment</h2>
+      <pre>POST /api/mdm/enroll/${token}
+Content-Type: application/json
+
+{
+  "deviceId": "device-serial-or-uuid",
+  "deviceName": "Corp-Phone-001",
+  "deviceType": "android",
+  "osVersion": "14",
+  "manufacturer": "Samsung",
+  "model": "Galaxy"
+}</pre>
+    </main>
+    <script>
+      document.getElementById("enroll").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+        const result = document.getElementById("result");
+        result.textContent = "Submitting enrollment...";
+        const response = await fetch("/api/mdm/enroll/${token}", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        const json = await response.json();
+        result.textContent = json.success ? "Enrollment complete. You can close this page." : json.error || "Enrollment failed.";
+      });
+    </script>
+  </body>
+</html>`);
+  });
+
+  app.post("/api/mdm/enroll/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { getDb } = await import("../db");
+      const { mdmDevices, mdmDeviceLogs } = await import("../../drizzle/schema");
+      const { eq } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return res.status(503).json({ success: false, error: "Database not available" });
+
+      const pending = await db
+        .select()
+        .from(mdmDevices)
+        .where(eq(mdmDevices.enrollmentToken, token))
+        .limit(1);
+      const device = pending[0];
+      if (!device) return res.status(404).json({ success: false, error: "Enrollment token not found" });
+      if (device.enrollmentStatus !== "pending") return res.status(409).json({ success: false, error: "Enrollment token has already been used" });
+      if (device.enrollmentTokenExpiresAt && new Date(device.enrollmentTokenExpiresAt) < new Date()) {
+        return res.status(410).json({ success: false, error: "Enrollment token expired" });
+      }
+
+      const body = req.body || {};
+      const deviceId = String(body.deviceId || "").trim();
+      const deviceName = String(body.deviceName || device.deviceName || "").trim();
+      const deviceType = String(body.deviceType || device.deviceType || "").trim();
+      if (!deviceId || !deviceName || !["android", "ios", "windows", "macos", "linux"].includes(deviceType)) {
+        return res.status(400).json({ success: false, error: "deviceId, deviceName, and valid deviceType are required" });
+      }
+
+      await db
+        .update(mdmDevices)
+        .set({
+          deviceId,
+          deviceName,
+          deviceType: deviceType as any,
+          osVersion: body.osVersion ? String(body.osVersion) : device.osVersion,
+          manufacturer: body.manufacturer ? String(body.manufacturer) : device.manufacturer,
+          model: body.model ? String(body.model) : device.model,
+          imei: body.imei ? String(body.imei) : device.imei,
+          serialNumber: body.serialNumber ? String(body.serialNumber) : device.serialNumber,
+          ipAddress: req.ip || req.connection.remoteAddress || device.ipAddress,
+          enrollmentStatus: "enrolled",
+          enrollmentDate: new Date(),
+          lastCheckIn: new Date(),
+          enrollmentToken: null,
+          enrollmentTokenExpiresAt: null,
+          updatedAt: new Date(),
+        })
+        .where(eq(mdmDevices.id, device.id));
+
+      await db.insert(mdmDeviceLogs).values({
+        deviceId: device.id,
+        logType: "enrollment",
+        logMessage: `Real device completed enrollment: ${deviceName} (${deviceType})`,
+        logData: JSON.stringify({ deviceId, userAgent: req.headers["user-agent"], ipAddress: req.ip }),
+        createdAt: new Date(),
+      }).catch(() => {});
+
+      res.json({ success: true, deviceId: device.id, message: "Device enrollment completed" });
+    } catch (error: any) {
+      console.error("[MDM Enrollment] Error:", error);
+      res.status(500).json({ success: false, error: error.message || "Enrollment failed" });
+    }
+  });
+
   // tRPC API
   app.use(
     "/api/trpc",

@@ -3,6 +3,18 @@ import { z } from "zod";
 import { getDb } from "./db";
 import { mdmDevices, mdmPolicies, mdmDeviceCommands, mdmDeviceLogs, mdmDevicePolicyAssignments, mdmSecurityEvents, mdmAppUsageAnalytics, mdmDeviceLocations, mdmDevicePerformance, mdmNetworkMonitoring } from "../drizzle/schema";
 import { eq, and, desc, gte } from "drizzle-orm";
+import crypto from "node:crypto";
+
+function getAppBaseUrl(req: any) {
+  if (process.env.VITE_APP_URL) return process.env.VITE_APP_URL.replace(/\/$/, "");
+  const proto = req?.headers?.["x-forwarded-proto"] || "https";
+  const host = req?.headers?.host || "localhost:3000";
+  return `${proto}://${host}`;
+}
+
+function createEnrollmentToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 export const mdmRouter = router({
   // Get all devices for user
@@ -47,9 +59,13 @@ export const mdmRouter = router({
     .mutation(async ({ ctx, input }: any) => {
       const db = await getDb();
       if (!db) throw new Error("Database not available");
+      const token = createEnrollmentToken();
+      const baseUrl = getAppBaseUrl(ctx.req);
+      const enrollmentUrl = `${baseUrl}/api/mdm/enroll/${token}`;
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const result = await db.insert(mdmDevices).values({
         userId: ctx.user.id,
-        deviceId: input.deviceId,
+        deviceId: input.deviceId || `pending-${token.slice(0, 16)}`,
         deviceName: input.deviceName,
         deviceType: input.deviceType,
         osVersion: input.osVersion,
@@ -57,9 +73,29 @@ export const mdmRouter = router({
         model: input.model,
         imei: input.imei,
         serialNumber: input.serialNumber,
+        enrollmentToken: token,
+        enrollmentUrl,
+        enrollmentTokenExpiresAt: expiresAt,
         enrollmentStatus: "pending",
       });
-      return result;
+      const deviceDbId = result[0]?.insertId as number | undefined;
+      if (deviceDbId) {
+        await db.insert(mdmDeviceLogs).values({
+          deviceId: deviceDbId,
+          logType: "enrollment",
+          logMessage: "Enrollment invitation created. Waiting for real device check-in.",
+          logData: JSON.stringify({ enrollmentUrl, expiresAt }),
+          createdAt: new Date(),
+        }).catch(() => {});
+      }
+      return {
+        success: true,
+        deviceDbId,
+        enrollmentToken: token,
+        enrollmentUrl,
+        expiresAt,
+        message: "Enrollment link created. Open it from the target device or POST device metadata to complete enrollment.",
+      };
     }),
 
   // Get all policies

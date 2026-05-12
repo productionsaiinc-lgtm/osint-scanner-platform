@@ -23,6 +23,9 @@ export async function ensureMdmTables() {
         \`model\` varchar(100),
         \`imei\` varchar(20),
         \`serialNumber\` varchar(100),
+        \`enrollmentToken\` varchar(128),
+        \`enrollmentUrl\` text,
+        \`enrollmentTokenExpiresAt\` timestamp NULL,
         \`enrollmentStatus\` enum('pending','enrolled','unenrolled','suspended') NOT NULL DEFAULT 'pending',
         \`enrollmentDate\` timestamp NULL,
         \`lastCheckIn\` timestamp NULL,
@@ -206,6 +209,20 @@ export async function ensureMdmTables() {
     } catch (error: any) {
       if (!String(error?.message || "").includes("Duplicate column")) {
         console.warn("[Migration] Could not add mdmPolicies.requireBiometric:", error?.message || error);
+      }
+    }
+
+    for (const statement of [
+      "ALTER TABLE `mdmDevices` ADD COLUMN `enrollmentToken` varchar(128)",
+      "ALTER TABLE `mdmDevices` ADD COLUMN `enrollmentUrl` text",
+      "ALTER TABLE `mdmDevices` ADD COLUMN `enrollmentTokenExpiresAt` timestamp NULL",
+    ]) {
+      try {
+        await db.execute(sql.raw(statement));
+      } catch (error: any) {
+        if (!String(error?.message || "").includes("Duplicate column")) {
+          console.warn("[Migration] Could not update mdmDevices enrollment columns:", error?.message || error);
+        }
       }
     }
 
