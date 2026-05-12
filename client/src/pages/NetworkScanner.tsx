@@ -6,6 +6,14 @@ import { Network, Loader2, CheckCircle2, AlertCircle, Globe } from "lucide-react
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
+function displayValue(value: any, fallback = "Unknown"): string {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "object") {
+    return Object.entries(value).map(([key, val]) => `${key}: ${String(val)}`).join(", ");
+  }
+  return String(value);
+}
+
 function flattenDnsRecords(records: any): Array<{ type: string; value: string }> {
   if (!records || typeof records !== "object") return [];
   if (Array.isArray(records)) {
@@ -21,7 +29,7 @@ function flattenDnsRecords(records: any): Array<{ type: string; value: string }>
       type,
       value: typeof value === "object" && value !== null
         ? Object.entries(value).map(([key, val]) => `${key}: ${String(val)}`).join(", ")
-        : String(value ?? ""),
+        : displayValue(value, ""),
     }));
   });
 }
@@ -31,7 +39,7 @@ function normalizeSubdomain(value: any): string {
   if (value && typeof value === "object") {
     return [value.subdomain, value.ip].filter(Boolean).join(" -> ");
   }
-  return String(value ?? "");
+  return displayValue(value, "");
 }
 
 export default function NetworkScanner() {
@@ -257,15 +265,15 @@ export default function NetworkScanner() {
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
                     <div>
                       <span className="text-gray-400">Registrar:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.whois.registrar}</span>
+                      <span className="ml-2 text-neon-cyan">{displayValue(scanResults.whois.registrar)}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Created:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.whois.created || scanResults.whois.registrationDate || "Unknown"}</span>
+                      <span className="ml-2 text-neon-cyan">{displayValue(scanResults.whois.created || scanResults.whois.registrationDate)}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Expires:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.whois.expires || scanResults.whois.expirationDate || "Unknown"}</span>
+                      <span className="ml-2 text-neon-cyan">{displayValue(scanResults.whois.expires || scanResults.whois.expirationDate)}</span>
                     </div>
                   </div>
                 </div>
@@ -312,11 +320,11 @@ export default function NetworkScanner() {
                   <div className="bg-[#0a0e27] border border-neon-cyan/30 rounded p-3 text-sm space-y-1">
                     <div>
                       <span className="text-gray-400">Issuer:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.issuer || scanResults.ssl.certificate?.issuer || "Unknown"}</span>
+                      <span className="ml-2 text-neon-cyan">{displayValue(scanResults.ssl.issuer || scanResults.ssl.certificate?.issuer)}</span>
                     </div>
                     <div>
                       <span className="text-gray-400">Valid Until:</span>
-                      <span className="ml-2 text-neon-cyan">{scanResults.ssl.validUntil || scanResults.ssl.certificate?.expiryDate || "Unknown"}</span>
+                      <span className="ml-2 text-neon-cyan">{displayValue(scanResults.ssl.validUntil || scanResults.ssl.certificate?.expiryDate)}</span>
                     </div>
                   </div>
                 </div>
