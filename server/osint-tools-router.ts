@@ -2,6 +2,7 @@ import { router, protectedProcedure, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
 import axios from "axios";
 import dns from "node:dns/promises";
+import { connect as tlsConnect } from "node:tls";
 import { getIPGeolocationMaxMind, getCertificateTransparency, getShodanPortData, searchNVDVulnerabilities, analyzeWithVirusTotal, checkIPReputation, getWHOISData, enumerateDNS, searchGitHubRepos, getThreatIntelligence, getAPIConfiguration } from "./real-api-integrations";
 
 const API_TIMEOUT = 12000;
@@ -30,6 +31,25 @@ function decodeHtml(value: string) {
 
 function stripTags(value: string) {
   return decodeHtml(value.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " "));
+}
+
+function luhnCheck(value: string) {
+  let sum = 0;
+  let doubleDigit = false;
+  for (let i = value.length - 1; i >= 0; i--) {
+    let digit = Number(value[i]);
+    if (doubleDigit) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    doubleDigit = !doubleDigit;
+  }
+  return sum % 10 === 0;
+}
+
+function normalizeHost(value: string) {
+  return value.trim().replace(/^https?:\/\//, "").split("/")[0].split(":")[0];
 }
 
 function extractSelectorText(html: string, selector?: string) {
@@ -457,6 +477,314 @@ const flightTrackerProcedure = protectedProcedure
     }
   });
 
+const imeiLookupProcedure = protectedProcedure
+  .input(z.object({ imei: z.string().min(8).max(20) }))
+  .mutation(async ({ input }) => {
+    const cleanImei = input.imei.replace(/\D/g, "");
+    if (!/^\d{15}$/.test(cleanImei)) {
+      return { success: false, error: "IMEI must contain exactly 15 digits." };
+    }
+
+    return {
+      success: true,
+      data: {
+        imei: cleanImei,
+        isValid: luhnCheck(cleanImei),
+        tac: cleanImei.slice(0, 8),
+        snr: cleanImei.slice(8, 14),
+        checkDigit: cleanImei.slice(14),
+        deviceModel: "TAC registry provider not configured",
+        manufacturer: "TAC registry provider not configured",
+        deviceType: "Unknown",
+        releaseYear: null,
+        isBlacklisted: null,
+        blacklistStatus: "Requires GSMA/TAC blacklist provider",
+        supportedBands: [],
+        networkTechnology: [],
+        source: "IMEI Luhn validation only",
+        needsProvider: true,
+        requiredKey: "IMEI/TAC registry provider API key",
+      },
+    };
+  });
+
+const phoneLookupProcedure = protectedProcedure
+  .input(z.object({ phoneNumber: z.string().min(3) }))
+  .mutation(async ({ input }) => {
+    const phone = input.phoneNumber.trim();
+    const apiKey = process.env.NUMVERIFY_API_KEY || process.env.ABSTRACT_PHONE_API_KEY;
+
+    if (process.env.NUMVERIFY_API_KEY) {
+      const response = await axios.get("http://apilayer.net/api/validate", {
+        params: { access_key: process.env.NUMVERIFY_API_KEY, number: phone, format: 1 },
+        timeout: API_TIMEOUT,
+      });
+      const data = response.data || {};
+      return {
+        success: true,
+        data: {
+          phoneNumber: data.international_format || phone,
+          isValid: Boolean(data.valid),
+          carrier: data.carrier || "Unknown",
+          country: data.country_name || "Unknown",
+          countryCode: data.country_prefix ? `+${data.country_prefix}` : "Unknown",
+          region: data.location || "Unknown",
+          timezone: "Provider does not include timezone",
+          type: data.line_type || "unknown",
+          operatorName: data.carrier || "Unknown",
+          portabilityStatus: "Not provided",
+          lastUpdated: new Date().toISOString(),
+          source: "Numverify",
+        },
+      };
+    }
+
+    if (process.env.ABSTRACT_PHONE_API_KEY) {
+      const response = await axios.get("https://phonevalidation.abstractapi.com/v1/", {
+        params: { api_key: process.env.ABSTRACT_PHONE_API_KEY, phone },
+        timeout: API_TIMEOUT,
+      });
+      const data = response.data || {};
+      return {
+        success: true,
+        data: {
+          phoneNumber: data.format?.international || phone,
+          isValid: Boolean(data.valid),
+          carrier: data.carrier || "Unknown",
+          country: data.country?.name || "Unknown",
+          countryCode: data.country?.prefix || "Unknown",
+          region: data.location || "Unknown",
+          timezone: "Provider does not include timezone",
+          type: data.type || "unknown",
+          operatorName: data.carrier || "Unknown",
+          portabilityStatus: "Not provided",
+          lastUpdated: new Date().toISOString(),
+          source: "Abstract Phone Validation",
+        },
+      };
+    }
+
+    return {
+      success: false,
+      error: "Phone carrier lookup requires NUMVERIFY_API_KEY or ABSTRACT_PHONE_API_KEY. No mock carrier data returned.",
+      needsKey: true,
+      data: { phoneNumber: phone, providerConfigured: Boolean(apiKey) },
+    };
+  });
+
+const licensePlateLookupProcedure = protectedProcedure
+  .input(z.object({ plate: z.string().min(2), region: z.string().default("Ontario") }))
+  .mutation(async ({ input }) => {
+    const cleaned = input.plate.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (!/^[A-Z0-9]{2,8}$/.test(cleaned)) {
+      return { success: false, error: "Invalid license plate format." };
+    }
+    return {
+      success: false,
+      error: "Ontario plate ownership and registration data is not available through an open public API. Configure an authorized DMV/MTO data provider before returning vehicle records.",
+      needsProvider: true,
+      data: {
+        licensePlate: cleaned,
+        province: input.region,
+        source: "No public provider configured",
+      },
+    };
+  });
+
+const websiteVulnerabilityScanProcedure = protectedProcedure
+  .input(z.object({ url: z.string().url() }))
+  .mutation(async ({ input }) => {
+    const response = await axios.get(input.url, {
+      timeout: API_TIMEOUT,
+      maxRedirects: 5,
+      validateStatus: () => true,
+      headers: { "User-Agent": "OSINT-Scanner-Platform/1.0" },
+    });
+    const headers = response.headers;
+    const findings: Array<{ type: string; severity: "critical" | "high" | "medium" | "low"; title: string; description: string; remediation: string; cve_references: string[] }> = [];
+    const checks = [
+      ["strict-transport-security", "medium", "Missing HSTS Header", "Strict-Transport-Security header not found", "Add an HSTS header to enforce HTTPS."],
+      ["content-security-policy", "medium", "Missing Content Security Policy", "Content-Security-Policy header not found", "Add a restrictive CSP for scripts, frames, and content sources."],
+      ["x-frame-options", "low", "Missing Clickjacking Protection", "X-Frame-Options header not found", "Add X-Frame-Options or frame-ancestors CSP."],
+      ["x-content-type-options", "low", "Missing MIME Sniffing Protection", "X-Content-Type-Options header not found", "Add X-Content-Type-Options: nosniff."],
+    ] as const;
+    for (const [header, severity, title, description, remediation] of checks) {
+      if (!headers[header]) findings.push({ type: "security_header", severity, title, description, remediation, cve_references: [] });
+    }
+    if (response.status >= 500) {
+      findings.push({
+        type: "http_status",
+        severity: "high",
+        title: "Server Error Response",
+        description: `Target returned HTTP ${response.status}.`,
+        remediation: "Review server logs and error handling.",
+        cve_references: [],
+      });
+    }
+    const riskScore = Math.min(100, findings.reduce((score, finding) => score + ({ critical: 35, high: 25, medium: 15, low: 8 }[finding.severity]), 0));
+    return {
+      success: true,
+      data: {
+        target: input.url,
+        scan_date: new Date().toISOString(),
+        status_code: response.status,
+        findings,
+        risk_score: riskScore,
+        overall_status: riskScore >= 40 ? "warning" : "pass",
+        source: "Live HTTP header analysis",
+      },
+    };
+  });
+
+const sslAnalyzerProcedure = protectedProcedure
+  .input(z.object({ hostname: z.string().min(1) }))
+  .mutation(async ({ input }) => {
+    const hostname = normalizeHost(input.hostname);
+    const certificate: any = await new Promise((resolve, reject) => {
+      const socket = tlsConnect({ host: hostname, port: 443, servername: hostname, timeout: API_TIMEOUT }, () => {
+        const cert = socket.getPeerCertificate();
+        const protocol = socket.getProtocol();
+        socket.end();
+        resolve({ cert, protocol });
+      });
+      socket.on("timeout", () => {
+        socket.destroy();
+        reject(new Error("TLS connection timed out"));
+      });
+      socket.on("error", reject);
+    });
+    const cert = certificate.cert || {};
+    const validTo = cert.valid_to ? new Date(cert.valid_to) : null;
+    const expired = validTo ? validTo.getTime() < Date.now() : false;
+    const securityIssues = expired
+      ? [{ type: "certificate", severity: "critical" as const, title: "Expired Certificate", description: "The certificate is past its valid_to date.", remediation: "Renew and deploy a valid TLS certificate." }]
+      : [];
+    return {
+      success: true,
+      data: {
+        target: hostname,
+        scan_date: new Date().toISOString(),
+        certificate: {
+          subject: cert.subject ? Object.entries(cert.subject).map(([k, v]) => `${k}=${v}`).join(", ") : "Unknown",
+          issuer: cert.issuer ? Object.entries(cert.issuer).map(([k, v]) => `${k}=${v}`).join(", ") : "Unknown",
+          valid_from: cert.valid_from,
+          valid_to: cert.valid_to,
+          fingerprint: cert.fingerprint256 || cert.fingerprint || "Unknown",
+          serial_number: cert.serialNumber || "Unknown",
+          public_key_algorithm: cert.pubkey ? "Available" : "Unknown",
+          signature_algorithm: "Not exposed by Node TLS certificate API",
+        },
+        supported_protocols: [certificate.protocol].filter(Boolean),
+        cipher_suites: [],
+        security_issues: securityIssues,
+        overall_grade: expired ? "F" : "A",
+        risk_score: expired ? 90 : 10,
+        source: "Live TLS handshake",
+      },
+    };
+  });
+
+const nmapScannerProcedure = protectedProcedure
+  .input(z.object({ target: z.string().min(1), scanProfile: z.string().default("normal") }))
+  .mutation(async ({ input }) => {
+    const host = normalizeHost(input.target);
+    const resolved = await dns.lookup(host).catch(() => null);
+    const ip = resolved?.address || host;
+    const shodan = await getShodanPortData(ip, process.env.SHODAN_API_KEY);
+    if (!shodan.success) {
+      return { ...shodan, needsKey: !process.env.SHODAN_API_KEY };
+    }
+    const services = (shodan.services || []) as Array<{ port: number; protocol?: string; banner?: string }>;
+    return {
+      success: true,
+      data: {
+        target: host,
+        ip,
+        scanTime: "Shodan cached scan",
+        status: "up",
+        osDetection: "Provided by Shodan when available",
+        osAccuracy: 0,
+        openPorts: (shodan.ports || []).length,
+        closedPorts: 0,
+        filteredPorts: 0,
+        totalPorts: (shodan.ports || []).length,
+        ports: services.map((service) => ({
+          port: service.port,
+          protocol: service.protocol || "tcp",
+          state: "open",
+          service: service.protocol || "unknown",
+          version: service.banner || "",
+          severity: "info",
+        })),
+        hostnames: shodan.hostnames || [],
+        scanProfile: input.scanProfile,
+        source: "Shodan host intelligence",
+      },
+    };
+  });
+
+const socialProfileSearchProcedure = protectedProcedure
+  .input(z.object({ username: z.string().min(1), platform: z.string().default("all") }))
+  .mutation(async ({ input }) => {
+    const username = input.username.trim().replace(/^@/, "");
+    const platformUrls: Record<string, string> = {
+      Twitter: `https://x.com/${encodeURIComponent(username)}`,
+      Instagram: `https://www.instagram.com/${encodeURIComponent(username)}/`,
+      TikTok: `https://www.tiktok.com/@${encodeURIComponent(username)}`,
+      LinkedIn: `https://www.linkedin.com/in/${encodeURIComponent(username)}/`,
+      Reddit: `https://www.reddit.com/user/${encodeURIComponent(username)}/`,
+      YouTube: `https://www.youtube.com/@${encodeURIComponent(username)}`,
+    };
+    const selected = input.platform === "all"
+      ? Object.entries(platformUrls)
+      : Object.entries(platformUrls).filter(([name]) => name === input.platform);
+    const profiles = await Promise.all(selected.map(async ([name, url]) => {
+      try {
+        const response = await axios.get(url, {
+          timeout: 8000,
+          maxRedirects: 3,
+          validateStatus: (status) => status < 500,
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; OSINTScanner/2.0)" },
+        });
+        const found = response.status >= 200 && response.status < 400 && !String(response.request?.res?.responseUrl || "").includes("/login");
+        return {
+          platform: name,
+          found,
+          profileUrl: url,
+          followers: null,
+          posts: null,
+          verified: null,
+          bio: found ? "Profile page responded successfully. Follower/comment scraping requires official platform API access." : undefined,
+          comments: [],
+          statusCode: response.status,
+          source: "Live profile URL check",
+        };
+      } catch (error: any) {
+        return {
+          platform: name,
+          found: false,
+          profileUrl: url,
+          followers: null,
+          posts: null,
+          verified: null,
+          comments: [],
+          error: error.message,
+          source: "Live profile URL check",
+        };
+      }
+    }));
+    return {
+      success: true,
+      data: {
+        username,
+        platform: input.platform === "all" ? "All Platforms" : input.platform,
+        profilesFound: profiles.filter((profile) => profile.found).length,
+        profiles,
+        scrapedAt: new Date().toISOString(),
+      },
+    };
+  });
+
 // Supply Chain Analyzer
 const supplyChainAnalyzerProcedure = protectedProcedure
   .input(z.object({ productId: z.string().min(1) }))
@@ -831,6 +1159,13 @@ export const osintToolsRouter = router({
   passwordCracker: passwordCrackerProcedure,
   iotScanner: iotScannerProcedure,
   flightTracker: flightTrackerProcedure,
+  imeiLookup: imeiLookupProcedure,
+  phoneLookup: phoneLookupProcedure,
+  licensePlateLookup: licensePlateLookupProcedure,
+  websiteVulnerabilityScan: websiteVulnerabilityScanProcedure,
+  sslAnalyzer: sslAnalyzerProcedure,
+  nmapScanner: nmapScannerProcedure,
+  socialProfileSearch: socialProfileSearchProcedure,
   supplyChainAnalyzer: supplyChainAnalyzerProcedure,
   deepfakeDetector: deepfakeDetectorProcedure,
   insiderThreat: insiderThreatProcedure,

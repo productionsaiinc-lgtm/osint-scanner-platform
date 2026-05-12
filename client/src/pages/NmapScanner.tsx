@@ -5,9 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Radar,
-  Search,
   AlertCircle,
-  Zap,
   Shield,
   Activity,
   CheckCircle2,
@@ -16,6 +14,7 @@ import {
   Network,
   Download,
 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface NmapPort {
   port: number;
@@ -48,6 +47,7 @@ export function NmapScanner() {
   const [results, setResults] = useState<NmapResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const nmapScan = trpc.osintTools.nmapScanner.useMutation();
   const [advancedOptions, setAdvancedOptions] = useState({
     udpScan: false,
     pingSweep: false,
@@ -75,68 +75,12 @@ export function NmapScanner() {
     setResults(null);
 
     try {
-      // Simulate API call - replace with actual tRPC call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Mock result
-      const mockResult: NmapResult = {
-        target: target,
-        scanTime: '42.5s',
-        status: 'up',
-        osDetection: 'Linux 5.10.0-x86_64',
-        osAccuracy: 95,
-        openPorts: 5,
-        closedPorts: 993,
-        filteredPorts: 2,
-        totalPorts: 1000,
-        ports: [
-          {
-            port: 22,
-            protocol: 'tcp',
-            state: 'open',
-            service: 'ssh',
-            version: 'OpenSSH 8.2p1',
-            severity: 'high',
-          },
-          {
-            port: 80,
-            protocol: 'tcp',
-            state: 'open',
-            service: 'http',
-            version: 'Apache httpd 2.4.41',
-            severity: 'medium',
-          },
-          {
-            port: 443,
-            protocol: 'tcp',
-            state: 'open',
-            service: 'https',
-            version: 'Apache httpd 2.4.41',
-            severity: 'low',
-          },
-          {
-            port: 3306,
-            protocol: 'tcp',
-            state: 'open',
-            service: 'mysql',
-            version: 'MySQL 8.0.23',
-            severity: 'critical',
-          },
-          {
-            port: 5432,
-            protocol: 'tcp',
-            state: 'open',
-            service: 'postgresql',
-            version: 'PostgreSQL 12.6',
-            severity: 'high',
-          },
-        ],
-        macAddress: '00:1A:2B:3C:4D:5E',
-        hostnames: ['example.com', 'www.example.com'],
-        scanProfile: scanProfile,
-      };
-
-      setResults(mockResult);
+      const response = await nmapScan.mutateAsync({ target, scanProfile });
+      if (!response.success) {
+        setError(response.error || 'Failed to perform Nmap scan');
+        return;
+      }
+      setResults(response.data as NmapResult);
     } catch (err) {
       setError('Failed to perform Nmap scan. Please try again.');
     } finally {
@@ -198,7 +142,7 @@ export function NmapScanner() {
               className="bg-neon-cyan hover:bg-neon-cyan/80 text-black font-semibold"
             >
               <Radar className="w-4 h-4 mr-2" />
-              {loading ? 'Scanning...' : 'Start Scan'}
+              {loading || nmapScan.isPending ? 'Scanning...' : 'Start Scan'}
             </Button>
           </div>
 

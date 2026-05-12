@@ -56,19 +56,20 @@ export default function CreditCardChecker() {
       const isValid = luhnCheck(cleaned);
       const cardType = getCardType(cleaned);
 
-      const mockResults = {
+      const validationResults = {
         cardNumber: `****-****-****-${cleaned.slice(-4)}`,
         cardType,
         isValid,
         luhnValid: isValid,
         length: cleaned.length,
-        issuer: cardType === 'VISA' ? 'Visa Inc.' : cardType === 'MASTERCARD' ? 'Mastercard' : 'Unknown',
+        issuer: cardType === 'UNKNOWN' ? 'Unknown from local BIN pattern' : `${cardType} network`,
         binNumber: cleaned.slice(0, 6),
         lastFour: cleaned.slice(-4),
         checkedAt: new Date().toLocaleString(),
+        source: 'Local Luhn and card-network pattern validation',
       };
 
-      setResults(mockResults);
+      setResults(validationResults);
     } catch (err) {
       setError('Failed to check card');
     } finally {
