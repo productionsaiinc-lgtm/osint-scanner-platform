@@ -1,49 +1,78 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Radar, Globe, Users, Map, History, Zap } from "lucide-react";
+import { Radar, Globe, Map, Zap, Shield, Fingerprint, Smartphone, Cpu, CreditCard, Car, Cloud, Link2, Mail, FileSearch, Bell, Lock } from "lucide-react";
 
 export default function Home() {
-  const { user } = useAuth();
   const [, setLocation] = useLocation();
 
-  const features = [
+  const featureSections = [
     {
-      icon: Zap,
-      title: "New Features",
-      description: "MDM Mobile Device Management, License plate lookup/vin, Cloud storage and sync, virtual phones, Computers, Canary tokens, Temporary Emails, Pentest Labs, Url Shortener, Sim/phone Querys, Imei and CreditCard checks, password cracker, deepfake search, VPN services and much more."
+      icon: Bell,
+      title: "Core Operations",
+      tools: ["Dashboard", "Scan History", "Monitoring", "Alert History", "Notifications", "Dark Web Monitor", "Crypto Tracker", "Employee Enum", "Geo Reverse", "Flight Tracker"],
     },
     {
       icon: Radar,
-      title: "Network Scanner",
-      description: "Advanced port scanning and network reconnaissance",
-    },
-    {
-      icon: Users,
-      title: "Social Media OSINT",
-      description: "Username enumeration and profile discovery",
-    },
-    {
-      icon: Map,
-      title: "IP Geolocation",
-      description: "Map visualization and location tracking",
+      title: "Network & Infrastructure",
+      tools: ["Network Scanner", "Nmap Scanner", "Shodan", "DNS Enumeration", "WHOIS Lookup", "VPN Connection", "IoT Scanner"],
     },
     {
       icon: Globe,
-      title: "Domain OSINT",
-      description: "WHOIS, DNS records, and SSL certificates",
+      title: "Web & Domain Security",
+      tools: ["Web Scraper", "SSL Analyzer", "WAF Detection", "Subdomain Takeover"],
     },
     {
-      icon: History,
-      title: "Scan History",
-      description: "Track and review all your scans",
+      icon: Fingerprint,
+      title: "Forensics",
+      tools: ["Metadata Extractor", "Reverse Image Search", "Malware Analyzer", "Password Cracker", "Deepfake Detector"],
     },
     {
-      icon: Zap,
-      title: "Premium Features",
-      description: "Unlock advanced tools and capabilities",
+      icon: Shield,
+      title: "Intelligence & Threat",
+      tools: ["Social Media OSINT", "GitHub Search", "CVE Database", "Vulnerability Scanner", "Supply Chain Analyzer", "Insider Threat"],
     },
+    {
+      icon: Smartphone,
+      title: "Personal & Device",
+      tools: ["Phone Lookup", "IMEI Checker", "SIM Swap Lookup", "Credit Card Checker"],
+    },
+    {
+      icon: Map,
+      title: "Visualization & Tools",
+      tools: ["Map View", "Pentest Lab", "Canary Tokens", "URL Shortener", "Temp Email", "File Analyzer", "Sock Puppets"],
+    },
+    {
+      icon: Cpu,
+      title: "Infrastructure & Computing",
+      tools: ["Virtual Computers", "Virtual Phones", "Cloud Storage"],
+    },
+    {
+      icon: Car,
+      title: "Vehicle",
+      tools: ["Ontario License Plate", "VIN Decoder"],
+    },
+    {
+      icon: Lock,
+      title: "Mobile Device Management",
+      tools: ["MDM Dashboard", "Real Device Enrollment", "Policies", "Threat Defense", "Compliance Reports"],
+    },
+    {
+      icon: CreditCard,
+      title: "Account & Billing",
+      tools: ["Pricing", "Subscription", "Payouts", "Payouts Enhanced", "Live Payouts", "About"],
+    },
+  ];
+
+  const quickActions = [
+    { label: "Network Scanner", path: "/network-scanner", icon: Radar },
+    { label: "MDM Dashboard", path: "/mdm", icon: Smartphone },
+    { label: "Virtual Computers", path: "/virtual-computers", icon: Cpu },
+    { label: "Virtual Phones", path: "/virtual-phones", icon: Smartphone },
+    { label: "Cloud Storage", path: "/cloud-storage", icon: Cloud },
+    { label: "URL Shortener", path: "/url-shortener", icon: Link2 },
+    { label: "Temp Email", path: "/temp-email", icon: Mail },
+    { label: "File Analyzer", path: "/file-analyzer", icon: FileSearch },
   ];
 
   return (
@@ -61,7 +90,7 @@ export default function Home() {
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Button
-                onClick={() => setLocation("/dashboard")}
+                onClick={() => setLocation("/network-scanner")}
                 className="bg-neon-pink text-black hover:bg-neon-pink/80 font-bold px-8 py-3"
               >
                 Get Started
@@ -79,20 +108,46 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Quick Actions */}
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Button
+                key={action.path}
+                onClick={() => setLocation(action.path)}
+                variant="outline"
+                className="h-14 justify-start border-neon-cyan/30 bg-black/40 text-neon-cyan hover:bg-neon-cyan/10"
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                {action.label}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Features Grid */}
       <div className="max-w-6xl mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold text-neon-cyan mb-12 text-center">AVAILABLE MODULES</h2>
+        <h2 className="text-3xl font-bold text-neon-cyan mb-12 text-center">ALL DASHBOARD FEATURES</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, idx) => {
-            const Icon = feature.icon;
+          {featureSections.map((section) => {
+            const Icon = section.icon;
             return (
               <Card
-                key={idx}
-                className="border-neon-cyan/30 bg-black/50 p-6 hover:border-neon-cyan/60 transition-all cursor-pointer hover:shadow-lg hover:shadow-neon-cyan/20"
+                key={section.title}
+                className="border-neon-cyan/30 bg-black/50 p-6 hover:border-neon-cyan/60 transition-all hover:shadow-lg hover:shadow-neon-cyan/20"
               >
                 <Icon className="w-8 h-8 text-neon-pink mb-4" />
-                <h3 className="text-lg font-bold text-neon-pink mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
+                <h3 className="text-lg font-bold text-neon-pink mb-3">{section.title}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {section.tools.map((tool) => (
+                    <span key={tool} className="rounded border border-neon-cyan/20 bg-neon-cyan/5 px-2 py-1 text-xs text-gray-300">
+                      {tool}
+                    </span>
+                  ))}
+                </div>
               </Card>
             );
           })}
@@ -132,7 +187,7 @@ export default function Home() {
           Join thousands of security professionals using OSINT Scanner Platform
         </p>
         <Button
-          onClick={() => setLocation("/dashboard")}
+          onClick={() => setLocation("/network-scanner")}
           className="bg-neon-pink text-black hover:bg-neon-pink/80 font-bold px-8 py-3 text-lg"
         >
           <Zap className="h-5 w-5 mr-2" />

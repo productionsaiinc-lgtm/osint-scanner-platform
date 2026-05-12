@@ -12,7 +12,7 @@ The product is organized around operational OSINT tasks: network and domain scan
 
 ## Primary User Experience
 
-Unauthenticated users see the public landing, pricing, download, and payment result pages. Authenticated users enter a dashboard with a collapsible sidebar organized by tool category. The dashboard supports responsive layouts, loading skeletons, error boundaries, toast notifications, and mobile-friendly navigation.
+Unauthenticated users see the public landing, pricing, download, and payment result pages. Authenticated users enter a dashboard with a collapsible sidebar organized by tool category. The dashboard home also lists the full feature catalog and quick links to key modules. The dashboard supports responsive layouts, loading skeletons, error boundaries, toast notifications, and mobile-friendly navigation.
 
 The main application routes are defined in `client/src/App.tsx`, and the sidebar tool catalog is defined in `client/src/components/DashboardLayout.tsx`.
 
@@ -84,8 +84,8 @@ The main application routes are defined in `client/src/App.tsx`, and the sidebar
 
 ### Infrastructure and Computing
 
-- Virtual Computers: Persistent VM records and lifecycle actions.
-- Virtual Phones: Persistent device records and provisioning.
+- Virtual Computers: Persistent VM records, lifecycle actions, and graphical desktop console preview.
+- Virtual Phones: Persistent device records, provisioning, and graphical mobile device console preview.
 - Cloud Storage: S3-backed file upload, folders, download URLs, and storage overview.
 
 ### Vehicle

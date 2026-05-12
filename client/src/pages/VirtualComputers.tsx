@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Monitor, Plus, Trash2, Play, Square, Settings } from "lucide-react";
+import { Monitor, Plus, Trash2, Play, Square, Settings, Terminal, Wifi, HardDrive } from "lucide-react";
 import { toast } from "sonner";
 
 export function VirtualComputers() {
+  const [selectedVmId, setSelectedVmId] = useState(1);
   const [vms, setVms] = useState([
     {
       id: 1,
@@ -65,6 +66,7 @@ export function VirtualComputers() {
     };
 
     setVms([...vms, vm]);
+    setSelectedVmId(vm.id);
     setNewVM({ name: "", os: "Linux", cpu: 4, ram: 8, storage: 100 });
     setShowCreateForm(false);
     toast.success("Virtual machine created!");
@@ -84,7 +86,16 @@ export function VirtualComputers() {
 
   const deleteVM = (id: number) => {
     setVms(vms.filter((vm) => vm.id !== id));
+    if (selectedVmId === id) setSelectedVmId(vms.find((vm) => vm.id !== id)?.id || 0);
     toast.success("Virtual machine deleted");
+  };
+
+  const selectedVm = vms.find((vm) => vm.id === selectedVmId) || vms[0];
+
+  const desktopTheme = (os: string) => {
+    if (os === "Windows") return "from-blue-950 via-sky-900 to-slate-950";
+    if (os === "macOS") return "from-slate-900 via-purple-950 to-zinc-950";
+    return "from-zinc-950 via-emerald-950 to-slate-950";
   };
 
   return (
@@ -184,6 +195,76 @@ export function VirtualComputers() {
           <Plus className="w-4 h-4" />
           Create New Virtual Machine
         </Button>
+      )}
+
+      {/* Graphical VM Console */}
+      {selectedVm && (
+        <Card className="border-cyan-500/30 bg-black/40 overflow-hidden">
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between border-b border-cyan-500/20 px-4 py-3">
+              <div className="flex items-center gap-2">
+                <Monitor className="w-4 h-4 text-cyan-400" />
+                <div>
+                  <h2 className="text-sm font-bold text-cyan-300">Graphical Console</h2>
+                  <p className="text-xs text-gray-500">{selectedVm.name} • {selectedVm.status}</p>
+                </div>
+              </div>
+              <select
+                value={selectedVm.id}
+                onChange={(e) => setSelectedVmId(Number(e.target.value))}
+                className="rounded bg-black/60 border border-cyan-500/30 text-cyan-200 px-3 py-2 text-xs"
+              >
+                {vms.map((vm) => <option key={vm.id} value={vm.id}>{vm.name}</option>)}
+              </select>
+            </div>
+            <div className="p-4">
+              <div className="mx-auto max-w-5xl rounded-lg border border-cyan-500/30 bg-zinc-950 shadow-2xl shadow-cyan-950/50">
+                <div className="flex items-center gap-2 border-b border-white/10 px-3 py-2">
+                  <span className="h-3 w-3 rounded-full bg-red-500" />
+                  <span className="h-3 w-3 rounded-full bg-yellow-500" />
+                  <span className="h-3 w-3 rounded-full bg-green-500" />
+                  <span className="ml-3 text-xs text-gray-400">{selectedVm.ip}</span>
+                </div>
+                <div className={`relative aspect-video overflow-hidden rounded-b-lg bg-gradient-to-br ${desktopTheme(selectedVm.os)}`}>
+                  {selectedVm.status !== "running" ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-gray-400">
+                      <Square className="mb-3 h-10 w-10" />
+                      <p className="text-sm font-medium">Virtual machine is stopped</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="absolute left-4 top-4 grid grid-cols-1 gap-3">
+                        {["Terminal", "Files", "Browser"].map((label, idx) => (
+                          <div key={label} className="flex w-20 flex-col items-center gap-1 text-center">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-md border border-white/15 bg-white/10">
+                              {idx === 0 ? <Terminal className="h-5 w-5 text-cyan-200" /> : idx === 1 ? <HardDrive className="h-5 w-5 text-cyan-200" /> : <Wifi className="h-5 w-5 text-cyan-200" />}
+                            </div>
+                            <span className="text-[11px] text-white/80">{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="absolute left-[18%] top-[16%] w-[58%] rounded-md border border-cyan-400/20 bg-black/75 shadow-xl">
+                        <div className="border-b border-cyan-400/20 px-3 py-2 text-xs text-cyan-300">terminal — {selectedVm.name}</div>
+                        <div className="space-y-1 p-3 font-mono text-xs text-green-300">
+                          <p>$ hostname</p>
+                          <p className="text-cyan-200">{selectedVm.name.toLowerCase().replace(/\s+/g, "-")}</p>
+                          <p>$ ip addr show</p>
+                          <p className="text-cyan-200">inet {selectedVm.ip}/24</p>
+                          <p>$ resources</p>
+                          <p className="text-cyan-200">{selectedVm.cpu} vCPU • {selectedVm.ram} GB RAM • {selectedVm.storage} GB disk</p>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between border-t border-white/10 bg-black/45 px-4 py-2 text-xs text-white/80">
+                        <span>{selectedVm.os} desktop</span>
+                        <span>{new Date().toLocaleTimeString()}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* VMs List */}

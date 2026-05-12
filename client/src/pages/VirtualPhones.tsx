@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Smartphone, Plus, Trash2, Power, Loader2, RefreshCw } from "lucide-react";
+import { Smartphone, Plus, Trash2, Power, Loader2, RefreshCw, Signal, Battery, Home, Camera, MessageSquare, Phone, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
 export function VirtualPhones() {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedPhoneId, setSelectedPhoneId] = useState<number | null>(null);
   const [newPhone, setNewPhone] = useState({ name: "", osType: "android" as "android" | "ios", osVersion: "" });
 
   const utils = trpc.useUtils();
@@ -71,6 +72,7 @@ export function VirtualPhones() {
 
   const runningCount = phones.filter((p) => p.status === "online").length;
   const stoppedCount = phones.filter((p) => p.status !== "online").length;
+  const selectedPhone = phones.find((phone) => phone.id === selectedPhoneId) || phones[0];
 
   return (
     <div className="space-y-6 p-6">
@@ -163,6 +165,77 @@ export function VirtualPhones() {
         </Button>
       )}
 
+      {/* Graphical Phone Console */}
+      {selectedPhone && (
+        <Card className="border-cyan-500/30 bg-black/40">
+          <CardContent className="pt-6">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-bold text-cyan-400">Graphical Device Console</h2>
+                <p className="text-sm text-gray-500">{selectedPhone.name} • {selectedPhone.status}</p>
+              </div>
+              <select
+                value={selectedPhone.id}
+                onChange={(e) => setSelectedPhoneId(Number(e.target.value))}
+                className="rounded bg-black/60 border border-cyan-500/30 text-cyan-200 px-3 py-2 text-xs"
+              >
+                {phones.map((phone) => <option key={phone.id} value={phone.id}>{phone.name}</option>)}
+              </select>
+            </div>
+            <div className="flex justify-center">
+              <div className="relative h-[520px] w-[250px] rounded-[2rem] border-[10px] border-zinc-800 bg-zinc-950 shadow-2xl shadow-cyan-950/50">
+                <div className="absolute left-1/2 top-2 h-5 w-24 -translate-x-1/2 rounded-full bg-black" />
+                <div className={`h-full overflow-hidden rounded-[1.35rem] ${selectedPhone.osType === "ios" ? "bg-gradient-to-br from-slate-900 via-indigo-950 to-black" : "bg-gradient-to-br from-emerald-950 via-slate-950 to-black"}`}>
+                  <div className="flex items-center justify-between px-5 pt-8 text-[11px] text-white">
+                    <span>{new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    <div className="flex items-center gap-1">
+                      <Signal className="h-3 w-3" />
+                      <Battery className="h-3 w-3" />
+                    </div>
+                  </div>
+                  {selectedPhone.status !== "online" ? (
+                    <div className="flex h-[430px] flex-col items-center justify-center px-6 text-center text-gray-400">
+                      <Power className="mb-3 h-10 w-10" />
+                      <p className="text-sm font-medium">Device is offline</p>
+                      <p className="mt-1 text-xs">Start it to view the active graphical environment.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-5 pt-8">
+                        <p className="text-xs text-cyan-200">{selectedPhone.osType.toUpperCase()} {selectedPhone.osVersion || ""}</p>
+                        <h3 className="mt-1 truncate text-lg font-bold text-white">{selectedPhone.name}</h3>
+                        <p className="mt-1 truncate text-[11px] text-gray-400">{selectedPhone.ipAddress || "local virtual network"}</p>
+                      </div>
+                      <div className="mt-8 grid grid-cols-3 gap-4 px-6">
+                        {[
+                          { label: "Phone", icon: Phone, color: "bg-green-600" },
+                          { label: "Messages", icon: MessageSquare, color: "bg-blue-600" },
+                          { label: "Camera", icon: Camera, color: "bg-zinc-700" },
+                          { label: "Browser", icon: Globe, color: "bg-cyan-600" },
+                          { label: "MDM", icon: Smartphone, color: "bg-purple-600" },
+                          { label: "Home", icon: Home, color: "bg-orange-600" },
+                        ].map((app) => {
+                          const Icon = app.icon;
+                          return (
+                            <div key={app.label} className="flex flex-col items-center gap-1 text-center">
+                              <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${app.color} shadow-lg`}>
+                                <Icon className="h-5 w-5 text-white" />
+                              </div>
+                              <span className="text-[10px] text-white/80">{app.label}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="absolute bottom-5 left-1/2 h-1 w-24 -translate-x-1/2 rounded-full bg-white/70" />
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Phones List */}
       <Card className="border-cyan-500/30 bg-black/40">
         <CardContent className="pt-6">
@@ -193,7 +266,8 @@ export function VirtualPhones() {
                 return (
                   <div
                     key={phone.id}
-                    className="bg-black/50 border border-cyan-500/20 rounded-lg p-4 hover:border-cyan-500/50 transition-colors"
+                    className={`bg-black/50 border rounded-lg p-4 hover:border-cyan-500/50 transition-colors cursor-pointer ${selectedPhone?.id === phone.id ? "border-cyan-500" : "border-cyan-500/20"}`}
+                    onClick={() => setSelectedPhoneId(phone.id)}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
