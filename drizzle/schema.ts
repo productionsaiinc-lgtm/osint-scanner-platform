@@ -468,6 +468,7 @@ export const mdmPolicies = mysqlTable("mdmPolicies", {
   minPasswordLength: int("minPasswordLength").default(6),
   requireNumeric: int("requireNumeric").default(0), // boolean
   requireSpecialChar: int("requireSpecialChar").default(0), // boolean
+  requireBiometric: int("requireBiometric").default(0), // boolean
   maxPasswordAge: int("maxPasswordAge"), // days
   passwordExpirationWarning: int("passwordExpirationWarning"), // days
   

@@ -134,6 +134,10 @@ export function MDMDashboard() {
     onSuccess: () => { toast.success("App usage logged"); utils.mdm.getAppUsage.invalidate(); },
     onError: (e) => toast.error(e.message),
   });
+  const threatDefenseScanMutation = trpc.mdm.runThreatDefenseScan.useMutation({
+    onSuccess: (d) => { toast.success(`Threat defense scan logged ${d.findings.length} finding(s)`); refetchEvents(); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const unresolvedCount = securityEvents.filter((e: any) => !e.resolved).length;
   const criticalCount = securityEvents.filter((e: any) => e.severity === "critical" && !e.resolved).length;
@@ -807,9 +811,26 @@ export function MDMDashboard() {
 
         {/* ── MOBILE THREAT DEFENSE ── */}
         <TabsContent value="defense" className="space-y-4 mt-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Radio className="w-5 h-5 text-pink-400" /> Mobile Threat Defense
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Radio className="w-5 h-5 text-pink-400" /> Mobile Threat Defense
+            </h2>
+            <Button
+              size="sm"
+              disabled={!selectedDevice || threatDefenseScanMutation.isPending}
+              onClick={() => selectedDevice && threatDefenseScanMutation.mutate({ deviceId: selectedDevice })}
+              className="bg-pink-700 hover:bg-pink-800"
+            >
+              {threatDefenseScanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Shield className="w-4 h-4 mr-1" />}
+              Run MTD Scan
+            </Button>
+          </div>
+
+          {!selectedDevice && (
+            <div className="text-sm text-gray-400 bg-gray-800/50 border border-gray-700 p-3 rounded">
+              Select a device from the <strong className="text-cyan-400">Devices</strong> tab to run mobile threat defense correlation.
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
@@ -904,6 +925,7 @@ function PolicyCreateForm({ onSubmit, isPending, onCancel }: { onSubmit: (d: any
     minPasswordLength: 8,
     requireNumeric: true,
     requireSpecialChar: false,
+    requireBiometric: true,
     enableEncryption: true,
     requireVpn: false,
   });
@@ -933,6 +955,7 @@ function PolicyCreateForm({ onSubmit, isPending, onCancel }: { onSubmit: (d: any
         {([
           ["requireNumeric","Require Numbers"],
           ["requireSpecialChar","Require Special Chars"],
+          ["requireBiometric","Require Biometric"],
           ["enableEncryption","Enforce Encryption"],
           ["requireVpn","Require VPN"],
         ] as [keyof typeof form, string][]).map(([key, label]) => (

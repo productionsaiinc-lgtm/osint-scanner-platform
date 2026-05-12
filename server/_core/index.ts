@@ -11,6 +11,7 @@ import { registerStripeWebhook } from "../stripe-webhook";
 import { registerPayoutWebhook } from "../payout-webhook";
 import { ensureMonitoringTables } from "../migrations/create-monitoring-tables";
 import { ensureMediumPriorityTables } from "../migrations/create-medium-priority-tables";
+import { ensureMdmTables } from "../migrations/create-mdm-tables";
 import { recordCanaryTrigger } from "../canary-trigger-service";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -37,6 +38,7 @@ async function startServer() {
   console.log("[Server] Running database migrations...");
   await ensureMonitoringTables();
   await ensureMediumPriorityTables();
+  await ensureMdmTables();
   
   const app = express();
   const server = createServer(app);

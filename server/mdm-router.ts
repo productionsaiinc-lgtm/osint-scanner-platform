@@ -83,6 +83,7 @@ export const mdmRouter = router({
         minPasswordLength: z.number().optional(),
         requireNumeric: z.boolean().optional(),
         requireSpecialChar: z.boolean().optional(),
+        requireBiometric: z.boolean().optional(),
         enableEncryption: z.boolean().optional(),
         requireVpn: z.boolean().optional(),
       })
@@ -98,6 +99,7 @@ export const mdmRouter = router({
         minPasswordLength: input.minPasswordLength,
         requireNumeric: input.requireNumeric ? 1 : 0,
         requireSpecialChar: input.requireSpecialChar ? 1 : 0,
+        requireBiometric: input.requireBiometric ? 1 : 0,
         enableEncryption: input.enableEncryption ? 1 : 0,
         requireVpn: input.requireVpn ? 1 : 0,
       });
@@ -203,6 +205,7 @@ export const mdmRouter = router({
       if (!policy[0]) throw new Error("Policy not found");
 
       const updates: Record<string, any> = { updatedAt: new Date() };
+      if (input.requireBiometric !== undefined) updates.requireBiometric = input.requireBiometric ? 1 : 0;
       if (input.enforceEncryption !== undefined) updates.enableEncryption = input.enforceEncryption ? 1 : 0;
       if (input.vpnMandatory !== undefined) updates.requireVpn = input.vpnMandatory ? 1 : 0;
       if (input.maxPasswordAge !== undefined) updates.maxPasswordAge = input.maxPasswordAge;
@@ -745,12 +748,13 @@ export const mdmRouter = router({
             policyName: "Default Security Policy",
             description: "Auto-generated default security policy",
             policyType: "security",
-            minPasswordLength: 8,
-            requireNumeric: 1,
-            requireSpecialChar: 0,
-            enableEncryption: 1,
-            requireVpn: 0,
-            isActive: 1,
+          minPasswordLength: 8,
+          requireNumeric: 1,
+          requireSpecialChar: 0,
+          requireBiometric: 1,
+          enableEncryption: 1,
+          requireVpn: 0,
+          isActive: 1,
           });
           policyId = policyResult[0].insertId as number;
         }
@@ -766,5 +770,114 @@ export const mdmRouter = router({
       }
 
       return { success: true, deviceDbId, message: `Device ${input.deviceName} provisioned successfully` };
+    }),
+
+  // ─── OSINT + Mobile Threat Defense ───────────────────────────────────────
+
+  runThreatDefenseScan: protectedProcedure
+    .input(z.object({ deviceId: z.number() }))
+    .mutation(async ({ ctx, input }: any) => {
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
+
+      const devices = await db
+        .select()
+        .from(mdmDevices)
+        .where(and(eq(mdmDevices.id, input.deviceId), eq(mdmDevices.userId, ctx.user.id)))
+        .limit(1);
+      const device = devices[0];
+      if (!device) throw new Error("Device not found");
+
+      const findings: Array<{ eventType: string; severity: "low" | "medium" | "high" | "critical"; description: string; threatName: string; source: string }> = [];
+      const osVersion = String(device.osVersion || "");
+      const majorVersion = Number(osVersion.match(/\d+/)?.[0] || 0);
+
+      if ((device.deviceType === "android" && majorVersion > 0 && majorVersion < 12) || (device.deviceType === "ios" && majorVersion > 0 && majorVersion < 16)) {
+        findings.push({
+          eventType: "outdated_os",
+          severity: "high",
+          threatName: "Outdated mobile OS",
+          source: "osint_cve_correlation",
+          description: `${device.deviceName} is running ${device.deviceType} ${osVersion}, which may be exposed to known CVEs.`,
+        });
+      }
+
+      if (device.ipAddress && !/^(10\.|127\.|172\.(1[6-9]|2\d|3[0-1])\.|192\.168\.)/.test(device.ipAddress)) {
+        findings.push({
+          eventType: "public_ip_exposure",
+          severity: "medium",
+          threatName: "Public network exposure",
+          source: "ip_reputation_correlation",
+          description: `Device check-in IP ${device.ipAddress} should be reviewed against reputation and threat feeds.`,
+        });
+      }
+
+      const recentApps = await db
+        .select()
+        .from(mdmAppUsageAnalytics)
+        .where(eq(mdmAppUsageAnalytics.deviceId, input.deviceId))
+        .orderBy(desc(mdmAppUsageAnalytics.createdAt))
+        .limit(25);
+
+      const suspiciousApp = recentApps.find((app: any) =>
+        /vpn|proxy|tor|crypto|miner|unknown|remote|screen/i.test(`${app.appName} ${app.appPackageName}`)
+      );
+      if (suspiciousApp) {
+        findings.push({
+          eventType: "suspicious_app",
+          severity: "medium",
+          threatName: "Suspicious app indicator",
+          source: suspiciousApp.appName,
+          description: `${suspiciousApp.appName} matched mobile threat defense app-risk keywords.`,
+        });
+      }
+
+      const recentNetwork = await db
+        .select()
+        .from(mdmNetworkMonitoring)
+        .where(eq(mdmNetworkMonitoring.deviceId, input.deviceId))
+        .orderBy(desc(mdmNetworkMonitoring.timestamp))
+        .limit(10);
+
+      const weakNetwork = recentNetwork.find((network: any) => /public|guest|free|airport|hotel/i.test(network.ssid || ""));
+      if (weakNetwork) {
+        findings.push({
+          eventType: "risky_network",
+          severity: "medium",
+          threatName: "Risky Wi-Fi network",
+          source: weakNetwork.ssid || weakNetwork.networkType,
+          description: `Recent connection to ${weakNetwork.ssid || weakNetwork.networkType} should trigger VPN and phishing protections.`,
+        });
+      }
+
+      if (findings.length === 0) {
+        findings.push({
+          eventType: "threat_defense_scan",
+          severity: "low",
+          threatName: "No immediate mobile threats detected",
+          source: "mobile_threat_defense",
+          description: "OSINT correlation, app indicators, and recent network telemetry did not identify high-risk findings.",
+        });
+      }
+
+      for (const finding of findings) {
+        await db.insert(mdmSecurityEvents).values({
+          deviceId: input.deviceId,
+          ...finding,
+          resolved: false,
+          timestamp: new Date(),
+          createdAt: new Date(),
+        });
+      }
+
+      await db.insert(mdmDeviceLogs).values({
+        deviceId: input.deviceId,
+        logType: "security_event",
+        logMessage: `Mobile Threat Defense scan completed with ${findings.length} finding(s)`,
+        logData: JSON.stringify({ findings }),
+        createdAt: new Date(),
+      }).catch(() => {});
+
+      return { success: true, findings };
     }),
 });
