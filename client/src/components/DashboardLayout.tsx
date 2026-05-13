@@ -232,7 +232,7 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["Core"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["Core", "Network & Infrastructure", "Web & Domain Security", "Forensics", "Intelligence & Threat", "Personal & Device", "Visualization & Tools", "Infrastructure & Computing", "Vehicle", "Mobile Device Management", "Account & Billing"]));
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -283,11 +283,10 @@ function DashboardLayoutContent({
   };
 
   return (
-    <SidebarProvider>
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0 md:flex hidden"
+          className="border-r-0 flex"
           disableTransition={isResizing}
         >
           <SidebarHeader className="h-16 justify-center border-b border-neon-pink/30">
@@ -440,5 +439,4 @@ function DashboardLayoutContent({
         </div>
       </SidebarInset>
     </SidebarProvider>
-  );
 }
