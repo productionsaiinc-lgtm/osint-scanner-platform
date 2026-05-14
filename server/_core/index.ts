@@ -13,6 +13,7 @@ import { ensureMonitoringTables } from "../migrations/create-monitoring-tables";
 import { ensureMediumPriorityTables } from "../migrations/create-medium-priority-tables";
 import { ensureMdmTables } from "../migrations/create-mdm-tables";
 import { recordCanaryTrigger } from "../canary-trigger-service";
+import { getSyncStatus, triggerGitHubDeploy, verifyGitHubSignature } from "../github-webhook-handler";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -46,6 +47,70 @@ async function startServer() {
   // CRITICAL: Register webhooks BEFORE express.json() to preserve raw body for signature verification
   registerStripeWebhook(app);
   registerPayoutWebhook(app);
+  app.post("/api/webhooks/github/deploy", express.raw({ type: "application/json", limit: "1mb" }), async (req, res) => {
+    const secret = process.env.GITHUB_WEBHOOK_SECRET;
+    if (!secret) {
+      return res.status(503).json({
+        success: false,
+        error: "GitHub deploy webhook is not configured",
+      });
+    }
+
+    const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from("");
+    const signature = req.get("x-hub-signature-256");
+    if (!verifyGitHubSignature(rawBody, signature, secret)) {
+      return res.status(401).json({
+        success: false,
+        error: "Invalid GitHub webhook signature",
+      });
+    }
+
+    const event = req.get("x-github-event");
+    if (event === "ping") {
+      return res.json({ success: true, message: "GitHub deploy webhook is ready" });
+    }
+
+    if (event !== "push") {
+      return res.status(202).json({
+        success: true,
+        message: `Ignored GitHub ${event || "unknown"} event`,
+      });
+    }
+
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody.toString("utf8"));
+    } catch {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid JSON payload",
+      });
+    }
+
+    const result = triggerGitHubDeploy(payload);
+    return res.status(result.accepted ? 202 : 409).json(result);
+  });
+
+  app.get("/api/webhooks/github/deploy/status", async (_req, res) => {
+    const secret = process.env.GITHUB_WEBHOOK_SECRET;
+    if (!secret) {
+      return res.status(503).json({
+        success: false,
+        error: "GitHub deploy webhook is not configured",
+      });
+    }
+
+    const authHeader = _req.get("authorization") || "";
+    if (authHeader !== `Bearer ${secret}`) {
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized",
+      });
+    }
+
+    const status = await getSyncStatus();
+    return res.json({ success: true, ...status });
+  });
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
