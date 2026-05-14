@@ -1,11 +1,8 @@
+import { useState, useEffect, useRef, CSSProperties } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { getLoginUrl } from "@/const";
+import { useIsMobile } from "@/hooks/useMobile";
 import {
   Sidebar,
   SidebarContent,
@@ -17,17 +14,55 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
-} 
-from "@/components/ui/sidebar";
-import { getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, TrendingUp, Smartphone as PhoneIcon, Link2, FileSearch, Bot } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
+  useSidebar
+} from "@/components/ui/sidebar";
+import {
+  LayoutDashboard,
+  LogOut,
+  PanelLeft,
+  Radar,
+  Globe,
+  Users,
+  History,
+  Map,
+  Info,
+  Download,
+  CreditCard,
+  AlertTriangle,
+  Code2,
+  AlertCircle,
+  Mail,
+  Zap,
+  Wallet,
+  Shield,
+  Cpu,
+  Search,
+  Bell,
+  Smartphone,
+  HardDrive,
+  Network,
+  Lock,
+  Power,
+  Car,
+  Eye,
+  Archive,
+  ChevronDown,
+  Fingerprint,
+  TrendingUp,
+  Smartphone as PhoneIcon,
+  Link2,
+  FileSearch,
+  Bot
+} from "lucide-react";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
-
 
 interface MenuSection {
   section: string;
@@ -132,7 +167,7 @@ const menuSections: MenuSection[] = [
   {
     section: "Mobile Device Management",
     items: [
-      { icon: PhoneIcon, label: "MDM Dashboard", path: "/mdm" },
+      { icon: Smartphone, label: "MDM Dashboard", path: "/mdm" },
     ],
   },
   {
@@ -166,6 +201,7 @@ export default function DashboardLayout({
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
+
   const { loading, user } = useAuth();
 
   useEffect(() => {
@@ -232,7 +268,9 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["Core", "Network & Infrastructure", "Web & Domain Security", "Forensics", "Intelligence & Threat", "Personal & Device", "Visualization & Tools", "Infrastructure & Computing", "Vehicle", "Mobile Device Management", "Account & Billing"]));
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(menuSections.map(s => s.section))
+  );
   const sidebarRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -245,7 +283,6 @@ function DashboardLayoutContent({
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-
       const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
       const newWidth = e.clientX - sidebarLeft;
       if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
@@ -283,10 +320,11 @@ function DashboardLayoutContent({
   };
 
   return (
+    <div className="flex min-h-screen w-full bg-background">
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r-0 flex"
+          className="border-r-0"
           disableTransition={isResizing}
         >
           <SidebarHeader className="h-16 justify-center border-b border-neon-pink/30">
@@ -308,13 +346,11 @@ function DashboardLayoutContent({
               ) : null}
             </div>
           </SidebarHeader>
-
           <SidebarContent className="gap-0 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-2">
               {menuSections.map((section) => {
                 const isExpanded = expandedSections.has(section.section);
                 const isCollapsedSidebar = isCollapsed;
-
                 return (
                   <div key={section.section} className="space-y-1">
                     {!isCollapsedSidebar && (
@@ -328,7 +364,6 @@ function DashboardLayoutContent({
                         />
                       </button>
                     )}
-
                     {isExpanded && (
                       <SidebarMenu className="space-y-1">
                         {section.items.map((item) => {
@@ -361,7 +396,6 @@ function DashboardLayoutContent({
                 );
               })}
             </div>
-
             <div className="border-t border-neon-pink/30 pt-2 pb-2 px-2 flex-shrink-0">
               <SidebarMenu className="space-y-1">
                 {downloadItems.map(item => (
@@ -388,7 +422,6 @@ function DashboardLayoutContent({
               </SidebarMenu>
             </div>
           </SidebarContent>
-
           <SidebarFooter className="p-3 border-t border-neon-pink/30">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -420,14 +453,12 @@ function DashboardLayoutContent({
             </DropdownMenu>
           </SidebarFooter>
         </Sidebar>
-
         {/* Resize handle */}
         <div
           onMouseDown={() => setIsResizing(true)}
           className="absolute right-0 top-0 bottom-0 w-1 hover:w-1.5 hover:bg-neon-cyan/50 cursor-col-resize transition-all group"
         />
       </div>
-
       <SidebarInset>
         <div className="flex flex-col flex-1">
           {/* Mobile hamburger menu */}
@@ -438,5 +469,6 @@ function DashboardLayoutContent({
           {children}
         </div>
       </SidebarInset>
-    </SidebarProvider>
+    </div>
+  );
 }
