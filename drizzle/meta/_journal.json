@@ -85,6 +85,13 @@
       "when": 1777012006252,
       "tag": "0011_vengeful_obadiah_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1779416035110,
+      "tag": "0012_absent_guardsmen",
+      "breakpoints": true
     }
   ]
 }

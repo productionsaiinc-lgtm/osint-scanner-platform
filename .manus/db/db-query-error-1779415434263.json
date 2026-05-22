@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as total_payouts,\n  SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful_payouts,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payouts,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payouts,\n  SUM(CASE WHEN status = 'success' THEN amount ELSE 0 END) as total_paid,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payout_date\nFROM payouts;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 33E1R3Kp9B2eJHc.12a52312b034 --database FfTqerZJz39TgpHyUaW6rb --execute \nSELECT \n  COUNT(*) as total_payouts,\n  SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful_payouts,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payouts,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payouts,\n  SUM(CASE WHEN status = 'success' THEN amount ELSE 0 END) as total_paid,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payout_date\nFROM payouts;\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 2: Table 'fftqerzjz39tgphyuaw6rb.payouts' doesn't exist"
+  ]
+}

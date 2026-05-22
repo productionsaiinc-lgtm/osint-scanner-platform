@@ -1031,3 +1031,131 @@ export const sockPuppetActivity = mysqlTable("sockPuppetActivity", {
 
 export type SockPuppetActivity = typeof sockPuppetActivity.$inferSelect;
 export type InsertSockPuppetActivity = typeof sockPuppetActivity.$inferInsert;
+
+
+/**
+ * CMS Pages - Store editable page content (homepage, pricing, features, etc.)
+ */
+export const cmsPages = mysqlTable("cmsPages", {
+  id: int("id").autoincrement().primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(), // 'home', 'pricing', 'features', 'about', 'contact'
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"), // Meta description for SEO
+  content: text("content"), // Main page content (HTML/Markdown)
+  heroSection: text("heroSection"), // JSON: {title, subtitle, ctaText, ctaLink, backgroundImage}
+  seoKeywords: varchar("seoKeywords", { length: 500 }), // Comma-separated keywords
+  published: int("published").default(1), // boolean as int
+  publishedAt: timestamp("publishedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  updatedBy: int("updatedBy"), // User ID who last edited
+});
+
+export type CmsPage = typeof cmsPages.$inferSelect;
+export type InsertCmsPage = typeof cmsPages.$inferInsert;
+
+/**
+ * CMS Page Sections - Reusable sections within pages
+ */
+export const cmsPageSections = mysqlTable("cmsPageSections", {
+  id: int("id").autoincrement().primaryKey(),
+  pageId: int("pageId").notNull(),
+  sectionType: varchar("sectionType", { length: 50 }).notNull(), // 'hero', 'features', 'pricing', 'testimonials', 'cta', 'faq'
+  title: varchar("title", { length: 255 }),
+  subtitle: varchar("subtitle", { length: 500 }),
+  content: text("content"), // HTML/Markdown content
+  sectionData: text("sectionData"), // JSON: flexible data based on sectionType
+  displayOrder: int("displayOrder").default(0), // Order sections appear on page
+  backgroundColor: varchar("backgroundColor", { length: 7 }), // Hex color
+  textColor: varchar("textColor", { length: 7 }), // Hex color
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CmsPageSection = typeof cmsPageSections.$inferSelect;
+export type InsertCmsPageSection = typeof cmsPageSections.$inferInsert;
+
+/**
+ * CMS Components - Reusable UI components (buttons, cards, etc.)
+ */
+export const cmsComponents = mysqlTable("cmsComponents", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull().unique(), // 'pricing-card', 'feature-box', 'testimonial'
+  componentType: varchar("componentType", { length: 50 }).notNull(), // 'card', 'button', 'badge', 'testimonial', 'feature'
+  description: text("description"),
+  componentData: text("componentData").notNull(), // JSON: component structure and default values
+  cssClass: varchar("cssClass", { length: 500 }), // Tailwind classes
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CmsComponent = typeof cmsComponents.$inferSelect;
+export type InsertCmsComponent = typeof cmsComponents.$inferInsert;
+
+/**
+ * CMS Navigation Menu - Manage site navigation
+ */
+export const cmsNavigationMenus = mysqlTable("cmsNavigationMenus", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(), // 'main', 'footer', 'mobile'
+  menuItems: text("menuItems").notNull(), // JSON array of menu items
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CmsNavigationMenu = typeof cmsNavigationMenus.$inferSelect;
+export type InsertCmsNavigationMenu = typeof cmsNavigationMenus.$inferInsert;
+
+/**
+ * CMS Media/Assets - Store uploaded images and files
+ */
+export const cmsMedia = mysqlTable("cmsMedia", {
+  id: int("id").autoincrement().primaryKey(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileType: varchar("fileType", { length: 50 }).notNull(), // 'image', 'video', 'document'
+  mimeType: varchar("mimeType", { length: 100 }).notNull(), // 'image/png', 'image/jpeg', etc.
+  fileSize: int("fileSize").notNull(), // in bytes
+  s3Url: varchar("s3Url", { length: 500 }).notNull(), // S3 URL
+  s3Key: varchar("s3Key", { length: 500 }).notNull(), // S3 key for deletion
+  uploadedBy: int("uploadedBy").notNull(), // User ID
+  altText: varchar("altText", { length: 500 }), // For images
+  description: text("description"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CmsMedia = typeof cmsMedia.$inferSelect;
+export type InsertCmsMedia = typeof cmsMedia.$inferInsert;
+
+/**
+ * CMS Settings - Global site settings
+ */
+export const cmsSettings = mysqlTable("cmsSettings", {
+  id: int("id").autoincrement().primaryKey(),
+  key: varchar("key", { length: 100 }).notNull().unique(), // 'site_title', 'site_logo', 'footer_text', 'contact_email'
+  value: text("value").notNull(),
+  description: varchar("description", { length: 500 }),
+  settingType: varchar("settingType", { length: 50 }).notNull(), // 'string', 'text', 'number', 'boolean', 'json'
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CmsSetting = typeof cmsSettings.$inferSelect;
+export type InsertCmsSetting = typeof cmsSettings.$inferInsert;
+
+/**
+ * CMS Edit History - Track all page edits for audit trail
+ */
+export const cmsEditHistory = mysqlTable("cmsEditHistory", {
+  id: int("id").autoincrement().primaryKey(),
+  pageId: int("pageId").notNull(),
+  editedBy: int("editedBy").notNull(), // User ID
+  changeType: varchar("changeType", { length: 50 }).notNull(), // 'created', 'updated', 'published', 'deleted'
+  previousContent: text("previousContent"), // Previous version for rollback
+  newContent: text("newContent"), // New version
+  changeDescription: varchar("changeDescription", { length: 500 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CmsEditHistory = typeof cmsEditHistory.$inferSelect;
+export type InsertCmsEditHistory = typeof cmsEditHistory.$inferInsert;

@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: osint-scanner
+    env: node
+    plan: standard
+    buildCommand: pnpm install && pnpm run build
+    startCommand: node dist/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: osint-db
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
+      - key: VITE_APP_ID
+        sync: false
+      - key: OAUTH_SERVER_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: SHODAN_API_KEY
+        sync: false
+      - key: ETHERSCAN_API_KEY
+        sync: false
+
+  - type: pserv
+    name: osint-db
+    plan: standard
+    ipAllowList: []
+    postgresMajorVersion: 15
+
+databases:
+  - name: osint-db
+    databaseName: osint_scanner
+    user: osint_user
+    region: oregon

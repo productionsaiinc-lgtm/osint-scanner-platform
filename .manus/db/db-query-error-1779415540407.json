@@ -1,0 +1,8 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as total_transactions,\n  SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_payments,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,\n  SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_amount,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payment_date\nFROM payments\nWHERE environment = 'sandbox' OR paymentMethod LIKE '%stripe%';\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 33E1R3Kp9B2eJHc.12a52312b034 --database FfTqerZJz39TgpHyUaW6rb --execute \nSELECT \n  COUNT(*) as total_transactions,\n  SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_payments,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,\n  SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_amount,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payment_date\nFROM payments\nWHERE environment = 'sandbox' OR paymentMethod LIKE '%stripe%';\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'environment' in 'where clause'"
+  ]
+}

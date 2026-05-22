@@ -1,0 +1,19 @@
+{
+  "query": "\nSELECT \n  COUNT(*) as total_transactions,\n  SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_payments,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,\n  SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_amount,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payment_date\nFROM payments;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 33E1R3Kp9B2eJHc.12a52312b034 --database FfTqerZJz39TgpHyUaW6rb --execute \nSELECT \n  COUNT(*) as total_transactions,\n  SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as successful_payments,\n  SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed_payments,\n  SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_payments,\n  SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total_amount,\n  SUM(CASE WHEN status = 'pending' THEN amount ELSE 0 END) as pending_amount,\n  MAX(createdAt) as last_payment_date\nFROM payments;\n",
+  "rows": [
+    {
+      "total_transactions": "175",
+      "successful_payments": "148",
+      "failed_payments": "10",
+      "pending_payments": "16",
+      "total_amount": "1608000",
+      "pending_amount": "32000",
+      "last_payment_date": "2026-04-24 07:06:50"
+    }
+  ],
+  "messages": [],
+  "stdout": "total_transactions\tsuccessful_payments\tfailed_payments\tpending_payments\ttotal_amount\tpending_amount\tlast_payment_date\n175\t148\t10\t16\t1608000\t32000\t2026-04-24 07:06:50\n",
+  "stderr": "",
+  "execution_time_ms": 262
+}
