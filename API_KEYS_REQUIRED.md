@@ -16,6 +16,9 @@ The application must not fabricate OSINT results when a live provider is missing
 - `IPQUALITYSCORE_API_KEY` or `IPQS_API_KEY` - IP reputation checks.
 - `AVIATIONSTACK_API_KEY` - Flight tracking.
 - `NUMVERIFY_API_KEY` or `ABSTRACT_PHONE_API_KEY` - Phone carrier/line-type lookup.
+- `LICENSE_PLATE_LOOKUP_API_URL` - Authorized license plate lookup provider endpoint. The app sends `POST { plate, region, country }` and normalizes vehicle-only fields.
+- `LICENSE_PLATE_LOOKUP_API_KEY` - Optional provider credential for the license plate endpoint.
+- `LICENSE_PLATE_LOOKUP_API_KEY_HEADER` - Optional auth header name for the license plate provider. Defaults to `Authorization`; `x-api-key` is also sent when a key is present.
 - `WHOIS_API_KEY` - Optional paid WHOIS provider if public WHOIS/RDAP is insufficient.
 - `NVD_API_KEY` - Optional NVD rate-limit key for CVE searches.
 - `MAXMIND_API_KEY` - Optional MaxMind geolocation key; current IP lookup can use public `ip-api.com`.
@@ -35,7 +38,7 @@ The application must not fabricate OSINT results when a live provider is missing
 ## Provider Required Before Real Data Is Possible
 
 - IMEI device model and blacklist data requires an authorized TAC/GSMA-style provider.
-- Ontario plate ownership/registration requires an authorized DMV/MTO data provider. No public API should be treated as authoritative.
+- Ontario plate ownership/registration requires an authorized DMV/MTO data provider. Without `LICENSE_PLATE_LOOKUP_API_URL`, the tool only validates/classifies plate format and never fabricates vehicle or owner records.
 - Supply-chain analysis requires a vendor/product intelligence provider.
 - Deepfake detection requires a media-forensics provider.
 - Insider-threat scoring requires real audit/access logs from the customer's environment.

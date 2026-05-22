@@ -68,6 +68,12 @@ export interface APIConfig {
     apiKey?: string;
   };
 
+  // Vehicle intelligence
+  licensePlateLookup?: {
+    enabled: boolean;
+    apiKey?: string;
+  };
+
   // Flight tracking
   aviationstack?: {
     enabled: boolean;
@@ -128,6 +134,10 @@ export function loadAPIConfig(): APIConfig {
       enabled: !!process.env.ABSTRACT_PHONE_API_KEY,
       apiKey: process.env.ABSTRACT_PHONE_API_KEY,
     },
+    licensePlateLookup: {
+      enabled: !!process.env.LICENSE_PLATE_LOOKUP_API_URL,
+      apiKey: process.env.LICENSE_PLATE_LOOKUP_API_KEY,
+    },
     aviationstack: {
       enabled: !!process.env.AVIATIONSTACK_API_KEY,
       apiKey: process.env.AVIATIONSTACK_API_KEY,
@@ -154,6 +164,7 @@ export function getAPIStatus(): Record<string, boolean> {
     shodan: config.shodan?.enabled || false,
     numverify: config.numverify?.enabled || false,
     abstractPhone: config.abstractPhone?.enabled || false,
+    licensePlateLookup: config.licensePlateLookup?.enabled || false,
     aviationstack: config.aviationstack?.enabled || false,
     cloudflare: config.cloudflare?.enabled || false,
   };

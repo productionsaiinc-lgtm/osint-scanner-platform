@@ -5,10 +5,38 @@ import { Input } from '@/components/ui/input';
 import { Car, Loader2, AlertCircle } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 
+type PlateLookupResult = {
+  licensePlate: string;
+  province: string;
+  plateType: string;
+  formatConfidence?: string;
+  formatNotes?: string;
+  lookedUpAt: string;
+  providerConfigured?: boolean;
+  realDataAvailable?: boolean;
+  dataScope?: string;
+  source?: string;
+  vinSource?: string;
+  providerReference?: string;
+  make?: string;
+  model?: string;
+  year?: string | number;
+  color?: string;
+  vehicleType?: string;
+  bodyClass?: string;
+  fuelType?: string;
+  registrationStatus?: string;
+  registrationExpiry?: string;
+  insuranceStatus?: string;
+  safetyStatus?: string;
+  emissionsStatus?: string;
+  vin?: string | null;
+};
+
 export default function OntarioLicensePlate() {
   const [licensePlate, setLicensePlate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<PlateLookupResult | null>(null);
   const [error, setError] = useState('');
   const plateLookup = trpc.osintTools.licensePlateLookup.useMutation();
 
@@ -30,7 +58,7 @@ export default function OntarioLicensePlate() {
         setError(response.error || 'Failed to lookup license plate');
         return;
       }
-      setResults(response.data);
+      setResults(response.data as PlateLookupResult);
     } catch (err) {
       setError('Failed to lookup license plate');
     } finally {
@@ -92,9 +120,11 @@ export default function OntarioLicensePlate() {
       {results && (
         <Card className="bg-gray-900 border-green-500/30">
           <CardHeader>
-            <CardTitle className="text-green-400">VEHICLE INFORMATION</CardTitle>
+            <CardTitle className="text-green-400">
+              {results.providerConfigured ? 'VEHICLE INFORMATION' : 'PLATE FORMAT RESULT'}
+            </CardTitle>
             <CardDescription className="text-gray-400">
-              Looked up at {results.lookedUpAt}
+              Looked up at {new Date(results.lookedUpAt).toLocaleString()}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -102,24 +132,41 @@ export default function OntarioLicensePlate() {
               <p className="text-green-400 text-xs font-mono mb-2">LICENSE PLATE</p>
               <p className="text-3xl font-bold text-yellow-300 font-mono tracking-widest">{results.licensePlate}</p>
               <p className="text-green-400 text-xs font-mono mt-2">{results.province} - {results.plateType}</p>
+              {results.formatConfidence && (
+                <p className="text-gray-400 text-xs font-mono mt-1">
+                  Format confidence: {results.formatConfidence.toUpperCase()}
+                </p>
+              )}
             </div>
+
+            {!results.providerConfigured && (
+              <div className="bg-yellow-950/30 p-4 rounded border border-yellow-500/30">
+                <p className="text-yellow-300 text-sm font-semibold mb-2">AUTHORIZED PROVIDER REQUIRED</p>
+                <p className="text-gray-300 text-sm">
+                  {results.dataScope}
+                </p>
+                {results.formatNotes && (
+                  <p className="text-gray-400 text-xs mt-2">{results.formatNotes}</p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-800 p-3 rounded border border-green-500/30">
                 <p className="text-green-400 text-xs font-mono">MAKE</p>
-                <p className="text-lg font-bold text-green-300">{results.make}</p>
+                <p className="text-lg font-bold text-green-300">{results.make || 'Provider required'}</p>
               </div>
               <div className="bg-gray-800 p-3 rounded border border-green-500/30">
                 <p className="text-green-400 text-xs font-mono">MODEL</p>
-                <p className="text-lg font-bold text-green-300">{results.model}</p>
+                <p className="text-lg font-bold text-green-300">{results.model || 'Provider required'}</p>
               </div>
               <div className="bg-gray-800 p-3 rounded border border-green-500/30">
                 <p className="text-green-400 text-xs font-mono">YEAR</p>
-                <p className="text-lg font-bold text-green-300">{results.year}</p>
+                <p className="text-lg font-bold text-green-300">{results.year || 'Provider required'}</p>
               </div>
               <div className="bg-gray-800 p-3 rounded border border-green-500/30">
                 <p className="text-green-400 text-xs font-mono">COLOR</p>
-                <p className="text-lg font-bold text-green-300">{results.color}</p>
+                <p className="text-lg font-bold text-green-300">{results.color || 'Provider required'}</p>
               </div>
             </div>
 
@@ -128,34 +175,73 @@ export default function OntarioLicensePlate() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Vehicle Type:</span>
-                  <span className="text-yellow-300">{results.vehicleType}</span>
+                  <span className="text-yellow-300">{results.vehicleType || 'Provider required'}</span>
                 </div>
+                {results.bodyClass && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-cyan-400">Body Class:</span>
+                    <span className="text-yellow-300">{results.bodyClass}</span>
+                  </div>
+                )}
+                {results.fuelType && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-cyan-400">Fuel Type:</span>
+                    <span className="text-yellow-300">{results.fuelType}</span>
+                  </div>
+                )}
+                {results.vin && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-cyan-400">VIN:</span>
+                    <span className="text-yellow-300">{results.vin}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Registration Status:</span>
                   <span className={results.registrationStatus === 'Active' ? 'text-green-300' : 'text-red-300'}>
-                    {results.registrationStatus}
+                    {results.registrationStatus || 'Provider required'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Registration Expiry:</span>
-                  <span className="text-yellow-300">{results.registrationExpiry}</span>
+                  <span className="text-yellow-300">{results.registrationExpiry || 'Provider required'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-cyan-400">Owner Type:</span>
-                  <span className="text-yellow-300">{results.ownerType}</span>
+                  <span className="text-cyan-400">Data Scope:</span>
+                  <span className="text-yellow-300 text-right">{results.dataScope || 'Vehicle data only'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Insurance Status:</span>
-                  <span className="text-green-300">{results.insuranceStatus}</span>
+                  <span className="text-green-300">{results.insuranceStatus || 'Provider required'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Safety Status:</span>
-                  <span className="text-green-300">{results.safetyStatus}</span>
+                  <span className="text-green-300">{results.safetyStatus || 'Provider required'}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-cyan-400">Emissions Status:</span>
-                  <span className="text-green-300">{results.emissionsStatus}</span>
+                  <span className="text-green-300">{results.emissionsStatus || 'Provider required'}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-cyan-400">Source:</span>
+                  <span className="text-yellow-300 text-right">{results.source}</span>
+                </div>
+                {results.vinSource && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-cyan-400">VIN Source:</span>
+                    <span className="text-yellow-300 text-right">{results.vinSource}</span>
+                  </div>
+                )}
+                {results.providerReference && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-cyan-400">Provider Reference:</span>
+                    <span className="text-yellow-300 text-right">{results.providerReference}</span>
+                  </div>
+                )}
+                {results.formatNotes && (
+                  <div className="pt-2 text-xs text-gray-400">
+                    {results.formatNotes}
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>

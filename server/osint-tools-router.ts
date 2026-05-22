@@ -193,6 +193,188 @@ const flightTrackerProcedure = protectedProcedure
     return await trackFlightReal(input.flightNumber);
   });
 
+function classifyOntarioPlate(plate: string) {
+  if (/^[A-Z]{4}[0-9]{3}$/.test(plate)) {
+    return {
+      plateType: "Ontario passenger",
+      confidence: "high",
+      formatNotes: "Current common Ontario passenger plate pattern.",
+    };
+  }
+
+  if (/^[0-9]{3}[A-Z]{3}$/.test(plate)) {
+    return {
+      plateType: "Ontario legacy passenger",
+      confidence: "medium",
+      formatNotes: "Older Ontario passenger plate pattern.",
+    };
+  }
+
+  if (/^[A-Z0-9]{2,8}$/.test(plate)) {
+    return {
+      plateType: "Ontario personalized or specialty",
+      confidence: "medium",
+      formatNotes: "Valid Ontario plate length and character set; exact class requires an authorized provider.",
+    };
+  }
+
+  return {
+    plateType: "Unknown",
+    confidence: "low",
+    formatNotes: "Plate does not match supported Ontario format rules.",
+  };
+}
+
+function firstDefined(...values: any[]) {
+  return values.find((value) => value !== undefined && value !== null && value !== "");
+}
+
+function maskVin(vin?: string) {
+  if (!vin || vin.length < 8) return vin || null;
+  return `${vin.slice(0, 3)}${"*".repeat(Math.max(vin.length - 7, 4))}${vin.slice(-4)}`;
+}
+
+async function decodeVinPublic(vin?: string) {
+  if (!vin || !/^[A-HJ-NPR-Z0-9]{17}$/i.test(vin)) return null;
+
+  try {
+    const response = await axios.get(
+      `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${encodeURIComponent(vin)}?format=json`,
+      { timeout: 12000 }
+    );
+    const decoded = response.data?.Results?.[0];
+    if (!decoded) return null;
+
+    return {
+      make: firstDefined(decoded.Make, decoded.Manufacturer),
+      model: decoded.Model || undefined,
+      year: decoded.ModelYear || undefined,
+      vehicleType: decoded.VehicleType || undefined,
+      bodyClass: decoded.BodyClass || undefined,
+      fuelType: firstDefined(decoded.FuelTypePrimary, decoded.FuelTypeSecondary),
+      source: "NHTSA vPIC VIN Decoder",
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function lookupPlateWithProvider(plate: string, region: string) {
+  const providerUrl = process.env.LICENSE_PLATE_LOOKUP_API_URL;
+  if (!providerUrl) return null;
+
+  const apiKey = process.env.LICENSE_PLATE_LOOKUP_API_KEY;
+  const apiKeyHeader = process.env.LICENSE_PLATE_LOOKUP_API_KEY_HEADER || "Authorization";
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+
+  if (apiKey) {
+    headers[apiKeyHeader] = apiKeyHeader.toLowerCase() === "authorization" ? `Bearer ${apiKey}` : apiKey;
+    headers["x-api-key"] = apiKey;
+  }
+
+  const response = await axios.post(
+    providerUrl,
+    { plate, region, country: "CA" },
+    { headers, timeout: 12000, validateStatus: (status) => status >= 200 && status < 500 }
+  );
+
+  if (response.status >= 400) {
+    return {
+      success: false,
+      error: response.data?.error || response.data?.message || `Provider returned HTTP ${response.status}`,
+      source: "Configured license plate provider",
+    };
+  }
+
+  const payload = response.data?.data || response.data || {};
+  const vehicle = payload.vehicle || payload.result || payload;
+  const vin = firstDefined(vehicle.vin, vehicle.VIN, payload.vin);
+  const vinDecoded = await decodeVinPublic(vin);
+
+  return {
+    success: true,
+    data: {
+      make: firstDefined(vehicle.make, vehicle.Make, vinDecoded?.make),
+      model: firstDefined(vehicle.model, vehicle.Model, vinDecoded?.model),
+      year: firstDefined(vehicle.year, vehicle.modelYear, vehicle.ModelYear, vinDecoded?.year),
+      color: firstDefined(vehicle.color, vehicle.colour),
+      vehicleType: firstDefined(vehicle.vehicleType, vehicle.type, vinDecoded?.vehicleType),
+      bodyClass: firstDefined(vehicle.bodyClass, vinDecoded?.bodyClass),
+      fuelType: firstDefined(vehicle.fuelType, vinDecoded?.fuelType),
+      registrationStatus: firstDefined(vehicle.registrationStatus, vehicle.status),
+      registrationExpiry: firstDefined(vehicle.registrationExpiry, vehicle.expiryDate),
+      insuranceStatus: firstDefined(vehicle.insuranceStatus, vehicle.insurance),
+      safetyStatus: firstDefined(vehicle.safetyStatus, vehicle.safety),
+      emissionsStatus: firstDefined(vehicle.emissionsStatus, vehicle.emissions),
+      vin: maskVin(vin),
+      source: firstDefined(payload.source, response.data?.source, "Configured license plate provider"),
+      vinSource: vinDecoded?.source,
+      providerReference: firstDefined(payload.reference, payload.id, vehicle.reference),
+    },
+  };
+}
+
+const licensePlateLookupProcedure = protectedProcedure
+  .input(z.object({ plate: z.string().min(2), region: z.string().default("Ontario") }))
+  .mutation(async ({ input }) => {
+    const cleaned = input.plate.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (!/^[A-Z0-9]{2,8}$/.test(cleaned)) {
+      return { success: false, error: "Invalid license plate format." };
+    }
+
+    const classification = classifyOntarioPlate(cleaned);
+
+    try {
+      const providerResult = await lookupPlateWithProvider(cleaned, input.region);
+      if (providerResult?.success === false) {
+        return providerResult;
+      }
+
+      if (providerResult?.success) {
+        return {
+          success: true,
+          data: {
+            licensePlate: cleaned,
+            province: input.region,
+            plateType: classification.plateType,
+            formatConfidence: classification.confidence,
+            formatNotes: classification.formatNotes,
+            lookedUpAt: new Date().toISOString(),
+            providerConfigured: true,
+            dataScope: "Vehicle data only. Owner personal information is not returned.",
+            ...providerResult.data,
+          },
+        };
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message || "Configured license plate provider lookup failed.",
+        providerConfigured: true,
+      };
+    }
+
+    return {
+      success: true,
+      needsProvider: true,
+      data: {
+        licensePlate: cleaned,
+        province: input.region,
+        plateType: classification.plateType,
+        formatConfidence: classification.confidence,
+        formatNotes: classification.formatNotes,
+        lookedUpAt: new Date().toISOString(),
+        providerConfigured: false,
+        realDataAvailable: false,
+        dataScope: "Validated plate format only. Vehicle registration data requires an authorized provider.",
+        source: "Local Ontario plate format validation",
+      },
+    };
+  });
+
 // Supply Chain Analyzer
 const supplyChainAnalyzerProcedure = protectedProcedure
   .input(z.object({ productId: z.string().min(1) }))
@@ -431,6 +613,7 @@ export const osintToolsRouter = router({
   passwordCracker: passwordCrackerProcedure,
   iotScanner: iotScannerProcedure,
   flightTracker: flightTrackerProcedure,
+  licensePlateLookup: licensePlateLookupProcedure,
   supplyChainAnalyzer: supplyChainAnalyzerProcedure,
   deepfakeDetector: deepfakeDetectorProcedure,
   insiderThreat: insiderThreatProcedure,
