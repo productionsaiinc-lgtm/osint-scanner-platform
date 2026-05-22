@@ -1,3 +1,5 @@
+import axios from "axios";
+
 /**
  * Metadata Extractor Service
  * Extracts metadata from images, documents, and other files
@@ -62,33 +64,20 @@ export interface AudioMetadata extends FileMetadata {
 export async function extractImageMetadata(imageUrl: string): Promise<ImageMetadata> {
   try {
     const filename = imageUrl.split('/').pop() || 'image.jpg';
-    const hasGPS = Math.random() > 0.6;
-    const hasCamera = Math.random() > 0.4;
+    const head = await fetchHead(imageUrl);
 
     return {
       filename,
-      filesize: Math.floor(Math.random() * 5000000) + 100000,
-      filetype: 'JPEG',
-      created_date: new Date(Date.now() - Math.random() * 31536000000).toISOString(),
-      modified_date: new Date(Date.now() - Math.random() * 2592000000).toISOString(),
+      filesize: head.size,
+      filetype: filename.split('.').pop()?.toUpperCase() || 'IMAGE',
+      created_date: head.lastModified,
+      modified_date: head.lastModified,
       accessed_date: new Date().toISOString(),
-      mime_type: 'image/jpeg',
-      width: Math.floor(Math.random() * 4000) + 800,
-      height: Math.floor(Math.random() * 4000) + 600,
-      dpi: 72,
-      color_space: 'RGB',
-      camera_make: hasCamera ? 'Canon' : undefined,
-      camera_model: hasCamera ? 'Canon EOS 5D Mark IV' : undefined,
-      lens_model: hasCamera ? 'Canon EF 24-70mm f/2.8L II USM' : undefined,
-      focal_length: hasCamera ? '50mm' : undefined,
-      iso: hasCamera ? Math.floor(Math.random() * 6400) + 100 : undefined,
-      shutter_speed: hasCamera ? '1/125' : undefined,
-      aperture: hasCamera ? 'f/2.8' : undefined,
-      gps_latitude: hasGPS ? Math.random() * 180 - 90 : undefined,
-      gps_longitude: hasGPS ? Math.random() * 360 - 180 : undefined,
-      gps_altitude: hasGPS ? Math.floor(Math.random() * 3000) : undefined,
-      gps_timestamp: hasGPS ? new Date().toISOString() : undefined,
-      software: 'Adobe Photoshop CC 2024',
+      mime_type: head.mimeType,
+      width: 0,
+      height: 0,
+      dpi: 0,
+      color_space: 'Unknown',
     };
   } catch (error) {
     throw new Error(`Image metadata extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -102,24 +91,16 @@ export async function extractDocumentMetadata(documentUrl: string): Promise<Docu
   try {
     const filename = documentUrl.split('/').pop() || 'document.pdf';
     const fileType = filename.split('.').pop()?.toUpperCase() || 'PDF';
+    const head = await fetchHead(documentUrl);
 
     return {
       filename,
-      filesize: Math.floor(Math.random() * 50000000) + 100000,
+      filesize: head.size,
       filetype: fileType,
-      created_date: new Date(Date.now() - Math.random() * 31536000000).toISOString(),
-      modified_date: new Date(Date.now() - Math.random() * 2592000000).toISOString(),
+      created_date: head.lastModified,
+      modified_date: head.lastModified,
       accessed_date: new Date().toISOString(),
-      mime_type: getMimeType(fileType),
-      title: 'Confidential Document',
-      author: 'John Smith',
-      subject: 'Security Analysis Report',
-      keywords: ['security', 'analysis', 'report', 'confidential'],
-      creator_tool: 'Microsoft Word 2024',
-      pages: Math.floor(Math.random() * 100) + 10,
-      language: 'en-US',
-      last_modified_by: 'Jane Doe',
-      comments: 'This is a sensitive document',
+      mime_type: head.mimeType || getMimeType(fileType),
     };
   } catch (error) {
     throw new Error(`Document metadata extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -132,28 +113,38 @@ export async function extractDocumentMetadata(documentUrl: string): Promise<Docu
 export async function extractAudioMetadata(audioUrl: string): Promise<AudioMetadata> {
   try {
     const filename = audioUrl.split('/').pop() || 'audio.mp3';
+    const head = await fetchHead(audioUrl);
 
     return {
       filename,
-      filesize: Math.floor(Math.random() * 100000000) + 1000000,
-      filetype: 'MP3',
-      created_date: new Date(Date.now() - Math.random() * 31536000000).toISOString(),
-      modified_date: new Date(Date.now() - Math.random() * 2592000000).toISOString(),
+      filesize: head.size,
+      filetype: filename.split('.').pop()?.toUpperCase() || 'AUDIO',
+      created_date: head.lastModified,
+      modified_date: head.lastModified,
       accessed_date: new Date().toISOString(),
-      mime_type: 'audio/mpeg',
-      title: 'Sample Audio Track',
-      artist: 'Artist Name',
-      album: 'Album Name',
-      duration: Math.floor(Math.random() * 600) + 60,
-      bitrate: 320,
-      sample_rate: 44100,
-      channels: 2,
-      genre: 'Electronic',
-      year: 2024,
+      mime_type: head.mimeType,
+      duration: 0,
+      bitrate: 0,
+      sample_rate: 0,
+      channels: 0,
     };
   } catch (error) {
     throw new Error(`Audio metadata extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+async function fetchHead(url: string) {
+  const response = await axios.head(url, {
+    timeout: 10000,
+    maxRedirects: 5,
+    validateStatus: () => true,
+    headers: { "User-Agent": "OSINT-Scanner-Platform/1.0" },
+  });
+  return {
+    size: Number(response.headers["content-length"] || 0),
+    mimeType: String(response.headers["content-type"] || "application/octet-stream").split(";")[0],
+    lastModified: response.headers["last-modified"] ? new Date(String(response.headers["last-modified"])).toISOString() : new Date().toISOString(),
+  };
 }
 
 /**
@@ -240,22 +231,14 @@ export async function stripMetadata(fileUrl: string): Promise<{
   success: boolean;
 }> {
   const filename = fileUrl.split('/').pop() || 'file';
-  const originalSize = Math.floor(Math.random() * 50000000) + 100000;
-  const strippedSize = Math.floor(originalSize * 0.85);
+  const head = await fetchHead(fileUrl);
 
   return {
     filename,
-    original_size: originalSize,
-    stripped_size: strippedSize,
-    fields_removed: [
-      'EXIF Data',
-      'Author Information',
-      'Creation Date',
-      'GPS Coordinates',
-      'Camera Information',
-      'Software Information',
-    ],
-    success: true,
+    original_size: head.size,
+    stripped_size: head.size,
+    fields_removed: [],
+    success: false,
   };
 }
 
@@ -272,22 +255,10 @@ export async function compareMetadata(
   }>;
   potential_correlation: number;
 }> {
-  const commonFields = ['created_date', 'author', 'software'];
-  const differences = [
-    {
-      field: 'camera_model',
-      values: ['Canon EOS 5D', 'Nikon D850'],
-    },
-    {
-      field: 'gps_location',
-      values: ['37.7749, -122.4194', '40.7128, -74.0060'],
-    },
-  ];
-
   return {
-    common_fields: commonFields,
-    differences,
-    potential_correlation: Math.random() * 100,
+    common_fields: [],
+    differences: files.map((file) => ({ field: 'source_url', values: [file] })),
+    potential_correlation: 0,
   };
 }
 
@@ -299,21 +270,12 @@ export async function getMetadataTimeline(fileUrl: string): Promise<Array<{
   event: string;
   details: string;
 }>> {
+  const head = await fetchHead(fileUrl);
   return [
     {
-      timestamp: new Date(Date.now() - 86400000).toISOString(),
-      event: 'File Created',
-      details: 'Original file creation',
-    },
-    {
-      timestamp: new Date(Date.now() - 43200000).toISOString(),
-      event: 'File Modified',
-      details: 'Content updated',
-    },
-    {
-      timestamp: new Date(Date.now() - 3600000).toISOString(),
-      event: 'File Accessed',
-      details: 'File opened for viewing',
+      timestamp: head.lastModified,
+      event: 'Last Modified',
+      details: 'Last-Modified response header when provided by source server',
     },
     {
       timestamp: new Date().toISOString(),

@@ -146,7 +146,7 @@ export async function getRecommendedVPNProviders(useCase: string): Promise<VPNPr
 }
 
 /**
- * Get current user's IP address (simulated)
+ * Get current user's IP address when a real IP intelligence provider is configured.
  */
 export async function getCurrentUserIP(): Promise<{
   ip: string;
@@ -155,13 +155,11 @@ export async function getCurrentUserIP(): Promise<{
   isp: string;
   isVPN: boolean;
 }> {
-  // In production, use a real IP geolocation service
-  // For now, return simulated data
   return {
-    ip: "203.0.113.42",
-    country: "United States",
-    city: "New York",
-    isp: "Verizon Communications",
+    ip: "",
+    country: "",
+    city: "",
+    isp: "Provider not configured",
     isVPN: false,
   };
 }
@@ -174,11 +172,9 @@ export async function checkVPNStatus(ip: string): Promise<{
   provider?: string;
   confidence: number;
 }> {
-  // In production, use a real VPN detection service
-  // For now, return simulated data
   return {
     isVPN: false,
-    confidence: 0.95,
+    confidence: 0,
   };
 }
 
@@ -190,15 +186,10 @@ export async function getVPNConnectionSpeed(providerId: string): Promise<{
   upload: number; // Mbps
   ping: number; // ms
 }> {
-  // In production, perform actual speed tests
-  // For now, return simulated data based on provider
-  const baseSpeed = 100;
-  const variance = Math.random() * 20 - 10;
-
   return {
-    download: baseSpeed + variance,
-    upload: baseSpeed * 0.8 + variance,
-    ping: 20 + Math.random() * 30,
+    download: 0,
+    upload: 0,
+    ping: 0,
   };
 }
 

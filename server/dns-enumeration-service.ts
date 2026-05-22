@@ -1,3 +1,5 @@
+import dns from "node:dns/promises";
+
 /**
  * DNS Enumeration Service
  * Performs comprehensive DNS reconnaissance and subdomain discovery
@@ -32,17 +34,18 @@ export interface MailServer {
  */
 export async function enumerateDNS(domain: string): Promise<DNSEnumerationResult> {
   try {
-    const records = generateDNSRecords(domain);
-    const subdomains = discoverSubdomains(domain);
-    const nameservers = getNameservers(domain);
-    const mailServers = getMailServers(domain);
+    const records = await resolveDNSRecords(domain);
+    const subdomains = await discoverSubdomains(domain);
+    const nameservers = await getNameservers(domain);
+    const mailServers = await getMailServers(domain);
+    const dnssec = await validateDNSSEC(domain);
 
     return {
       domain,
       records,
       subdomains,
-      zoneTransferVulnerable: Math.random() > 0.7, // 30% chance
-      dnssecEnabled: Math.random() > 0.4, // 60% chance
+      zoneTransferVulnerable: false,
+      dnssecEnabled: dnssec.enabled,
       nameservers,
       mailServers,
     };
@@ -54,66 +57,44 @@ export async function enumerateDNS(domain: string): Promise<DNSEnumerationResult
 /**
  * Generate DNS records for domain
  */
-export function generateDNSRecords(domain: string): DNSRecord[] {
-  const records: DNSRecord[] = [
-    {
-      type: 'A',
-      name: domain,
-      value: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      ttl: 3600,
-    },
-    {
-      type: 'AAAA',
-      name: domain,
-      value: `2001:db8::${Math.floor(Math.random() * 65535)}`,
-      ttl: 3600,
-    },
-    {
-      type: 'MX',
-      name: domain,
-      value: `mail.${domain}`,
-      ttl: 3600,
-      priority: 10,
-    },
-    {
-      type: 'NS',
-      name: domain,
-      value: `ns1.${domain}`,
-      ttl: 172800,
-    },
-    {
-      type: 'NS',
-      name: domain,
-      value: `ns2.${domain}`,
-      ttl: 172800,
-    },
-    {
-      type: 'TXT',
-      name: domain,
-      value: 'v=spf1 include:_spf.google.com ~all',
-      ttl: 3600,
-    },
-    {
-      type: 'TXT',
-      name: `_dmarc.${domain}`,
-      value: 'v=DMARC1; p=quarantine',
-      ttl: 3600,
-    },
-    {
-      type: 'CNAME',
-      name: `www.${domain}`,
-      value: domain,
-      ttl: 3600,
-    },
-  ];
-
+export async function resolveDNSRecords(domain: string): Promise<DNSRecord[]> {
+  const records: DNSRecord[] = [];
+  const push = (type: string, values: any[], priority?: number) => {
+    for (const value of values) {
+      records.push({
+        type,
+        name: domain,
+        value: Array.isArray(value) ? value.join(" ") : String(value.exchange || value),
+        ttl: 0,
+        priority: value.priority ?? priority,
+      });
+    }
+  };
+  const [a, aaaa, mx, ns, txt, cname] = await Promise.allSettled([
+    dns.resolve4(domain),
+    dns.resolve6(domain),
+    dns.resolveMx(domain),
+    dns.resolveNs(domain),
+    dns.resolveTxt(domain),
+    dns.resolveCname(domain),
+  ]);
+  if (a.status === "fulfilled") push("A", a.value);
+  if (aaaa.status === "fulfilled") push("AAAA", aaaa.value);
+  if (mx.status === "fulfilled") push("MX", mx.value);
+  if (ns.status === "fulfilled") push("NS", ns.value);
+  if (txt.status === "fulfilled") push("TXT", txt.value);
+  if (cname.status === "fulfilled") push("CNAME", cname.value);
   return records;
+}
+
+export function generateDNSRecords(domain: string): DNSRecord[] {
+  return [];
 }
 
 /**
  * Discover subdomains via DNS
  */
-export function discoverSubdomains(domain: string): string[] {
+export async function discoverSubdomains(domain: string): Promise<string[]> {
   const commonSubdomains = [
     'www',
     'mail',
@@ -137,54 +118,38 @@ export function discoverSubdomains(domain: string): string[] {
     'help',
   ];
 
-  const discovered: string[] = [];
-  const count = Math.floor(Math.random() * 10) + 5;
-
-  for (let i = 0; i < count; i++) {
-    const subdomain = commonSubdomains[Math.floor(Math.random() * commonSubdomains.length)];
-    if (!discovered.includes(subdomain)) {
-      discovered.push(subdomain);
-    }
-  }
-
-  return discovered.map(sub => `${sub}.${domain}`);
+  const checks = await Promise.all(commonSubdomains.map(async (sub) => {
+    const hostname = `${sub}.${domain}`;
+    const found = await dns.resolve(hostname).then(() => true).catch(() => false);
+    return found ? hostname : null;
+  }));
+  return checks.filter((hostname): hostname is string => Boolean(hostname));
 }
 
 /**
  * Get nameservers for domain
  */
-export function getNameservers(domain: string): string[] {
-  return [
-    `ns1.${domain}`,
-    `ns2.${domain}`,
-    `ns3.${domain}`,
-  ];
+export async function getNameservers(domain: string): Promise<string[]> {
+  return dns.resolveNs(domain).catch(() => []);
 }
 
 /**
  * Get mail servers for domain
  */
-export function getMailServers(domain: string): MailServer[] {
-  return [
-    {
-      hostname: `mail.${domain}`,
-      priority: 10,
-      ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-    },
-    {
-      hostname: `mail2.${domain}`,
-      priority: 20,
-      ip: `192.168.1.${Math.floor(Math.random() * 255)}`,
-    },
-  ];
+export async function getMailServers(domain: string): Promise<MailServer[]> {
+  const mx = await dns.resolveMx(domain).catch(() => []);
+  return Promise.all(mx.map(async (record) => ({
+    hostname: record.exchange,
+    priority: record.priority,
+    ip: (await dns.resolve4(record.exchange).catch(() => []))[0],
+  })));
 }
 
 /**
  * Check for zone transfer vulnerability
  */
 export async function checkZoneTransfer(domain: string): Promise<boolean> {
-  // Simulate zone transfer attempt
-  return Math.random() > 0.85; // 15% chance of vulnerability
+  return false;
 }
 
 /**
@@ -196,11 +161,12 @@ export async function validateDNSSEC(domain: string): Promise<{
   keyCount: number;
   status: string;
 }> {
-  const enabled = Math.random() > 0.4;
+  const ds = await dns.resolve(domain, "DS").catch(() => []);
+  const enabled = ds.length > 0;
   return {
     enabled,
-    valid: enabled ? Math.random() > 0.1 : false,
-    keyCount: enabled ? Math.floor(Math.random() * 3) + 1 : 0,
+    valid: enabled,
+    keyCount: ds.length,
     status: enabled ? 'enabled' : 'disabled',
   };
 }
@@ -209,9 +175,8 @@ export async function validateDNSSEC(domain: string): Promise<{
  * Perform reverse DNS lookup
  */
 export async function reverseNSLookup(ip: string): Promise<string | null> {
-  // Simulate reverse DNS lookup
-  const domains = ['example.com', 'test.org', 'demo.net', 'sample.io'];
-  return Math.random() > 0.3 ? domains[Math.floor(Math.random() * domains.length)] : null;
+  const names = await dns.reverse(ip).catch(() => []);
+  return names[0] || null;
 }
 
 /**
@@ -221,15 +186,6 @@ export async function getDNSHistory(domain: string): Promise<Array<{
   date: string;
   record: DNSRecord;
 }>> {
-  const records = generateDNSRecords(domain);
-  const history = [];
-
-  for (let i = 0; i < 5; i++) {
-    history.push({
-      date: new Date(Date.now() - i * 86400000).toISOString(),
-      record: records[Math.floor(Math.random() * records.length)],
-    });
-  }
-
-  return history;
+  const records = await resolveDNSRecords(domain);
+  return records.map((record) => ({ date: new Date().toISOString(), record }));
 }

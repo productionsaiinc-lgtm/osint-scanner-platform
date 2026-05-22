@@ -57,6 +57,23 @@ export interface APIConfig {
     apiKey?: string;
   };
 
+  // Phone intelligence
+  numverify?: {
+    enabled: boolean;
+    apiKey?: string;
+  };
+
+  abstractPhone?: {
+    enabled: boolean;
+    apiKey?: string;
+  };
+
+  // Flight tracking
+  aviationstack?: {
+    enabled: boolean;
+    apiKey?: string;
+  };
+
   // DNS
   cloudflare?: {
     enabled: boolean;
@@ -80,8 +97,8 @@ export function loadAPIConfig(): APIConfig {
       apiKey: process.env.NVD_API_KEY,
     },
     ipQualityScore: {
-      enabled: !!process.env.IPQS_API_KEY,
-      apiKey: process.env.IPQS_API_KEY,
+      enabled: !!(process.env.IPQUALITYSCORE_API_KEY || process.env.IPQS_API_KEY),
+      apiKey: process.env.IPQUALITYSCORE_API_KEY || process.env.IPQS_API_KEY,
     },
     whois: {
       enabled: !!process.env.WHOIS_API_KEY,
@@ -103,6 +120,18 @@ export function loadAPIConfig(): APIConfig {
       enabled: !!process.env.SHODAN_API_KEY,
       apiKey: process.env.SHODAN_API_KEY,
     },
+    numverify: {
+      enabled: !!process.env.NUMVERIFY_API_KEY,
+      apiKey: process.env.NUMVERIFY_API_KEY,
+    },
+    abstractPhone: {
+      enabled: !!process.env.ABSTRACT_PHONE_API_KEY,
+      apiKey: process.env.ABSTRACT_PHONE_API_KEY,
+    },
+    aviationstack: {
+      enabled: !!process.env.AVIATIONSTACK_API_KEY,
+      apiKey: process.env.AVIATIONSTACK_API_KEY,
+    },
     cloudflare: {
       enabled: !!process.env.CLOUDFLARE_API_KEY,
       apiKey: process.env.CLOUDFLARE_API_KEY,
@@ -123,6 +152,9 @@ export function getAPIStatus(): Record<string, boolean> {
     hunter: config.hunter?.enabled || false,
     virustotal: config.virustotal?.enabled || false,
     shodan: config.shodan?.enabled || false,
+    numverify: config.numverify?.enabled || false,
+    abstractPhone: config.abstractPhone?.enabled || false,
+    aviationstack: config.aviationstack?.enabled || false,
     cloudflare: config.cloudflare?.enabled || false,
   };
 }

@@ -70,10 +70,10 @@ export async function connectVPN(providerId: string, serverLocation: string, pro
   // Update connection status
   connection.status = "connected";
   connection.connectedAt = new Date();
-  connection.ipAddress = generateVPNIP();
-  connection.downloadSpeed = 85 + Math.random() * 20;
-  connection.uploadSpeed = 70 + Math.random() * 15;
-  connection.ping = 15 + Math.random() * 25;
+  connection.ipAddress = "0.0.0.0";
+  connection.downloadSpeed = 0;
+  connection.uploadSpeed = 0;
+  connection.ping = 0;
 
   currentConnection = connection;
 
@@ -162,30 +162,10 @@ export async function checkForLeaks(): Promise<{
     };
   }
 
-  // Simulate leak detection
-  const leakChance = Math.random();
-
-  if (leakChance < 0.05) {
-    // 5% chance of detecting a leak
-    currentConnection.leakDetected = true;
-    await logConnection(
-      currentConnection.providerId,
-      "leak_detected",
-      "DNS leak detected - enable kill switch",
-      "warning"
-    );
-
-    return {
-      hasLeak: true,
-      leakType: "DNS",
-      details: "DNS leak detected. Your DNS queries may be visible.",
-    };
-  }
-
   currentConnection.leakDetected = false;
   return {
     hasLeak: false,
-    details: "No leaks detected - your connection is secure",
+    details: "Leak provider not configured. No simulated leak data returned.",
   };
 }
 
@@ -271,10 +251,10 @@ async function logConnection(
 }
 
 /**
- * Generate random VPN IP address
+ * VPN IP address is only available from a real VPN provider integration.
  */
 function generateVPNIP(): string {
-  return `${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}.${Math.floor(Math.random() * 256)}`;
+  return "0.0.0.0";
 }
 
 /**

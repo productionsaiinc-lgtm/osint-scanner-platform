@@ -1,3 +1,5 @@
+import axios from "axios";
+
 /**
  * Web Application Firewall (WAF) Detection Service
  * Identifies and analyzes WAF protection on web applications
@@ -26,13 +28,20 @@ export interface WAFIndicator {
  */
 export async function detectWAF(domain: string): Promise<WAFDetectionResult> {
   try {
-    const indicators = generateWAFIndicators(domain);
+    const normalized = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+    const response = await axios.get(`https://${normalized}`, {
+      timeout: 10000,
+      maxRedirects: 5,
+      validateStatus: () => true,
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; OSINTScanner/2.0)" },
+    });
+    const indicators = generateWAFIndicators(normalized, response.headers, response.status);
     const wafDetected = indicators.some(ind => ind.detected);
     const wafType = identifyWAFType(indicators);
     const confidence = calculateConfidence(indicators);
 
     return {
-      domain,
+      domain: normalized,
       wafDetected,
       wafType,
       confidence,
@@ -49,49 +58,41 @@ export async function detectWAF(domain: string): Promise<WAFDetectionResult> {
 /**
  * Generate WAF indicators
  */
-export function generateWAFIndicators(domain: string): WAFIndicator[] {
+export function generateWAFIndicators(domain: string, headers: Record<string, any> = {}, statusCode?: number): WAFIndicator[] {
+  const headerText = Object.entries(headers).map(([key, value]) => `${key}: ${value}`).join("\n").toLowerCase();
   const indicators: WAFIndicator[] = [
     {
-      name: 'Unusual HTTP Headers',
-      detected: Math.random() > 0.4,
-      value: 'X-CDN-Provider: CloudFlare',
+      name: 'Cloudflare Headers',
+      detected: /cloudflare|cf-ray|cf-cache-status|server: cloudflare/.test(headerText),
+      value: headers["cf-ray"] || headers.server,
       severity: 'medium',
     },
     {
-      name: 'SQL Injection Blocking',
-      detected: Math.random() > 0.3,
+      name: 'AWS WAF Headers',
+      detected: /x-amzn-waf|awselb|awsalb|x-amz-cf/.test(headerText),
       severity: 'high',
     },
     {
-      name: 'XSS Protection Headers',
-      detected: Math.random() > 0.2,
-      value: 'X-XSS-Protection: 1; mode=block',
+      name: 'Sucuri Headers',
+      detected: /sucuri|x-sucuri-id/.test(headerText),
+      value: headers["x-sucuri-id"],
       severity: 'medium',
     },
     {
-      name: 'Rate Limiting Detected',
-      detected: Math.random() > 0.5,
+      name: 'Imperva/Incapsula Headers',
+      detected: /imperva|incap_ses|visid_incap/.test(headerText),
       severity: 'high',
     },
     {
-      name: 'Bot Detection',
-      detected: Math.random() > 0.4,
+      name: 'Akamai Headers',
+      detected: /akamai|akamai-ghost|x-akamai/.test(headerText),
       severity: 'medium',
     },
     {
-      name: 'IP Reputation Checking',
-      detected: Math.random() > 0.6,
+      name: 'Blocked or challenged response',
+      detected: statusCode === 403 || statusCode === 429,
+      value: statusCode ? `HTTP ${statusCode}` : undefined,
       severity: 'high',
-    },
-    {
-      name: 'Geographic Blocking',
-      detected: Math.random() > 0.7,
-      severity: 'medium',
-    },
-    {
-      name: 'Cookie Validation',
-      detected: Math.random() > 0.3,
-      severity: 'low',
     },
   ];
 
@@ -208,11 +209,18 @@ export async function testWAFBypass(domain: string, technique: string): Promise<
   responseTime: number;
   statusCode: number;
 }> {
+  const started = Date.now();
+  const normalized = domain.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const response = await axios.get(`https://${normalized}/?osint_waf_probe=${encodeURIComponent(technique)}`, {
+    timeout: 10000,
+    validateStatus: () => true,
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; OSINTScanner/2.0)" },
+  });
   return {
     technique,
-    successful: Math.random() > 0.7,
-    responseTime: Math.floor(Math.random() * 5000) + 100,
-    statusCode: Math.random() > 0.5 ? 200 : 403,
+    successful: response.status >= 200 && response.status < 400,
+    responseTime: Date.now() - started,
+    statusCode: response.status,
   };
 }
 
@@ -225,18 +233,11 @@ export async function analyzeWAFRules(domain: string): Promise<{
   ruleCategories: string[];
   lastUpdated: string;
 }> {
+  const detection = await detectWAF(domain);
   return {
-    totalRules: Math.floor(Math.random() * 500) + 100,
-    activeRules: Math.floor(Math.random() * 300) + 50,
-    ruleCategories: [
-      'SQL Injection',
-      'XSS',
-      'CSRF',
-      'File Inclusion',
-      'Command Injection',
-      'Bot Detection',
-      'Rate Limiting',
-    ],
-    lastUpdated: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+    totalRules: 0,
+    activeRules: 0,
+    ruleCategories: detection.indicators.filter((indicator) => indicator.detected).map((indicator) => indicator.name),
+    lastUpdated: new Date().toISOString(),
   };
 }

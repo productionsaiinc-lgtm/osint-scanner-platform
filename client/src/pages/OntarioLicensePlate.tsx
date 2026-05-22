@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Car, Loader2, AlertCircle } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 export default function OntarioLicensePlate() {
   const [licensePlate, setLicensePlate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState('');
+  const plateLookup = trpc.osintTools.licensePlateLookup.useMutation();
 
   const handleLookup = async () => {
     const cleaned = licensePlate.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -23,26 +25,12 @@ export default function OntarioLicensePlate() {
     setResults(null);
 
     try {
-      const mockResults = {
-        licensePlate: cleaned,
-        province: 'Ontario',
-        plateType: 'Standard',
-        vehicleType: ['Sedan', 'SUV', 'Truck', 'Van'][Math.floor(Math.random() * 4)],
-        make: ['Toyota', 'Honda', 'Ford', 'Chevrolet', 'BMW'][Math.floor(Math.random() * 5)],
-        model: ['Civic', 'Accord', 'F-150', 'Camry'][Math.floor(Math.random() * 4)],
-        year: Math.floor(Math.random() * 15) + 2010,
-        color: ['Black', 'White', 'Silver', 'Blue', 'Red'][Math.floor(Math.random() * 5)],
-        registrationStatus: ['Active', 'Expired', 'Suspended'][Math.floor(Math.random() * 3)],
-        registrationExpiry: new Date(Date.now() + Math.random() * 365 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-        owner: 'REDACTED',
-        ownerType: ['Individual', 'Commercial', 'Government'][Math.floor(Math.random() * 3)],
-        insuranceStatus: 'Valid',
-        safetyStatus: 'Pass',
-        emissionsStatus: 'Pass',
-        lookedUpAt: new Date().toLocaleString(),
-      };
-
-      setResults(mockResults);
+      const response = await plateLookup.mutateAsync({ plate: cleaned, region: 'Ontario' });
+      if (!response.success) {
+        setError(response.error || 'Failed to lookup license plate');
+        return;
+      }
+      setResults(response.data);
     } catch (err) {
       setError('Failed to lookup license plate');
     } finally {
@@ -77,10 +65,10 @@ export default function OntarioLicensePlate() {
 
           <Button
             onClick={handleLookup}
-            disabled={isLoading}
+            disabled={isLoading || plateLookup.isPending}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
           >
-            {isLoading ? (
+            {isLoading || plateLookup.isPending ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 LOOKING UP...

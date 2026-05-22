@@ -3,15 +3,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Users, Loader2, AlertCircle, Download } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface Profile {
   platform: string;
   found: boolean;
-  followers: number;
-  posts?: number;
-  videos?: number;
-  verified: boolean;
+  followers: number | null;
+  posts?: number | null;
+  videos?: number | null;
+  verified: boolean | null;
   bio?: string;
+  profileUrl?: string;
   comments?: Comment[];
 }
 
@@ -29,26 +31,6 @@ interface ScrapeResult {
   profilesFound: number;
   profiles: Profile[];
   scrapedAt: string;
-}
-
-function generateComments(platform: string): Comment[] {
-  const sampleTexts = [
-    "Great post! Really enjoyed this content.",
-    "This is so helpful, thanks for sharing!",
-    "Love this! Keep up the amazing work 🙌",
-    "Interesting perspective, hadn't thought of it this way.",
-    "Can you share more about this topic?",
-    "This changed my view completely.",
-    "Been waiting for this kind of content!",
-    "Incredible insights as always.",
-  ];
-  return Array.from({ length: Math.floor(Math.random() * 5) + 3 }, (_, i) => ({
-    id: `${platform.toLowerCase()}-comment-${i + 1}`,
-    text: sampleTexts[i % sampleTexts.length],
-    likes: Math.floor(Math.random() * 500),
-    date: new Date(Date.now() - Math.random() * 30 * 86400000).toLocaleDateString(),
-    postUrl: `https://${platform.toLowerCase()}.com/p/${Math.random().toString(36).slice(2, 10)}`,
-  }));
 }
 
 function exportComments(profiles: Profile[], format: 'csv' | 'json', username: string) {
@@ -102,6 +84,7 @@ export default function SocialMediaScraper() {
   const [results, setResults] = useState<ScrapeResult | null>(null);
   const [error, setError] = useState('');
   const [expandedProfile, setExpandedProfile] = useState<string | null>(null);
+  const profileSearch = trpc.osintTools.socialProfileSearch.useMutation();
 
   const platforms = ['Twitter', 'Instagram', 'TikTok', 'LinkedIn', 'Reddit', 'YouTube'];
 
@@ -115,74 +98,13 @@ export default function SocialMediaScraper() {
     setResults(null);
     setExpandedProfile(null);
 
-    await new Promise((r) => setTimeout(r, 1200));
-
     try {
-      const profileList: Profile[] = [
-        {
-          platform: 'Twitter',
-          found: true,
-          followers: Math.floor(Math.random() * 50000) + 100,
-          posts: Math.floor(Math.random() * 5000),
-          verified: Math.random() > 0.7,
-          bio: 'Tech enthusiast & developer. Tweeting about code, security & life.',
-          comments: generateComments('Twitter'),
-        },
-        {
-          platform: 'Instagram',
-          found: true,
-          followers: Math.floor(Math.random() * 100000) + 100,
-          posts: Math.floor(Math.random() * 1000),
-          verified: Math.random() > 0.8,
-          bio: '📸 Photography | Travel | Tech',
-          comments: generateComments('Instagram'),
-        },
-        {
-          platform: 'TikTok',
-          found: Math.random() > 0.4,
-          followers: Math.floor(Math.random() * 1000000),
-          videos: Math.floor(Math.random() * 500),
-          verified: Math.random() > 0.9,
-          comments: generateComments('TikTok'),
-        },
-        {
-          platform: 'Reddit',
-          found: Math.random() > 0.3,
-          followers: Math.floor(Math.random() * 20000),
-          posts: Math.floor(Math.random() * 2000),
-          verified: false,
-          bio: 'Redditor since 2018',
-          comments: generateComments('Reddit'),
-        },
-        {
-          platform: 'YouTube',
-          found: Math.random() > 0.5,
-          followers: Math.floor(Math.random() * 500000),
-          posts: Math.floor(Math.random() * 300),
-          verified: Math.random() > 0.85,
-          comments: generateComments('YouTube'),
-        },
-        {
-          platform: 'LinkedIn',
-          found: Math.random() > 0.4,
-          followers: Math.floor(Math.random() * 5000),
-          posts: Math.floor(Math.random() * 200),
-          verified: false,
-          bio: 'Software Engineer | Cybersecurity',
-          comments: generateComments('LinkedIn'),
-        },
-      ];
-
-      const filtered =
-        platform === 'all' ? profileList : profileList.filter((p) => p.platform === platform);
-
-      setResults({
-        username,
-        platform: platform === 'all' ? 'All Platforms' : platform,
-        profilesFound: filtered.filter((p) => p.found).length,
-        profiles: filtered,
-        scrapedAt: new Date().toLocaleString(),
-      });
+      const response = await profileSearch.mutateAsync({ username, platform });
+      if (!response.success) {
+        setError(response.error || 'Failed to search social media profiles');
+        return;
+      }
+      setResults(response.data as ScrapeResult);
     } catch {
       setError('Failed to scrape social media');
     } finally {
@@ -230,10 +152,10 @@ export default function SocialMediaScraper() {
           </div>
           <Button
             onClick={handleScrape}
-            disabled={isLoading}
+            disabled={isLoading || profileSearch.isPending}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
           >
-            {isLoading ? (
+            {isLoading || profileSearch.isPending ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />SEARCHING...</>
             ) : (
               'SEARCH PROFILES'
@@ -288,7 +210,7 @@ export default function SocialMediaScraper() {
             <CardHeader>
               <CardTitle className="text-green-400">SEARCH RESULTS</CardTitle>
               <CardDescription className="text-gray-400">
-                Click a profile to view and export its comments
+                Live profile URL checks. Comments require official platform API access.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -308,12 +230,12 @@ export default function SocialMediaScraper() {
                       <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                         <div>
                           <span className="text-gray-400">Followers:</span>
-                          <p className="text-yellow-300 font-mono">{profile.followers.toLocaleString()}</p>
+                          <p className="text-yellow-300 font-mono">{profile.followers?.toLocaleString() ?? 'API required'}</p>
                         </div>
                         <div>
                           <span className="text-gray-400">Posts/Videos:</span>
                           <p className="text-yellow-300 font-mono">
-                            {(profile.posts ?? profile.videos ?? 0).toLocaleString()}
+                            {(profile.posts ?? profile.videos)?.toLocaleString() ?? 'API required'}
                           </p>
                         </div>
                         {profile.bio && (
@@ -324,15 +246,22 @@ export default function SocialMediaScraper() {
                         )}
                         <div>
                           <span className="text-gray-400">Verified:</span>
-                          <p className="text-yellow-300 font-mono">{profile.verified ? 'YES ✓' : 'NO'}</p>
+                          <p className="text-yellow-300 font-mono">{profile.verified === null ? 'API required' : profile.verified ? 'YES' : 'NO'}</p>
                         </div>
                         <div>
-                          <span className="text-gray-400">Comments:</span>
-                          <p className="text-yellow-300 font-mono">{profile.comments?.length ?? 0}</p>
+                          <span className="text-gray-400">Profile URL:</span>
+                          {profile.profileUrl ? (
+                            <a href={profile.profileUrl} target="_blank" rel="noreferrer" className="block text-yellow-300 text-xs truncate">
+                              {profile.profileUrl}
+                            </a>
+                          ) : (
+                            <p className="text-yellow-300 font-mono">Unavailable</p>
+                          )}
                         </div>
                       </div>
 
                       {/* Comments toggle */}
+                      {(profile.comments?.length ?? 0) > 0 && (
                       <div className="space-y-2">
                         <button
                           onClick={() =>
@@ -372,6 +301,7 @@ export default function SocialMediaScraper() {
                           </div>
                         )}
                       </div>
+                      )}
                     </>
                   )}
                 </div>

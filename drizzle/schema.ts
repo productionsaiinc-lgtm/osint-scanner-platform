@@ -437,6 +437,9 @@ export const mdmDevices = mysqlTable("mdmDevices", {
   model: varchar("model", { length: 100 }),
   imei: varchar("imei", { length: 20 }),
   serialNumber: varchar("serialNumber", { length: 100 }),
+  enrollmentToken: varchar("enrollmentToken", { length: 128 }),
+  enrollmentUrl: text("enrollmentUrl"),
+  enrollmentTokenExpiresAt: timestamp("enrollmentTokenExpiresAt"),
   enrollmentStatus: mysqlEnum("enrollmentStatus", ["pending", "enrolled", "unenrolled", "suspended"]).default("pending").notNull(),
   enrollmentDate: timestamp("enrollmentDate"),
   lastCheckIn: timestamp("lastCheckIn"),
@@ -468,6 +471,7 @@ export const mdmPolicies = mysqlTable("mdmPolicies", {
   minPasswordLength: int("minPasswordLength").default(6),
   requireNumeric: int("requireNumeric").default(0), // boolean
   requireSpecialChar: int("requireSpecialChar").default(0), // boolean
+  requireBiometric: int("requireBiometric").default(0), // boolean
   maxPasswordAge: int("maxPasswordAge"), // days
   passwordExpirationWarning: int("passwordExpirationWarning"), // days
   
@@ -983,3 +987,47 @@ export const cloudStorageSyncHistory = mysqlTable("cloudStorageSyncHistory", {
 
 export type CloudStorageSyncHistory = typeof cloudStorageSyncHistory.$inferSelect;
 export type InsertCloudStorageSyncHistory = typeof cloudStorageSyncHistory.$inferInsert;
+
+/**
+ * Sock Puppet Personas
+ */
+export const sockPuppets = mysqlTable("sockPuppets", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  puppetId: varchar("puppetId", { length: 64 }).notNull().unique(),
+  alias: varchar("alias", { length: 100 }).notNull(),
+  fullName: varchar("fullName", { length: 255 }),
+  bio: text("bio"),
+  email: varchar("email", { length: 320 }),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  avatarUrl: text("avatarUrl"),
+  persona: text("persona"),
+  status: mysqlEnum("status", ["active", "suspended", "retired"]).default("active").notNull(),
+  postCount: int("postCount").default(0).notNull(),
+  followersCount: int("followersCount").default(0).notNull(),
+  followingCount: int("followingCount").default(0).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  lastActiveAt: timestamp("lastActiveAt"),
+});
+
+export type SockPuppet = typeof sockPuppets.$inferSelect;
+export type InsertSockPuppet = typeof sockPuppets.$inferInsert;
+
+/**
+ * Sock Puppet Activity
+ */
+export const sockPuppetActivity = mysqlTable("sockPuppetActivity", {
+  id: int("id").autoincrement().primaryKey(),
+  puppetId: varchar("puppetId", { length: 64 }).notNull(),
+  userId: int("userId").notNull(),
+  activityType: mysqlEnum("activityType", ["post", "comment", "follow", "like", "dm", "retweet", "share"]).notNull(),
+  content: text("content"),
+  targetUrl: text("targetUrl"),
+  platform: varchar("platform", { length: 50 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SockPuppetActivity = typeof sockPuppetActivity.$inferSelect;
+export type InsertSockPuppetActivity = typeof sockPuppetActivity.$inferInsert;

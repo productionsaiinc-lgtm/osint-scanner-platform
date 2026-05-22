@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { trpc } from '@/lib/trpc';
 
 interface SSLIssue {
   type: string;
@@ -23,49 +24,7 @@ export default function SSLAnalyzer() {
   const [hostname, setHostname] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
-
-  const mockAnalyze = async (host: string) => ({
-    success: true,
-    results: {
-      target: host,
-      scan_date: new Date(),
-      certificate: {
-        subject: `CN=${host}`,
-        issuer: "Let's Encrypt Authority X3",
-        valid_from: new Date('2024-01-01'),
-        valid_to: new Date('2025-01-01'),
-        fingerprint: 'AB:CD:EF:12:34:56:78:90:AB:CD:EF:12:34:56:78:90',
-        version: '3',
-        serial_number: '1234567890ABCDEF',
-        public_key_algorithm: 'RSA',
-        signature_algorithm: 'sha256WithRSAEncryption',
-      },
-      supported_protocols: ['TLSv1.2', 'TLSv1.3'],
-      cipher_suites: [
-        {
-          name: 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384',
-          protocol: 'TLSv1.2',
-          strength: 'strong' as const,
-        },
-        {
-          name: 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256',
-          protocol: 'TLSv1.2',
-          strength: 'strong' as const,
-        },
-      ],
-      security_issues: [
-        {
-          type: 'header',
-          severity: 'medium' as const,
-          title: 'Missing Strict-Transport-Security Header',
-          description: 'HSTS header not present in response',
-          remediation: 'Add HSTS header to enforce HTTPS',
-        },
-      ],
-      overall_grade: 'A' as const,
-      risk_score: 20,
-    },
-  });
+  const sslMutation = trpc.osintTools.sslAnalyzer.useMutation();
 
   const handleAnalyze = async () => {
     if (!hostname.trim()) {
@@ -75,9 +34,11 @@ export default function SSLAnalyzer() {
 
     setIsAnalyzing(true);
     try {
-      const result = await mockAnalyze(hostname);
+      const result = await sslMutation.mutateAsync({ hostname });
       if (result.success) {
-        setAnalysisResults(result.results);
+        setAnalysisResults(result.data);
+      } else {
+        alert(result.error || 'Error analyzing SSL configuration');
       }
     } catch (error) {
       alert('Error analyzing SSL configuration');
@@ -161,7 +122,7 @@ export default function SSLAnalyzer() {
                 disabled={isAnalyzing || !hostname.trim()}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isAnalyzing ? 'Analyzing...' : 'Analyze'}
+                {isAnalyzing || sslMutation.isPending ? 'Analyzing...' : 'Analyze'}
               </Button>
             </div>
           </div>

@@ -69,7 +69,7 @@ export const virtualComputersRouter = router({
       sshPort: c.sshPort,
       createdAt: c.createdAt,
       lastAccessedAt: c.lastAccessedAt,
-      uptime: c.status === "running" ? Math.floor(Math.random() * 720) : 0,
+      uptime: c.status === "running" && c.lastAccessedAt ? Math.floor((Date.now() - new Date(c.lastAccessedAt).getTime()) / 60000) : 0,
     }));
   }),
 
@@ -77,14 +77,11 @@ export const virtualComputersRouter = router({
   start: protectedProcedure
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      const rdpPort = 3389 + Math.floor(Math.random() * 1000);
-      const sshPort = 22000 + Math.floor(Math.random() * 1000);
-
       await updateVirtualComputer(input.id, {
         status: "running",
-        ipAddress: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
-        rdpPort,
-        sshPort,
+        ipAddress: null,
+        rdpPort: null,
+        sshPort: null,
         lastAccessedAt: new Date(),
       });
       return { success: true, message: "Virtual computer started" };

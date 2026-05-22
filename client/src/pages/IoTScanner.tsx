@@ -87,6 +87,11 @@ export function IoTScanner() {
                 <AlertCircle className="w-4 h-4" />
                 <span className="text-sm">{(mutation.data as any).error}</span>
               </div>
+              {(mutation.data as any).needsKey && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Configure <code className="text-yellow-400">SHODAN_API_KEY</code> to return live IoT device intelligence.
+                </p>
+              )}
             </Card>
           )}
 
@@ -101,6 +106,9 @@ export function IoTScanner() {
                 <Card className="p-4 bg-card">
                   <p className="text-xs text-muted-foreground">Network</p>
                   <p className="text-sm font-mono text-white mt-1">{results.ipRange}</p>
+                  {results.shodanQuery && (
+                    <p className="text-xs font-mono text-muted-foreground mt-1 truncate">{results.shodanQuery}</p>
+                  )}
                 </Card>
                 <Card className={`p-4 ${results.shodanPowered ? 'border-green-500/40 bg-green-900/10' : 'border-yellow-500/40 bg-yellow-900/10'}`}>
                   <p className="text-xs text-muted-foreground">Data Source</p>
@@ -112,7 +120,12 @@ export function IoTScanner() {
 
               {results.note && !results.shodanPowered && (
                 <div className="text-xs text-yellow-300 bg-yellow-900/20 border border-yellow-700/40 p-3 rounded">
-                  ℹ️ {results.note}
+                  {results.note}
+                </div>
+              )}
+              {results.note && results.shodanPowered && results.count === 0 && (
+                <div className="text-xs text-cyan-300 bg-cyan-900/20 border border-cyan-700/40 p-3 rounded">
+                  {results.note}
                 </div>
               )}
 

@@ -6,6 +6,48 @@ import { Globe, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
+function displayValue(value: any, fallback = "Unknown"): string {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value === "object") {
+    return Object.entries(value).map(([key, val]) => `${key}: ${String(val)}`).join(", ");
+  }
+  return String(value);
+}
+
+function formatDate(value: any): string {
+  if (!value) return "Unknown";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? displayValue(value) : date.toLocaleDateString();
+}
+
+function formatDnsRecord(value: any): string {
+  if (typeof value === "object" && value !== null) {
+    return Object.entries(value).map(([key, val]) => `${key}: ${String(val)}`).join(", ");
+  }
+  return displayValue(value, "");
+}
+
+function asArray(value: any): any[] {
+  if (value === undefined || value === null) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function normalizeSubdomain(value: any): { label: string; key: string } {
+  if (typeof value === "string") {
+    return { label: value, key: value };
+  }
+
+  if (value && typeof value === "object") {
+    const subdomain = displayValue(value.subdomain, "");
+    const ip = displayValue(value.ip, "");
+    const label = [subdomain, ip].filter(Boolean).join(" -> ");
+    return { label: label || formatDnsRecord(value), key: label || JSON.stringify(value) };
+  }
+
+  const label = displayValue(value, "");
+  return { label, key: label };
+}
+
 export default function DomainOsint() {
   const [target, setTarget] = useState("");
   const [isScanning, setIsScanning] = useState(false);
@@ -103,19 +145,19 @@ export default function DomainOsint() {
               <div className="bg-[#0a0e27]/50 border border-[#ff006e]/20 rounded p-4 font-mono text-sm text-[#ff006e]">
                 <div className="space-y-2">
                   <div>
-                    <span className="text-[#00f5ff]">Domain:</span> {scanResults.whois.domain}
+                    <span className="text-[#00f5ff]">Domain:</span> {displayValue(scanResults.whois.domain)}
                   </div>
                   <div>
-                    <span className="text-[#00f5ff]">Registrar:</span> {scanResults.whois.registrar}
+                    <span className="text-[#00f5ff]">Registrar:</span> {displayValue(scanResults.whois.registrar)}
                   </div>
                   <div>
-                    <span className="text-[#00f5ff]">Registration Date:</span> {scanResults.whois.registrationDate}
+                    <span className="text-[#00f5ff]">Registration Date:</span> {displayValue(scanResults.whois.registrationDate)}
                   </div>
                   <div>
-                    <span className="text-[#00f5ff]">Expiration Date:</span> {scanResults.whois.expirationDate}
+                    <span className="text-[#00f5ff]">Expiration Date:</span> {displayValue(scanResults.whois.expirationDate)}
                   </div>
                   <div>
-                    <span className="text-[#00f5ff]">Registrant:</span> {scanResults.whois.registrant?.name}
+                    <span className="text-[#00f5ff]">Registrant:</span> {displayValue(scanResults.whois.registrant?.name)}
                   </div>
                 </div>
               </div>
@@ -131,30 +173,30 @@ export default function DomainOsint() {
               </div>
               <div className="bg-[#0a0e27]/50 border border-[#00f5ff]/20 rounded p-4 font-mono text-sm text-[#00f5ff]">
                 <div className="space-y-3">
-                  {scanResults.dns.records?.A && (
+                  {asArray(scanResults.dns.records?.A).length > 0 && (
                     <div>
                       <span className="text-[#ff006e]">A Records:</span>
-                      <div className="ml-4 text-[#39ff14]">{scanResults.dns.records.A.join(", ")}</div>
+                      <div className="ml-4 text-[#39ff14]">{asArray(scanResults.dns.records?.A).map(formatDnsRecord).join(", ")}</div>
                     </div>
                   )}
-                  {scanResults.dns.records?.MX && (
+                  {asArray(scanResults.dns.records?.MX).length > 0 && (
                     <div>
                       <span className="text-[#ff006e]">MX Records:</span>
                       <div className="ml-4 text-[#39ff14]">
-                        {scanResults.dns.records.MX.map((mx: any) => `${mx.priority} ${mx.exchange}`).join(", ")}
+                        {asArray(scanResults.dns.records?.MX).map(formatDnsRecord).join(", ")}
                       </div>
                     </div>
                   )}
-                  {scanResults.dns.records?.NS && (
+                  {asArray(scanResults.dns.records?.NS).length > 0 && (
                     <div>
                       <span className="text-[#ff006e]">NS Records:</span>
-                      <div className="ml-4 text-[#39ff14]">{scanResults.dns.records.NS.join(", ")}</div>
+                      <div className="ml-4 text-[#39ff14]">{asArray(scanResults.dns.records?.NS).map(formatDnsRecord).join(", ")}</div>
                     </div>
                   )}
-                  {scanResults.dns.records?.TXT && (
+                  {asArray(scanResults.dns.records?.TXT).length > 0 && (
                     <div>
                       <span className="text-[#ff006e]">TXT Records:</span>
-                      <div className="ml-4 text-[#39ff14]">{scanResults.dns.records.TXT.join(", ")}</div>
+                      <div className="ml-4 text-[#39ff14]">{asArray(scanResults.dns.records?.TXT).map(formatDnsRecord).join(", ")}</div>
                     </div>
                   )}
                 </div>
@@ -171,11 +213,14 @@ export default function DomainOsint() {
               </div>
               <div className="bg-[#0a0e27]/50 border border-[#b537f2]/20 rounded p-4 font-mono text-sm text-[#b537f2]">
                 <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {scanResults.subdomains.subdomains.map((sub: any) => (
-                    <div key={sub.subdomain}>
-                      <span className="text-[#ff006e]">{sub.subdomain}</span> → {sub.ip}
+                  {asArray(scanResults.subdomains.subdomains).map((sub: any, idx: number) => {
+                    const normalized = normalizeSubdomain(sub);
+                    return (
+                    <div key={`${normalized.key}-${idx}`}>
+                      <span className="text-[#ff006e]">{normalized.label}</span>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </Card>
@@ -191,22 +236,22 @@ export default function DomainOsint() {
               <div className="bg-[#0a0e27]/50 border border-[#00f5ff]/20 rounded p-4 font-mono text-sm text-[#00f5ff]">
                 <div className="space-y-2">
                   <div>
-                    <span className="text-[#ff006e]">Subject:</span> {scanResults.ssl.certificate?.subject}
+                    <span className="text-[#ff006e]">Subject:</span> {displayValue(scanResults.ssl.certificate?.subject)}
                   </div>
                   <div>
-                    <span className="text-[#ff006e]">Issuer:</span> {scanResults.ssl.certificate?.issuer}
+                    <span className="text-[#ff006e]">Issuer:</span> {displayValue(scanResults.ssl.certificate?.issuer)}
                   </div>
                   <div>
-                    <span className="text-[#ff006e]">Issue Date:</span> {new Date(scanResults.ssl.certificate?.issueDate).toLocaleDateString()}
+                    <span className="text-[#ff006e]">Issue Date:</span> {formatDate(scanResults.ssl.certificate?.issueDate)}
                   </div>
                   <div>
-                    <span className="text-[#ff006e]">Expiry Date:</span> {new Date(scanResults.ssl.certificate?.expiryDate).toLocaleDateString()}
+                    <span className="text-[#ff006e]">Expiry Date:</span> {formatDate(scanResults.ssl.certificate?.expiryDate)}
                   </div>
                   <div>
-                    <span className="text-[#ff006e]">Key Size:</span> {scanResults.ssl.certificate?.keySize} bits
+                    <span className="text-[#ff006e]">Key Size:</span> {displayValue(scanResults.ssl.certificate?.keySize)} bits
                   </div>
                   <div>
-                    <span className="text-[#ff006e]">Algorithm:</span> {scanResults.ssl.certificate?.signatureAlgorithm}
+                    <span className="text-[#ff006e]">Algorithm:</span> {displayValue(scanResults.ssl.certificate?.signatureAlgorithm)}
                   </div>
                 </div>
               </div>
@@ -214,7 +259,7 @@ export default function DomainOsint() {
           )}
 
           {/* Error Messages */}
-          {(scanResults.whois?.error || scanResults.dns?.error || scanResults.subdomains?.error) && (
+          {(scanResults.whois?.error || scanResults.dns?.error || scanResults.subdomains?.error || scanResults.ssl?.error) && (
             <Card className="hud-frame p-6 space-y-3 border-[#ff006e]">
               <div className="flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-[#ff006e]" />
@@ -224,6 +269,7 @@ export default function DomainOsint() {
                 {scanResults.whois?.error && <div>WHOIS: {scanResults.whois.error}</div>}
                 {scanResults.dns?.error && <div>DNS: {scanResults.dns.error}</div>}
                 {scanResults.subdomains?.error && <div>Subdomains: {scanResults.subdomains.error}</div>}
+                {scanResults.ssl?.error && <div>SSL: {scanResults.ssl.error}</div>}
               </div>
             </Card>
           )}

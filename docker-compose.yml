@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.docker
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: mysql://osint:osint_password@mysql:3306/osint_scanner
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    env_file:
+      - .env.docker
+    environment:
+      DATABASE_URL: mysql://osint:osint_password@mysql:3306/osint_scanner
+    depends_on:
+      mysql:
+        condition: service_healthy
+    profiles:
+      - tools
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: osint_scanner
+      MYSQL_USER: osint
+      MYSQL_PASSWORD: osint_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uosint", "-posint_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

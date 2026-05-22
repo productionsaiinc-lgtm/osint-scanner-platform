@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertTriangle,
 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface PhoneResult {
   phoneNumber: string;
@@ -34,6 +35,7 @@ export function PhoneLookup() {
   const [results, setResults] = useState<PhoneResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const phoneLookup = trpc.osintTools.phoneLookup.useMutation();
 
   const handleSearch = async () => {
     if (!phoneNumber.trim()) {
@@ -46,25 +48,12 @@ export function PhoneLookup() {
     setResults(null);
 
     try {
-      // Simulate API call - replace with actual tRPC call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Mock result
-      const mockResult: PhoneResult = {
-        phoneNumber: phoneNumber,
-        isValid: true,
-        carrier: 'Verizon Wireless',
-        country: 'United States',
-        countryCode: '+1',
-        region: 'California',
-        timezone: 'Pacific Time (PT)',
-        type: 'mobile',
-        operatorName: 'Verizon Communications',
-        portabilityStatus: 'Portable',
-        lastUpdated: new Date().toISOString(),
-      };
-
-      setResults(mockResult);
+      const response = await phoneLookup.mutateAsync({ phoneNumber });
+      if (!response.success) {
+        setError(response.error || 'Failed to lookup phone number');
+        return;
+      }
+      setResults(response.data as PhoneResult);
     } catch (err) {
       setError('Failed to lookup phone number. Please try again.');
     } finally {
@@ -124,7 +113,7 @@ export function PhoneLookup() {
               className="bg-neon-cyan hover:bg-neon-cyan/80 text-black font-semibold"
             >
               <Search className="w-4 h-4 mr-2" />
-              {loading ? 'Searching...' : 'Lookup'}
+              {loading || phoneLookup.isPending ? 'Searching...' : 'Lookup'}
             </Button>
           </div>
 

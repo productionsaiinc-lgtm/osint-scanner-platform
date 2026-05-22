@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Users, Loader2, CheckCircle2, AlertCircle, ExternalLink, Globe, AlertTriangle, Search } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import SocialMediaScraper from "./SocialMediaScraper";
 
 export default function SocialOsint() {
   const [target, setTarget] = useState("");
-  const [platform, setPlatform] = useState("all");
   const [isScanning, setIsScanning] = useState(false);
   const [scanResults, setScanResults] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("profiles");
@@ -24,8 +24,6 @@ export default function SocialOsint() {
     { email: email.trim() },
     { enabled: false }
   );
-
-  const platforms = ["All Platforms", "Twitter", "Instagram", "TikTok", "LinkedIn", "Reddit", "YouTube"];
 
   const handleScan = async () => {
     if (!target.trim()) {
@@ -182,83 +180,7 @@ export default function SocialOsint() {
 
       {/* Multi-Platform Scraper Tab */}
       {activeTab === "scraper" && (
-        <Card className="hud-frame p-6 space-y-4">
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium neon-cyan">Username</label>
-                <Input
-                  placeholder="Enter username..."
-                  value={target}
-                  onChange={(e) => setTarget(e.target.value)}
-                  className="bg-[#0a0e27] border-cyan-500/30 text-white"
-                  disabled={isScanning}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium neon-green">Platform</label>
-                <select
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  className="w-full bg-[#0a0e27] border border-green-500/30 text-white p-2 rounded"
-                >
-                  {platforms.map((p) => (
-                    <option key={p} value={p.toLowerCase()}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <Button
-              onClick={handleScan}
-              disabled={isScanning || !target.trim()}
-              className="w-full bg-gradient-to-r from-cyan-600 to-green-600 hover:from-cyan-700 hover:to-green-700 text-white"
-            >
-              {isScanning ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Scraping
-                </>
-              ) : (
-                <>
-                  <Globe className="w-4 h-4 mr-2" />
-                  Start Scrape
-                </>
-              )}
-            </Button>
-
-            {scanResults && (
-              <div className="space-y-4">
-                <h3 className="font-bold neon-green">SCRAPE RESULTS</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Array.isArray(scanResults) ? (
-                    scanResults.map((result: any, idx: number) => (
-                      <div key={idx} className="bg-[#0a0e27] p-4 rounded border border-green-500/30">
-                        <p className="text-sm text-green-400 font-bold">{result.platform}</p>
-                        <p className="text-xs text-gray-400 mt-1">Followers: {result.followers}</p>
-                        <p className="text-xs text-gray-400">Posts: {result.posts}</p>
-                        {result.verified && (
-                          <div className="flex items-center gap-1 mt-2">
-                            <CheckCircle2 className="w-4 h-4 text-green-400" />
-                            <span className="text-xs text-green-400">Verified</span>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-2 bg-[#0a0e27] p-4 rounded border border-green-500/30">
-                      <pre className="text-xs text-gray-300 font-mono whitespace-pre-wrap">
-                        {JSON.stringify(scanResults, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
+        <SocialMediaScraper />
       )}
 
       {/* Breach Search Tab */}

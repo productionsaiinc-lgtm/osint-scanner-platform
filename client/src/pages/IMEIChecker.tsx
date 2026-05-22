@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   Zap,
 } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
 
 interface IMEIResult {
   imei: string;
@@ -21,11 +22,11 @@ interface IMEIResult {
   deviceModel: string;
   manufacturer: string;
   deviceType: string;
-  releaseYear: number;
+  releaseYear: number | null;
   tac: string;
   snr: string;
   checkDigit: string;
-  isBlacklisted: boolean;
+  isBlacklisted: boolean | null;
   blacklistStatus: string;
   supportedBands: string[];
   networkTechnology: string[];
@@ -36,6 +37,7 @@ export function IMEIChecker() {
   const [results, setResults] = useState<IMEIResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const imeiLookup = trpc.osintTools.imeiLookup.useMutation();
 
   const validateIMEI = (value: string): boolean => {
     // Remove spaces and dashes
@@ -80,29 +82,13 @@ export function IMEIChecker() {
     setResults(null);
 
     try {
-      // Simulate API call - replace with actual tRPC call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
       const cleanIMEI = imei.replace(/[\s-]/g, '');
-
-      // Mock result
-      const mockResult: IMEIResult = {
-        imei: cleanIMEI,
-        isValid: true,
-        deviceModel: 'iPhone 14 Pro Max',
-        manufacturer: 'Apple Inc.',
-        deviceType: 'Smartphone',
-        releaseYear: 2022,
-        tac: cleanIMEI.substring(0, 8),
-        snr: cleanIMEI.substring(8, 14),
-        checkDigit: cleanIMEI[14],
-        isBlacklisted: false,
-        blacklistStatus: 'Not Blacklisted',
-        supportedBands: ['GSM 850/900/1800/1900', 'UMTS Band 1/2/4/5/8', 'LTE Band 1-32'],
-        networkTechnology: ['2G GSM', '3G UMTS', '4G LTE', '5G NR'],
-      };
-
-      setResults(mockResult);
+      const response = await imeiLookup.mutateAsync({ imei: cleanIMEI });
+      if (!response.success) {
+        setError(response.error || 'Failed to check IMEI');
+        return;
+      }
+      setResults(response.data as IMEIResult);
     } catch (err) {
       setError('Failed to check IMEI. Please try again.');
     } finally {
@@ -149,7 +135,7 @@ export function IMEIChecker() {
               className="bg-neon-green hover:bg-neon-green/80 text-black font-semibold"
             >
               <Search className="w-4 h-4 mr-2" />
-              {loading ? 'Checking...' : 'Check'}
+              {loading || imeiLookup.isPending ? 'Checking...' : 'Check'}
             </Button>
           </div>
 
@@ -171,18 +157,18 @@ export function IMEIChecker() {
       {results && (
         <div className="space-y-4">
           {/* Status Card */}
-          <Card className={`border-l-4 ${results.isValid && !results.isBlacklisted ? 'border-l-neon-green' : 'border-l-neon-red'} border-gray-500/30 bg-black/40`}>
+          <Card className={`border-l-4 ${results.isValid && results.isBlacklisted !== true ? 'border-l-neon-green' : 'border-l-neon-red'} border-gray-500/30 bg-black/40`}>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {results.isValid && !results.isBlacklisted ? (
+                  {results.isValid && results.isBlacklisted !== true ? (
                     <CheckCircle2 className="w-6 h-6 text-neon-green" />
                   ) : (
                     <AlertTriangle className="w-6 h-6 text-neon-red" />
                   )}
                   <div>
                     <div className="text-sm text-gray-400">IMEI Status</div>
-                    <div className={`text-lg font-bold ${results.isValid && !results.isBlacklisted ? 'text-neon-green' : 'text-neon-red'}`}>
+                    <div className={`text-lg font-bold ${results.isValid && results.isBlacklisted !== true ? 'text-neon-green' : 'text-neon-red'}`}>
                       {results.isValid ? 'Valid' : 'Invalid'}
                     </div>
                   </div>
@@ -222,7 +208,7 @@ export function IMEIChecker() {
                   <div className="text-xs text-gray-400">Release Year</div>
                   <div className="flex items-center gap-2 mt-1">
                     <Calendar className="w-4 h-4 text-neon-cyan" />
-                    <span className="text-sm font-semibold text-white">{results.releaseYear}</span>
+                    <span className="text-sm font-semibold text-white">{results.releaseYear ?? 'Unknown'}</span>
                   </div>
                 </div>
               </CardContent>
@@ -254,20 +240,20 @@ export function IMEIChecker() {
           </div>
 
           {/* Blacklist Status */}
-          <Card className={`border-l-4 ${results.isBlacklisted ? 'border-l-neon-red' : 'border-l-neon-green'} border-gray-500/30 bg-black/40`}>
+          <Card className={`border-l-4 ${results.isBlacklisted ? 'border-l-neon-red' : 'border-l-yellow-500'} border-gray-500/30 bg-black/40`}>
             <CardHeader>
               <CardTitle className="text-neon-pink">Blacklist Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
-                {results.isBlacklisted ? (
+                {results.isBlacklisted === true ? (
                   <AlertTriangle className="w-6 h-6 text-neon-red" />
                 ) : (
                   <CheckCircle2 className="w-6 h-6 text-neon-green" />
                 )}
                 <div>
                   <div className="text-sm text-gray-400">Status</div>
-                  <div className={`text-lg font-bold ${results.isBlacklisted ? 'text-neon-red' : 'text-neon-green'}`}>
+                  <div className={`text-lg font-bold ${results.isBlacklisted ? 'text-neon-red' : 'text-yellow-400'}`}>
                     {results.blacklistStatus}
                   </div>
                 </div>

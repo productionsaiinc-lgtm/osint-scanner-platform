@@ -9,7 +9,7 @@ import {
   Smartphone, Lock, Shield, AlertCircle, Plus, Activity, MapPin,
   Cpu, BarChart3, FileText, Package, Wifi, AlertTriangle,
   CheckCircle2, XCircle, Settings, RefreshCw, Loader2,
-  Globe, Eye, TrendingUp, Radio
+  Globe, Eye, TrendingUp, Radio, Copy
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,12 +26,14 @@ export function MDMDashboard() {
 
   // ── Enroll form ──
   const [showEnrollForm, setShowEnrollForm] = useState(false);
+  const [latestEnrollment, setLatestEnrollment] = useState<any>(null);
   const [enrollForm, setEnrollForm] = useState({
-    deviceName: "Device-" + Math.floor(Math.random() * 1000),
+    deviceName: "",
     deviceType: "android" as "android" | "ios" | "windows" | "macos" | "linux",
     osVersion: "",
     manufacturer: "",
     model: "",
+    serialNumber: "",
   });
 
   // ── Provision form ──
@@ -95,7 +97,7 @@ export function MDMDashboard() {
 
   // Mutations
   const enrollMutation = trpc.mdm.enrollDevice.useMutation({
-    onSuccess: () => { toast.success("Device enrolled!"); setShowEnrollForm(false); refetchDevices(); refetchStats(); },
+    onSuccess: (data: any) => { toast.success("Enrollment link created"); setLatestEnrollment(data); refetchDevices(); refetchStats(); },
     onError: (e) => toast.error(e.message),
   });
   const provisionMutation = trpc.mdm.provisionDevice.useMutation({
@@ -132,6 +134,10 @@ export function MDMDashboard() {
   });
   const logAppUsageMutation = trpc.mdm.logAppUsage.useMutation({
     onSuccess: () => { toast.success("App usage logged"); utils.mdm.getAppUsage.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const threatDefenseScanMutation = trpc.mdm.runThreatDefenseScan.useMutation({
+    onSuccess: (d) => { toast.success(`Threat defense scan logged ${d.findings.length} finding(s)`); refetchEvents(); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -217,11 +223,12 @@ export function MDMDashboard() {
           {showEnrollForm && (
             <Card className="bg-black/40 border-cyan-500/30">
               <CardContent className="pt-4 space-y-3">
-                <h3 className="text-cyan-400 font-medium">New Enrollment</h3>
+                <h3 className="text-cyan-400 font-medium">Real Device Enrollment</h3>
+                <p className="text-xs text-gray-500">Create a one-time enrollment link, then open it from the target device to complete enrollment with real device metadata.</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-gray-400">Device Name</label>
-                    <Input value={enrollForm.deviceName} onChange={e => setEnrollForm(f => ({ ...f, deviceName: e.target.value }))} className="bg-gray-800 border-gray-600 text-white mt-1" />
+                    <label className="text-xs text-gray-400">Expected Device Name</label>
+                    <Input placeholder="Corp-Phone-001" value={enrollForm.deviceName} onChange={e => setEnrollForm(f => ({ ...f, deviceName: e.target.value }))} className="bg-gray-800 border-gray-600 text-white mt-1" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400">Type</label>
@@ -237,13 +244,50 @@ export function MDMDashboard() {
                     <label className="text-xs text-gray-400">Manufacturer</label>
                     <Input placeholder="Samsung" value={enrollForm.manufacturer} onChange={e => setEnrollForm(f => ({ ...f, manufacturer: e.target.value }))} className="bg-gray-800 border-gray-600 text-white mt-1" />
                   </div>
+                  <div>
+                    <label className="text-xs text-gray-400">Model</label>
+                    <Input placeholder="Galaxy S24 / iPhone 15" value={enrollForm.model} onChange={e => setEnrollForm(f => ({ ...f, model: e.target.value }))} className="bg-gray-800 border-gray-600 text-white mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-400">Serial Number</label>
+                    <Input value={enrollForm.serialNumber} onChange={e => setEnrollForm(f => ({ ...f, serialNumber: e.target.value }))} className="bg-gray-800 border-gray-600 text-white mt-1" />
+                  </div>
                 </div>
+                {latestEnrollment?.enrollmentUrl && (
+                  <div className="rounded border border-cyan-500/30 bg-cyan-950/20 p-3 space-y-2">
+                    <p className="text-xs text-cyan-300 font-medium">Enrollment URL</p>
+                    <p className="text-xs text-gray-400 break-all font-mono">{latestEnrollment.enrollmentUrl}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs border-cyan-600 text-cyan-300"
+                        onClick={() => {
+                          navigator.clipboard.writeText(latestEnrollment.enrollmentUrl);
+                          toast.success("Enrollment URL copied");
+                        }}
+                      >
+                        <Copy className="w-3 h-3 mr-1" /> Copy Link
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs border-gray-600 text-gray-300"
+                        onClick={() => window.open(latestEnrollment.enrollmentUrl, "_blank", "noopener,noreferrer")}
+                      >
+                        Open
+                      </Button>
+                    </div>
+                    <p className="text-[11px] text-gray-500">Expires {latestEnrollment.expiresAt ? new Date(latestEnrollment.expiresAt).toLocaleString() : "in 7 days"}.</p>
+                  </div>
+                )}
                 <div className="flex gap-2">
-                  <Button size="sm" disabled={enrollMutation.isPending} onClick={() => enrollMutation.mutate({
-                    deviceId: `dev-${Date.now()}`, deviceName: enrollForm.deviceName, deviceType: enrollForm.deviceType,
+                  <Button size="sm" disabled={enrollMutation.isPending || !enrollForm.deviceName} onClick={() => enrollMutation.mutate({
+                    deviceId: "", deviceName: enrollForm.deviceName, deviceType: enrollForm.deviceType,
                     osVersion: enrollForm.osVersion || undefined, manufacturer: enrollForm.manufacturer || undefined,
+                    model: enrollForm.model || undefined, serialNumber: enrollForm.serialNumber || undefined,
                   })} className="bg-cyan-600 hover:bg-cyan-700">
-                    {enrollMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Enroll"}
+                    {enrollMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Enrollment Link"}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setShowEnrollForm(false)}>Cancel</Button>
                 </div>
@@ -270,6 +314,9 @@ export function MDMDashboard() {
                         <p className="font-semibold text-white">{device.deviceName}</p>
                         <p className="text-xs text-gray-400">{device.deviceType} • {device.osVersion || "Unknown OS"}</p>
                         <p className="text-xs text-gray-500">{device.manufacturer} {device.model}</p>
+                        {device.enrollmentUrl && device.enrollmentStatus === "pending" && (
+                          <p className="text-xs text-cyan-400 break-all font-mono mt-1">{device.enrollmentUrl}</p>
+                        )}
                       </div>
                       <div className="text-right space-y-1">
                         <Badge className={`text-xs ${device.enrollmentStatus === "enrolled" ? "bg-green-800 text-green-300" : "bg-yellow-800 text-yellow-300"}`}>{device.enrollmentStatus}</Badge>
@@ -807,9 +854,26 @@ export function MDMDashboard() {
 
         {/* ── MOBILE THREAT DEFENSE ── */}
         <TabsContent value="defense" className="space-y-4 mt-4">
-          <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-            <Radio className="w-5 h-5 text-pink-400" /> Mobile Threat Defense
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Radio className="w-5 h-5 text-pink-400" /> Mobile Threat Defense
+            </h2>
+            <Button
+              size="sm"
+              disabled={!selectedDevice || threatDefenseScanMutation.isPending}
+              onClick={() => selectedDevice && threatDefenseScanMutation.mutate({ deviceId: selectedDevice })}
+              className="bg-pink-700 hover:bg-pink-800"
+            >
+              {threatDefenseScanMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Shield className="w-4 h-4 mr-1" />}
+              Run MTD Scan
+            </Button>
+          </div>
+
+          {!selectedDevice && (
+            <div className="text-sm text-gray-400 bg-gray-800/50 border border-gray-700 p-3 rounded">
+              Select a device from the <strong className="text-cyan-400">Devices</strong> tab to run mobile threat defense correlation.
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
@@ -904,6 +968,7 @@ function PolicyCreateForm({ onSubmit, isPending, onCancel }: { onSubmit: (d: any
     minPasswordLength: 8,
     requireNumeric: true,
     requireSpecialChar: false,
+    requireBiometric: true,
     enableEncryption: true,
     requireVpn: false,
   });
@@ -933,6 +998,7 @@ function PolicyCreateForm({ onSubmit, isPending, onCancel }: { onSubmit: (d: any
         {([
           ["requireNumeric","Require Numbers"],
           ["requireSpecialChar","Require Special Chars"],
+          ["requireBiometric","Require Biometric"],
           ["enableEncryption","Enforce Encryption"],
           ["requireVpn","Require VPN"],
         ] as [keyof typeof form, string][]).map(([key, label]) => (

@@ -27,14 +27,37 @@ const THREAT_SIGNATURES: Record<string, string[]> = {
   "application/x-php": ["PHP script detected"],
 };
 
-function fakeHash(len: number, chars = "0123456789abcdef") {
-  return Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-}
-
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+}
+
+function toHex(buffer: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function digestFile(bytes: ArrayBuffer, algorithm: AlgorithmIdentifier) {
+  return toHex(await crypto.subtle.digest(algorithm, bytes));
+}
+
+function calculateEntropy(bytes: Uint8Array) {
+  if (bytes.length === 0) return 0;
+  const counts = new Array(256).fill(0);
+  for (const byte of bytes) counts[byte] += 1;
+  return counts.reduce((entropy, count) => {
+    if (!count) return entropy;
+    const probability = count / bytes.length;
+    return entropy - probability * Math.log2(probability);
+  }, 0);
+}
+
+function magicBytes(bytes: Uint8Array) {
+  return Array.from(bytes.slice(0, 8))
+    .map((byte) => byte.toString(16).padStart(2, "0").toUpperCase())
+    .join(" ");
 }
 
 function getVerdictColor(verdict: FileAnalysis["verdict"]) {
@@ -56,13 +79,14 @@ function getVerdictIcon(verdict: FileAnalysis["verdict"]) {
 }
 
 async function analyzeFile(file: File): Promise<FileAnalysis> {
-  await new Promise(r => setTimeout(r, 1500 + Math.random() * 1000));
+  const started = performance.now();
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
 
   const knownThreats = THREAT_SIGNATURES[file.type] || [];
-  const entropy = 4 + Math.random() * 4;
+  const entropy = calculateEntropy(bytes);
   const isHighEntropy = entropy > 7;
   const isSuspiciousType = !!THREAT_SIGNATURES[file.type];
-  const isLargeFile = file.size > 5 * 1024 * 1024;
 
   let verdict: FileAnalysis["verdict"] = "clean";
   const threats: string[] = [...knownThreats];
@@ -84,9 +108,9 @@ async function analyzeFile(file: File): Promise<FileAnalysis> {
     size: file.size,
     type: file.type || "application/octet-stream",
     lastModified: new Date(file.lastModified),
-    md5: fakeHash(32),
-    sha1: fakeHash(40),
-    sha256: fakeHash(64),
+    md5: "Not calculated in browser",
+    sha1: await digestFile(buffer, "SHA-1"),
+    sha256: await digestFile(buffer, "SHA-256"),
     entropy: parseFloat(entropy.toFixed(2)),
     verdict,
     threats,
@@ -95,9 +119,9 @@ async function analyzeFile(file: File): Promise<FileAnalysis> {
       "MIME Type": file.type || "Unknown",
       "Size on Disk": formatBytes(file.size),
       "Last Modified": new Date(file.lastModified).toLocaleString(),
-      "Magic Bytes": fakeHash(8).toUpperCase(),
+      "Magic Bytes": magicBytes(bytes) || "N/A",
     },
-    analysisTime: Math.floor(800 + Math.random() * 1200),
+    analysisTime: Math.round(performance.now() - started),
   };
 }
 
@@ -120,7 +144,7 @@ export function FileAnalyzer() {
     setProgress(0);
 
     const interval = setInterval(() => {
-      setProgress(p => Math.min(p + Math.random() * 15, 90));
+      setProgress(p => Math.min(p + 12, 90));
     }, 200);
 
     try {
