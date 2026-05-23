@@ -9,11 +9,20 @@ import { getDb } from "./db";
 import { userSubscriptions } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-03-25.dahlia" as any,
-});
-
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
+let stripeClient: Stripe | null = null;
+
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+
+  stripeClient ??= new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2026-03-25.dahlia" as any,
+  });
+
+  return stripeClient;
+}
 
 /**
  * Verify Stripe webhook signature
@@ -30,6 +39,7 @@ export function verifyStripeSignature(
 
     // Convert buffer to string if needed
     const bodyString = typeof body === 'string' ? body : body.toString('utf8');
+    const stripe = getStripe();
 
     const event = stripe.webhooks.constructEvent(
       bodyString,

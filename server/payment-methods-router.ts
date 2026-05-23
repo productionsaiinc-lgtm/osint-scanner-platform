@@ -8,9 +8,19 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { recordPayment, createUserSubscription, getSubscriptionPlan } from "./subscription-db";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-03-25.dahlia" as any,
-});
+let stripeClient: Stripe | null = null;
+
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+
+  stripeClient ??= new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2026-03-25.dahlia" as any,
+  });
+
+  return stripeClient;
+}
 
 export const paymentMethodsRouter = router({
   // Get available payment methods for user
@@ -64,6 +74,7 @@ export const paymentMethodsRouter = router({
         const plan = await getSubscriptionPlan(input.planId);
         if (!plan) throw new Error("Plan not found");
 
+        const stripe = getStripe();
         const paymentIntent = await stripe.paymentIntents.create({
           amount: Math.round(plan.price * 100), // Convert to cents
           currency: plan.currency.toLowerCase(),
@@ -95,6 +106,7 @@ export const paymentMethodsRouter = router({
         const plan = await getSubscriptionPlan(input.planId);
         if (!plan) throw new Error("Plan not found");
 
+        const stripe = getStripe();
         const paymentIntent = await stripe.paymentIntents.create({
           amount: Math.round(plan.price * 100),
           currency: plan.currency.toLowerCase(),
@@ -129,6 +141,7 @@ export const paymentMethodsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
+        const stripe = getStripe();
         const paymentIntent = await stripe.paymentIntents.retrieve(input.paymentIntentId);
 
         if (paymentIntent.status !== "succeeded") {
