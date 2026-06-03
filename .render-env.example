@@ -1,0 +1,67 @@
+# Render Environment Variables Template
+# Copy these to Render Dashboard → Environment Variables
+
+# ============================================
+# Core Configuration
+# ============================================
+NODE_ENV=production
+PORT=3000
+
+# Database (Render will provide this automatically)
+DATABASE_URL=postgresql://osint_user:PASSWORD@localhost:5432/osint_scanner
+
+# ============================================
+# Authentication & OAuth
+# ============================================
+JWT_SECRET=your-secret-key-here
+VITE_APP_ID=your-manus-app-id
+OAUTH_SERVER_URL=https://api.manus.im
+VITE_OAUTH_PORTAL_URL=https://oauth.manus.im
+OWNER_OPEN_ID=your-owner-id
+OWNER_NAME=Your Name
+
+# ============================================
+# Payment Processing
+# ============================================
+STRIPE_SECRET_KEY=sk_live_YOUR_KEY_HERE
+STRIPE_WEBHOOK_SECRET=whsec_YOUR_SECRET_HERE
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_YOUR_KEY_HERE
+
+PAYPAL_CLIENT_ID=your-paypal-client-id
+PAYPAL_CLIENT_SECRET=your-paypal-client-secret
+PAYPAL_MODE=live
+PAYPAL_PAYOUT_EMAIL=your-email@example.com
+
+# ============================================
+# OSINT & Data Integration APIs
+# ============================================
+SHODAN_API_KEY=your-shodan-api-key
+ETHERSCAN_API_KEY=your-etherscan-api-key
+VIRUSTOTAL_API_KEY=your-virustotal-api-key
+OPENSKY_API_KEY=your-opensky-api-key
+IMEI_API_KEY=your-imei-api-key
+
+# ============================================
+# Manus Built-in APIs
+# ============================================
+BUILT_IN_FORGE_API_URL=https://api.manus.im/forge
+BUILT_IN_FORGE_API_KEY=your-forge-api-key
+VITE_FRONTEND_FORGE_API_KEY=your-frontend-forge-key
+VITE_FRONTEND_FORGE_API_URL=https://api.manus.im/forge
+
+# ============================================
+# GitHub Webhook (Optional)
+# ============================================
+GITHUB_WEBHOOK_SECRET=your-github-webhook-secret
+
+# ============================================
+# Analytics (Optional)
+# ============================================
+VITE_ANALYTICS_ENDPOINT=https://your-analytics.com
+VITE_ANALYTICS_WEBSITE_ID=your-website-id
+
+# ============================================
+# Application Branding (Optional)
+# ============================================
+VITE_APP_TITLE=OSINT Scanner Platform
+VITE_APP_LOGO=https://your-domain.com/logo.png
