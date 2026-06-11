@@ -2,10 +2,13 @@ services:
   - type: web
     name: osint-scanner
     env: node
-    plan: standard
+    plan: free
     buildCommand: pnpm install && pnpm run build
     startCommand: node dist/index.js
     healthCheckPath: /health
+    healthCheckProtocol: HTTP
+    autoDeploy: true
+    preDeployCommand: pnpm drizzle-kit migrate
     envVars:
       - key: NODE_ENV
         value: production
@@ -20,17 +23,53 @@ services:
       - key: VITE_APP_ID
         sync: false
       - key: OAUTH_SERVER_URL
+        value: https://api.manus.im
+      - key: VITE_OAUTH_PORTAL_URL
+        value: https://oauth.manus.im
+      - key: OWNER_OPEN_ID
+        sync: false
+      - key: OWNER_NAME
+        sync: false
+      - key: BUILT_IN_FORGE_API_URL
+        value: https://api.manus.im/forge
+      - key: BUILT_IN_FORGE_API_KEY
+        sync: false
+      - key: VITE_FRONTEND_FORGE_API_URL
+        value: https://api.manus.im/forge
+      - key: VITE_FRONTEND_FORGE_API_KEY
         sync: false
       - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: VITE_STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: PAYPAL_PAYOUT_EMAIL
         sync: false
       - key: SHODAN_API_KEY
         sync: false
       - key: ETHERSCAN_API_KEY
         sync: false
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+      - key: OPENSKY_API_KEY
+        sync: false
+      - key: IMEI_API_KEY
+        sync: false
+      - key: VITE_ANALYTICS_ENDPOINT
+        sync: false
+      - key: VITE_ANALYTICS_WEBSITE_ID
+        sync: false
 
   - type: pserv
     name: osint-db
-    plan: standard
+    plan: free
     ipAllowList: []
     postgresMajorVersion: 15
 
