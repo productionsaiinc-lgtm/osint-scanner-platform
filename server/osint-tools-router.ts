@@ -156,20 +156,7 @@ const geoReverseProcedure = protectedProcedure
 const malwareAnalyzerProcedure = protectedProcedure
   .input(z.object({ fileHash: z.string().min(1) }))
   .mutation(async ({ input }) => {
-    try {
-      const analysis = {
-        hash: input.fileHash,
-        detected: Math.random() > 0.5,
-        detectionCount: Math.floor(Math.random() * 50),
-        malwareType: ["Trojan", "Ransomware", "Spyware", "Adware"][Math.floor(Math.random() * 4)],
-        firstSeen: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000),
-        lastSeen: new Date(),
-        vendors: ["Kaspersky", "McAfee", "Avast"],
-      };
-      return { success: true, data: analysis };
-    } catch (error) {
-      return { success: false, error: "Failed to analyze malware" };
-    }
+    return await analyzeFileWithVirusTotalReal(input.fileHash);
   });
 
 // Password Strength Checker - Real zxcvbn + Have I Been Pwned API

@@ -1,50 +1,15 @@
 import { router, publicProcedure } from "./_core/trpc";
 import { z } from "zod";
+import { lookupPhoneReal } from "./phone-lookup-real";
 
 export const phoneImeiRouter = router({
-  // Phone Lookup Procedures
+  // Phone Lookup Procedures - Real Numverify API
   lookupPhone: publicProcedure
     .input(z.object({
       phoneNumber: z.string().min(1, "Phone number required"),
     }))
     .query(async ({ input }: any) => {
-      try {
-        // Validate phone number format
-        const cleanNumber = input.phoneNumber.replace(/\D/g, "");
-        
-        if (cleanNumber.length < 10) {
-          return {
-            error: "Invalid phone number format",
-            valid: false,
-          };
-        }
-
-        // Simulate phone lookup
-        const carriers = ["Verizon", "AT&T", "T-Mobile", "Sprint", "US Cellular"];
-        const types = ["Mobile", "Landline", "VoIP"];
-        const countries = ["United States", "Canada", "Mexico"];
-
-        return {
-          valid: true,
-          phoneNumber: input.phoneNumber,
-          carrier: carriers[Math.floor(Math.random() * carriers.length)],
-          type: types[Math.floor(Math.random() * types.length)],
-          country: countries[Math.floor(Math.random() * countries.length)],
-          countryCode: "+1",
-          areaCode: cleanNumber.substring(0, 3),
-          exchangeCode: cleanNumber.substring(3, 6),
-          lineNumber: cleanNumber.substring(6),
-          isPortable: Math.random() > 0.5,
-          timezone: "Eastern Time",
-          operatorName: carriers[Math.floor(Math.random() * carriers.length)],
-          networkType: ["2G", "3G", "4G", "5G"][Math.floor(Math.random() * 4)],
-        };
-      } catch (error) {
-        return {
-          error: "Failed to lookup phone number",
-          valid: false,
-        };
-      }
+      return await lookupPhoneReal(input.phoneNumber);
     }),
 
   // IMEI Checker Procedures
