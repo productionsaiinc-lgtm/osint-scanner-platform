@@ -38,6 +38,7 @@ import { cloudStorageRouter } from "./cloud-storage-router";
 import { sockPuppetsRouter } from "./sock-puppets-router";
 import { dataIntegrationsRouter } from "./data-integrations-router";
 import { mdmEnhancementsRouter } from "./mdm-enhancements-router";
+import { aiAssistantRouter } from "./ai-assistant-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -69,6 +70,7 @@ export const appRouter = router({
   sockPuppets: sockPuppetsRouter,
   dataIntegrations: dataIntegrationsRouter,
   mdmEnhancements: mdmEnhancementsRouter,
+  aiAssistant: aiAssistantRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

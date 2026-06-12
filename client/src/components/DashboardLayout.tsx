@@ -22,7 +22,7 @@ import {
 from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker, TrendingUp, Smartphone as PhoneIcon, Link2, FileSearch } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Radar, Globe, Users, History, Map, Info, Download, CreditCard, AlertTriangle, Code2, AlertCircle, Mail, Zap, Wallet, Shield, Cpu, Search, Bell, Smartphone, HardDrive, Network, Lock, Power, Car, Eye, Archive, ChevronDown, Fingerprint, Beaker, TrendingUp, Smartphone as PhoneIcon, Link2, FileSearch, MessageSquare } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -39,6 +39,7 @@ const menuSections: MenuSection[] = [
     section: "Core",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+      { icon: MessageSquare, label: "AI Assistant", path: "/ai-assistant" },
       { icon: History, label: "Scan History", path: "/history" },
       { icon: Eye, label: "Monitoring", path: "/monitoring" },
       { icon: Archive, label: "Alert History", path: "/alert-history" },
