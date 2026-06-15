@@ -96,6 +96,7 @@ export async function monitorDarkWebReal(query: string) {
         breaches: results.breaches,
         leaks: results.leaks,
         severity: results.severity,
+        lastSeen: new Date(),
         lastChecked: new Date(),
         source: "Have I Been Pwned + Breach Database",
       },

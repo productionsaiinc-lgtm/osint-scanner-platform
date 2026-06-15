@@ -140,7 +140,7 @@ async function loadScraperLibs() {
 
 export async function scrapeWebsiteReal(
   url: string,
-  options: { headless?: boolean; timeout?: number } = {}
+  options: { headless?: boolean; timeout?: number; selector?: string } = {}
 ) {
   try {
     if (!url.startsWith("http")) {
@@ -149,6 +149,7 @@ export async function scrapeWebsiteReal(
 
     const urlObj = new URL(url);
     const { puppeteer: pup, cheerio: ch } = await loadScraperLibs();
+    const scrapedAt = new Date();
 
     // Try simple HTTP fetch first (faster)
     try {
@@ -163,13 +164,17 @@ export async function scrapeWebsiteReal(
       if (ch) {
         const $ = ch.load(response.data);
 
-        // Extract data
+        // Extract basic data
         const title = $("title").text() || "No title";
         const description =
           $('meta[name="description"]').attr("content") || "No description";
         const links: string[] = [];
+        const images: string[] = [];
         const emails: string[] = [];
         const phones: string[] = [];
+        const headings: string[] = [];
+        const technologies: string[] = [];
+        const extractedData: Array<{ type: string; value: string }> = [];
 
         // Extract links
         $("a").each((i: number, el: any) => {
@@ -177,6 +182,18 @@ export async function scrapeWebsiteReal(
           if (href && !href.startsWith("#")) {
             links.push(href);
           }
+        });
+
+        // Extract images
+        $("img").each((i: number, el: any) => {
+          const src = $(el).attr("src");
+          if (src) images.push(src);
+        });
+
+        // Extract headings
+        $("h1, h2, h3").each((i: number, el: any) => {
+          const text = $(el).text().trim();
+          if (text) headings.push(text);
         });
 
         // Extract emails
@@ -188,11 +205,52 @@ export async function scrapeWebsiteReal(
         }
 
         // Extract phone numbers
-        const phoneRegex = /(\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}/g;
+        const phoneRegex = /(\+?1[-\.\s]?)\(?[0-9]{3}\)?[-\.\s]?[0-9]{3}[-\.\s]?[0-9]{4}/g;
         const phoneMatches = response.data.match(phoneRegex);
         if (phoneMatches) {
           phones.push(...new Set(phoneMatches));
         }
+
+        // Detect technologies
+        const techPatterns: Record<string, RegExp> = {
+          "React": /react/i,
+          "Vue": /vue/i,
+          "Angular": /angular/i,
+          "Next.js": /next/i,
+          "jQuery": /jquery/i,
+          "Bootstrap": /bootstrap/i,
+          "Tailwind": /tailwind/i,
+          "WordPress": /wordpress/i,
+          "Shopify": /shopify/i,
+        };
+
+        for (const [tech, pattern] of Object.entries(techPatterns)) {
+          if (pattern.test(response.data)) {
+            technologies.push(tech);
+          }
+        }
+
+        // Build extracted data array
+        if (title) extractedData.push({ type: "Title", value: title });
+        if (description) extractedData.push({ type: "Description", value: description });
+        emails.slice(0, 3).forEach((e) => extractedData.push({ type: "Email", value: e }));
+        phones.slice(0, 3).forEach((p) => extractedData.push({ type: "Phone", value: p }));
+
+        // Extract selected text if selector provided
+        let selectedText: string[] = [];
+        if (options.selector) {
+          try {
+            $(options.selector).each((i: number, el: any) => {
+              const text = $(el).text().trim();
+              if (text) selectedText.push(text);
+            });
+          } catch (e) {
+            console.warn("Selector extraction failed:", e);
+          }
+        }
+
+        // Count words
+        const wordCount = response.data.split(/\s+/).length;
 
         return {
           success: true,
@@ -200,11 +258,21 @@ export async function scrapeWebsiteReal(
             url: url,
             title: title,
             description: description,
-            links: links.slice(0, 20), // Limit to 20
+            statusCode: response.status,
+            scrapedAt: scrapedAt.toISOString(),
+            contentLength: response.data.length,
+            linksFound: links.length,
+            imagesFound: images.length,
+            wordCount: wordCount,
+            links: links.slice(0, 20),
+            images: images.slice(0, 10),
             emails: emails.slice(0, 10),
             phones: phones.slice(0, 10),
-            contentLength: response.data.length,
-            statusCode: response.status,
+            headings: headings.slice(0, 10),
+            technologies: technologies,
+            extractedData: extractedData,
+            selectedText: selectedText,
+            externalLinks: links.filter((l) => !l.includes(urlObj.hostname)).slice(0, 10),
             source: "Web Scraper (Cheerio)",
           },
         };
@@ -227,6 +295,26 @@ export async function scrapeWebsiteReal(
           const title = $("title").text() || "No title";
           const description =
             $('meta[name="description"]').attr("content") || "No description";
+          const headings: string[] = [];
+          const links: string[] = [];
+          const images: string[] = [];
+
+          $("h1, h2, h3").each((i: number, el: any) => {
+            const text = $(el).text().trim();
+            if (text) headings.push(text);
+          });
+
+          $("a").each((i: number, el: any) => {
+            const href = $(el).attr("href");
+            if (href && !href.startsWith("#")) links.push(href);
+          });
+
+          $("img").each((i: number, el: any) => {
+            const src = $(el).attr("src");
+            if (src) images.push(src);
+          });
+
+          const wordCount = content.split(/\s+/).length;
 
           return {
             success: true,
@@ -234,7 +322,21 @@ export async function scrapeWebsiteReal(
               url: url,
               title: title,
               description: description,
+              scrapedAt: scrapedAt.toISOString(),
               contentLength: content.length,
+              linksFound: links.length,
+              imagesFound: images.length,
+              wordCount: wordCount,
+              headings: headings.slice(0, 10),
+              links: links.slice(0, 20),
+              images: images.slice(0, 10),
+              extractedData: [
+                { type: "Title", value: title },
+                { type: "Description", value: description },
+              ],
+              technologies: [],
+              selectedText: [],
+              externalLinks: [],
               source: "Web Scraper (Puppeteer)",
             },
           };
