@@ -172,7 +172,7 @@ export default function PricingSubscription() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <span className="text-3xl font-bold">$99</span>
+                  <span className="text-3xl font-bold">$40</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
 
