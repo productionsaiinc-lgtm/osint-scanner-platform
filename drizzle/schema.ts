@@ -1159,3 +1159,64 @@ export const cmsEditHistory = mysqlTable("cmsEditHistory", {
 
 export type CmsEditHistory = typeof cmsEditHistory.$inferSelect;
 export type InsertCmsEditHistory = typeof cmsEditHistory.$inferInsert;
+
+
+/**
+ * Promo Codes - Discount codes for subscriptions
+ */
+export const promoCodes = mysqlTable("promoCodes", {
+  id: int("id").autoincrement().primaryKey(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  description: text("description"),
+  discountType: mysqlEnum("discountType", ["percentage", "fixed"]).notNull(), // 'percentage' or 'fixed_amount'
+  discountValue: int("discountValue").notNull(), // percentage (0-100) or cents for fixed
+  maxUses: int("maxUses"), // null = unlimited
+  currentUses: int("currentUses").default(0),
+  maxUsesPerUser: int("maxUsesPerUser").default(1),
+  applicablePlans: text("applicablePlans"), // JSON array of plan IDs, null = all plans
+  validFrom: timestamp("validFrom").notNull(),
+  validUntil: timestamp("validUntil").notNull(),
+  isActive: int("isActive").default(1), // boolean
+  createdBy: int("createdBy").notNull(), // Admin user ID
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type InsertPromoCode = typeof promoCodes.$inferInsert;
+
+/**
+ * Promo Code Usage - Track which users used which codes
+ */
+export const promoCodeUsage = mysqlTable("promoCodeUsage", {
+  id: int("id").autoincrement().primaryKey(),
+  promoCodeId: int("promoCodeId").notNull(),
+  userId: int("userId").notNull(),
+  paymentId: int("paymentId").notNull(),
+  discountAmount: int("discountAmount").notNull(), // in cents
+  usedAt: timestamp("usedAt").defaultNow().notNull(),
+});
+
+export type PromoCodeUsage = typeof promoCodeUsage.$inferSelect;
+export type InsertPromoCodeUsage = typeof promoCodeUsage.$inferInsert;
+
+/**
+ * Billing Analytics - Aggregate metrics for dashboard
+ */
+export const billingAnalytics = mysqlTable("billingAnalytics", {
+  id: int("id").autoincrement().primaryKey(),
+  date: timestamp("date").notNull(),
+  totalRevenue: int("totalRevenue").default(0), // in cents
+  subscriptionCount: int("subscriptionCount").default(0),
+  activeSubscriptions: int("activeSubscriptions").default(0),
+  cancelledSubscriptions: int("cancelledSubscriptions").default(0),
+  churnRate: int("churnRate").default(0), // percentage (0-100)
+  averageOrderValue: int("averageOrderValue").default(0), // in cents
+  failedPayments: int("failedPayments").default(0),
+  refunds: int("refunds").default(0), // in cents
+  discountsGiven: int("discountsGiven").default(0), // in cents
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type BillingAnalytic = typeof billingAnalytics.$inferSelect;
+export type InsertBillingAnalytic = typeof billingAnalytics.$inferInsert;
