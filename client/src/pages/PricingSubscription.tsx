@@ -33,23 +33,10 @@ export default function PricingSubscription() {
       return;
     }
 
-    setIsLoading(true);
-    setError("");
-    try {
-      setSelectedPlan(planName);
-      const result = await createCheckout.mutateAsync({ priceId: "premium_20" });
-      if (result.checkoutUrl && result.orderId) {
-        setOrderId(result.orderId);
-        window.open(result.checkoutUrl, "_blank");
-        toast.info("Redirecting to PayPal checkout...");
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to process upgrade";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to PayPal subscription link
+    const paypalLink = "https://www.paypal.com/ncp/payment/6M86A33U4CEQU";
+    window.open(paypalLink, "_blank");
+    toast.info("Opening PayPal subscription page...");
   };
 
   const handleCaptureOrder = async () => {
