@@ -138,10 +138,7 @@ const menuSections: MenuSection[] = [
   {
     section: "Account & Billing",
     items: [
-      { icon: CreditCard, label: "Pricing", path: "/pricing" },
-      { icon: Zap, label: "Subscription", path: "/subscription" },
-      { icon: Wallet, label: "Payouts", path: "/payouts" },
-      { icon: TrendingUp, label: "Payouts Enhanced", path: "/payouts-enhanced" },
+      { icon: CreditCard, label: "Pricing & Subscription", path: "/pricing" },
       { icon: TrendingUp, label: "Live Payouts", path: "/live-payouts" },
       { icon: Info, label: "About", path: "/about" },
     ],
