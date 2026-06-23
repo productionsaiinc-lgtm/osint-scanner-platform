@@ -1,3 +1,16 @@
+import { MyNewTool } from "./pages/MyNewTool";
+
+export function App() {
+  return (
+    <Router>
+      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      // ... other routes
+      <Route path="/my-new-tool" component={MyNewTool} />  // ← ADD THIS LINE
+    </Router>
+  );
+}
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
