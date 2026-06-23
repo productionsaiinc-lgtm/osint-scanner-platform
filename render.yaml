@@ -2,12 +2,17 @@ services:
   - type: web
     name: osint-scanner
     env: node
-    plan: free
+    plan: standard
     buildCommand: pnpm install && pnpm run build
     startCommand: node dist/index.js
-    healthCheckPath: /health
+    healthCheckPath: /api/health
     healthCheckProtocol: HTTP
     autoDeploy: true
+    autoScaling:
+      minInstances: 1
+      maxInstances: 3
+      cpuThreshold: 80
+      memoryThreshold: 80
     preDeployCommand: pnpm drizzle-kit migrate
     envVars:
       - key: NODE_ENV
@@ -49,7 +54,7 @@ services:
       - key: PAYPAL_CLIENT_SECRET
         sync: false
       - key: PAYPAL_MODE
-        value: sandbox
+        value: live
       - key: PAYPAL_PAYOUT_EMAIL
         sync: false
       - key: SHODAN_API_KEY
@@ -69,12 +74,15 @@ services:
 
   - type: pserv
     name: osint-db
-    plan: free
-    ipAllowList: []
+    plan: standard
     postgresMajorVersion: 15
+    ipAllowList: []
+    region: oregon
 
 databases:
   - name: osint-db
     databaseName: osint_scanner
     user: osint_user
     region: oregon
+    plan: standard
+    version: 15
