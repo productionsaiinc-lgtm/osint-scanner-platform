@@ -38,8 +38,8 @@ export function IPLookup() {
     setShowReputation(true);
   };
 
-  const geoData = geoQuery.data?.success ? geoQuery.data : null;
-  const repData = reputationQuery.data?.success ? reputationQuery.data : null;
+  const geoData = geoQuery.data?.success && 'ip' in geoQuery.data ? geoQuery.data : null;
+  const repData = reputationQuery.data?.success && 'threats' in reputationQuery.data ? reputationQuery.data : null;
 
   return (
     <div className="space-y-6">

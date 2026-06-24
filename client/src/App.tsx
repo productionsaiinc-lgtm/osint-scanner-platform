@@ -1,15 +1,6 @@
 import { MyNewTool } from "./pages/MyNewTool";
 
-export function App() {
-  return (
-    <Router>
-      <Route path="/" component={Home} />
-      <Route path="/dashboard" component={Dashboard} />
-      // ... other routes
-      <Route path="/my-new-tool" component={MyNewTool} />  // ← ADD THIS LINE
-    </Router>
-  );
-}
+// Removed duplicate App function - see export default App below
 
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";

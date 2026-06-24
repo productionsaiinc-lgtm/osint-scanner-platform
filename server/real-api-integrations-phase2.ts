@@ -199,14 +199,15 @@ export async function scrapeWebsiteReal(
         // Extract emails
         const emailRegex =
           /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-        const emailMatches = response.data.match(emailRegex);
+        const htmlContent = typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+        const emailMatches = htmlContent.match(emailRegex);
         if (emailMatches) {
           emails.push(...new Set(emailMatches));
         }
 
         // Extract phone numbers
         const phoneRegex = /(\+?1[-\.\s]?)\(?[0-9]{3}\)?[-\.\s]?[0-9]{3}[-\.\s]?[0-9]{4}/g;
-        const phoneMatches = response.data.match(phoneRegex);
+        const phoneMatches = htmlContent.match(phoneRegex);
         if (phoneMatches) {
           phones.push(...new Set(phoneMatches));
         }

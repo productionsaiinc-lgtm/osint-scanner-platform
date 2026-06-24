@@ -161,12 +161,13 @@ export async function validateDNSSEC(domain: string): Promise<{
   keyCount: number;
   status: string;
 }> {
-  const ds = await dns.resolve(domain, "DS").catch(() => []);
-  const enabled = ds.length > 0;
+  const ds = (await dns.resolve(domain, "DS").catch(() => [])) as any[];
+  const enabled = Array.isArray(ds) && ds.length > 0;
+  const keyCount = Array.isArray(ds) ? ds.length : 0;
   return {
     enabled,
     valid: enabled,
-    keyCount: ds.length,
+    keyCount,
     status: enabled ? 'enabled' : 'disabled',
   };
 }
