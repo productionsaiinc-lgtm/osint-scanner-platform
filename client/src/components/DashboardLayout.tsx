@@ -51,13 +51,6 @@ const menuSections: MenuSection[] = [
       { icon: Smartphone, label: "Flight Tracker", path: "/flight-tracker" },
     ],
   },
-{
-  section: "My Custom Section",
-  items: [
-    { icon: Zap, label: "My New Tool", path: "/my-new-tool" },
-    { icon: Search, label: "Another Tool", path: "/another-tool" },
-  ],
-},
   {
     section: "Network & Infrastructure",
     items: [

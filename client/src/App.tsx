@@ -1,5 +1,3 @@
-import { MyNewTool } from "./pages/MyNewTool";
-
 // Removed duplicate App function - see export default App below
 
 import { TooltipProvider } from "@/components/ui/tooltip";
