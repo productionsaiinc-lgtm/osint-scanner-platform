@@ -76,6 +76,7 @@ import { TempEmail } from "./pages/TempEmail";
 import { FileAnalyzer } from "./pages/FileAnalyzer";
 import { SockPuppets } from "./pages/SockPuppets";
 import { AIAssistant } from "./pages/AIAssistant";
+import EmailLookup from "./pages/EmailLookup";
 
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
@@ -173,6 +174,7 @@ function Router() {
       <Route path={"/temp-email"} component={TempEmailPage} />
       <Route path={"/file-analyzer"} component={FileAnalyzerPage} />
       <Route path={"/sock-puppets"} component={SockPuppetsPage} />
+      <Route path={"/email-lookup"} component={EmailLookup} />
       <Route path={"/:path*"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -694,3 +696,4 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
