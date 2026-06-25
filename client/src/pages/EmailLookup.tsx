@@ -5,29 +5,29 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { AtSign, Search, Globe, Shield, AlertTriangle, CheckCircle, XCircle, Loader2, Image } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { AtSign, Search, Globe, Shield, AlertTriangle, CheckCircle, XCircle, Loader2, ImageIcon } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
 export default function EmailLookup() {
   const [email, setEmail] = useState("");
-  const { toast } = useToast();
+  
 
   const lookup = trpc.emailLookup.lookup.useMutation({
     onError: (err) => {
-      toast({ title: "Lookup failed", description: err.message, variant: "destructive" });
+      toast.error("Lookup failed: " + err.message);
     },
   });
 
   const handleLookup = () => {
     const trimmed = email.trim();
     if (!trimmed) {
-      toast({ title: "Enter an email address", variant: "destructive" });
+      toast.error("Enter an email address");
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
-      toast({ title: "Invalid email format", variant: "destructive" });
+      toast.error("Invalid email format");
       return;
     }
     lookup.mutate({ email: trimmed });
@@ -82,7 +82,7 @@ export default function EmailLookup() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Image className="h-4 w-4" />
+                    <ImageIcon className="h-4 w-4" />
                     Profile
                   </CardTitle>
                 </CardHeader>
