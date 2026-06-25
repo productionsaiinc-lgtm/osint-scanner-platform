@@ -39,6 +39,7 @@ import { sockPuppetsRouter } from "./sock-puppets-router";
 import { dataIntegrationsRouter } from "./data-integrations-router";
 import { mdmEnhancementsRouter } from "./mdm-enhancements-router";
 import { aiAssistantRouter } from "./ai-assistant-router";
+import { emailLookupRouter } from "./email-lookup-router";
 
 export const appRouter = router({
   system: systemRouter,
@@ -71,6 +72,7 @@ export const appRouter = router({
   dataIntegrations: dataIntegrationsRouter,
   mdmEnhancements: mdmEnhancementsRouter,
   aiAssistant: aiAssistantRouter,
+  emailLookup: emailLookupRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
@@ -632,3 +634,4 @@ Provide the analysis in a clear, structured format suitable for security profess
 });
 
 export type AppRouter = typeof appRouter;
+
