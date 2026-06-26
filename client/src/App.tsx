@@ -193,7 +193,7 @@ function ToolNamePage() {
   return (
    <DashboardLayout>
      <ToolName />
-   <DashboardLayout>
+   </DashboardLayout>
   );
 }
 function AIAssistantPage() {
