@@ -77,7 +77,7 @@ import { FileAnalyzer } from "./pages/FileAnalyzer";
 import { SockPuppets } from "./pages/SockPuppets";
 import { AIAssistant } from "./pages/AIAssistant";
 import EmailLookup from "./pages/EmailLookup";
-import { ToolName } from "./pages/ToolName";
+import ToolName from "./pages/ToolName";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
