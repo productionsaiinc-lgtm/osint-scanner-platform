@@ -39,6 +39,7 @@ const menuSections: MenuSection[] = [
   {
     section: "Core",
     items: [
+      { icon: IconName, label: "Tool Name", path: "/tool-path" },
       { icon: LayoutDashboard, label: "Dashboard", path: "/" },
       { icon: MessageSquare, label: "AI Assistant", path: "/ai-assistant" },
       { icon: History, label: "Scan History", path: "/history" },
