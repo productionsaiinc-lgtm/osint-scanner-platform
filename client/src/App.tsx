@@ -684,6 +684,14 @@ function SockPuppetsPage() {
     </DashboardLayout>
   );
 }
+function EmailLookupPage() {
+  return (
+    <DashboardLayout>
+      <EmailLookup />
+    </DashboardLayout>
+  );
+}
+
 
 export default function App() {
   return (
