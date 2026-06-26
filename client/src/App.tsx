@@ -192,7 +192,7 @@ function DashboardHome() {
 function ToolNamePage() {
   return (
    <DashboardLayout>
-    <ToolName />
+     <ToolName />
    <DashboardLayout>
   );
 }
