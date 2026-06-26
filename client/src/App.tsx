@@ -77,7 +77,7 @@ import { FileAnalyzer } from "./pages/FileAnalyzer";
 import { SockPuppets } from "./pages/SockPuppets";
 import { AIAssistant } from "./pages/AIAssistant";
 import EmailLookup from "./pages/EmailLookup";
-
+import { ToolName } from "./pages/ToolName";
 import { useAuth } from "./_core/hooks/useAuth";
 import { DashboardLayoutSkeleton } from "./components/DashboardLayoutSkeleton";
 
@@ -108,6 +108,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={DashboardHome} />
+      <Route path={"/tool-path"} component={ToolName} />
       <Route path={"/ai-assistant"} component={AIAssistantPage} />
       <Route path={"/network-scanner"} component={NetworkScannerPage} />
       <Route path={"/social-osint"} component={SocialOsintPage} />
@@ -188,7 +189,13 @@ function DashboardHome() {
     </DashboardLayout>
   );
 }
-
+function ToolNamePage() {
+ return (
+   <DashboardLayout>
+    <ToolName />
+   <DashboardLayout>
+  );
+}
 function AIAssistantPage() {
   return (
     <DashboardLayout>
