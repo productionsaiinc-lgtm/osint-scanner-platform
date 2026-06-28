@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+ import { useAuth } from "@/_core/hooks/useAuth";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarHeader,
+  SidebarHeader, 
   SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
@@ -41,7 +41,7 @@ const menuSections: MenuSection[] = [
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/" },
       { icon: MessageSquare, label: "AI Assistant", path: "/ai-assistant" },
-      { icon: History, label: "Scan History", path: "/history" },
+      { icon: History, label: "Scanning History", path: "/history" },
       { icon: Eye, label: "Monitoring", path: "/monitoring" },
       { icon: Archive, label: "Alert History", path: "/alert-history" },
       { icon: Bell, label: "Notifications", path: "/notifications" },
