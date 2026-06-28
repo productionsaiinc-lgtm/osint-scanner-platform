@@ -1,40 +1,66 @@
+# ============================================================
+# Render Blueprint — osint-scanner-platform
+# Docs: https://render.com/docs/blueprint-spec
+# ============================================================
+
 services:
+  # ----------------------------------------------------------
+  # Web Service (Node.js — Vite frontend + Express/tRPC API)
+  # ----------------------------------------------------------
   - type: web
     name: osint-scanner
-    env: node
+    runtime: node
     plan: standard
+    region: oregon
+
+    # Build & start
     buildCommand: pnpm install && pnpm run build
     startCommand: node dist/index.js
+
+    # Run DB migrations before each deploy
+    preDeployCommand: pnpm drizzle-kit migrate
+
     healthCheckPath: /api/health
-    healthCheckProtocol: HTTP
+
     autoDeploy: true
-    autoScaling:
+
+    # Auto-scale between 1–3 instances
+    scaling:
       minInstances: 1
       maxInstances: 3
-      cpuThreshold: 80
-      memoryThreshold: 80
-    preDeployCommand: pnpm drizzle-kit migrate
+      targetMemoryPercent: 80
+      targetCPUPercent: 80
+
     envVars:
+      # ── Core ───────────────────────────────────────────────
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
+
+      # ── Database (injected from the DB service below) ──────
       - key: DATABASE_URL
         fromDatabase:
           name: osint-db
           property: connectionString
+
+      # ── Auth & OAuth ───────────────────────────────────────
       - key: JWT_SECRET
-        sync: false
-      - key: VITE_APP_ID
-        sync: false
+        generateValue: true          # Render auto-generates a secure random value
       - key: OAUTH_SERVER_URL
         value: https://api.manus.im
       - key: VITE_OAUTH_PORTAL_URL
         value: https://oauth.manus.im
+
+      # ── App / Platform IDs ─────────────────────────────────
+      - key: VITE_APP_ID
+        sync: false
       - key: OWNER_OPEN_ID
         sync: false
       - key: OWNER_NAME
         sync: false
+
+      # ── Manus / Forge AI ──────────────────────────────────
       - key: BUILT_IN_FORGE_API_URL
         value: https://api.manus.im/forge
       - key: BUILT_IN_FORGE_API_KEY
@@ -43,12 +69,16 @@ services:
         value: https://api.manus.im/forge
       - key: VITE_FRONTEND_FORGE_API_KEY
         sync: false
+
+      # ── Stripe Payments ───────────────────────────────────
       - key: STRIPE_SECRET_KEY
         sync: false
       - key: STRIPE_WEBHOOK_SECRET
         sync: false
       - key: VITE_STRIPE_PUBLISHABLE_KEY
         sync: false
+
+      # ── PayPal ────────────────────────────────────────────
       - key: PAYPAL_CLIENT_ID
         sync: false
       - key: PAYPAL_CLIENT_SECRET
@@ -57,32 +87,42 @@ services:
         value: live
       - key: PAYPAL_PAYOUT_EMAIL
         sync: false
+
+      # ── OSINT APIs ────────────────────────────────────────
       - key: SHODAN_API_KEY
         sync: false
-      - key: ETHERSCAN_API_KEY
-        sync: false
       - key: VIRUSTOTAL_API_KEY
+        sync: false
+      - key: ETHERSCAN_API_KEY
         sync: false
       - key: OPENSKY_API_KEY
         sync: false
       - key: IMEI_API_KEY
         sync: false
+      - key: HUNTER_API_KEY
+        sync: false
+      - key: NUMVERIFY_API_KEY
+        sync: false
+
+      # ── Email Lookup ──────────────────────────────────────
+      # Have I Been Pwned — https://haveibeenpwned.com/API/Key
+      - key: HIBP_API_KEY
+        sync: false
+
+      # ── Analytics ────────────────────────────────────────
       - key: VITE_ANALYTICS_ENDPOINT
         sync: false
       - key: VITE_ANALYTICS_WEBSITE_ID
         sync: false
 
-  - type: pserv
-    name: osint-db
-    plan: standard
-    postgresMajorVersion: 15
-    ipAllowList: []
-    region: oregon
-
+# ----------------------------------------------------------
+# PostgreSQL Database
+# ----------------------------------------------------------
 databases:
   - name: osint-db
     databaseName: osint_scanner
     user: osint_user
     region: oregon
     plan: standard
-    version: 15
+    postgresMajorVersion: 15
+    ipAllowList: []   # only allow internal Render network
