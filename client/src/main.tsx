@@ -8,6 +8,13 @@ import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
 
+// GitHub Pages redirect handling for client-side routing
+if (sessionStorage.redirect) {
+  const redirect = sessionStorage.redirect;
+  delete sessionStorage.redirect;
+  window.history.replaceState(null, '', redirect);
+}
+
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {

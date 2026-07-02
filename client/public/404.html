@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // GitHub Pages redirect for client-side routing
+      // This handles 404s by redirecting to index.html with the original path
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(Boolean);
+      
+      // If the path includes 'osint-scanner-platform', preserve the base path
+      if (segments[0] === 'osint-scanner-platform') {
+        const redirectPath = '/' + segments.slice(1).join('/');
+        sessionStorage.redirect = redirectPath;
+      } else {
+        sessionStorage.redirect = path;
+      }
+      
+      // Redirect to index.html
+      window.location.href = '/osint-scanner-platform/';
+    </script>
+  </head>
+  <body>
+    <p>Redirecting...</p>
+  </body>
+</html>
