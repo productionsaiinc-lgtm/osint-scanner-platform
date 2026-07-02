@@ -3,8 +3,6 @@ name: Deploy Frontend to GitHub Pages
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 permissions:
   contents: read
@@ -16,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -28,7 +26,6 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-          cache-dependency-path: 'package-lock.json'
 
       - name: Install dependencies
         run: npm ci
@@ -40,19 +37,11 @@ jobs:
           VITE_APP_TITLE: OSINT Scanner Platform
           VITE_APP_LOGO: https://raw.githubusercontent.com/${{ github.repository }}/main/client/public/logo.png
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist/public'
+          path: dist/public
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
