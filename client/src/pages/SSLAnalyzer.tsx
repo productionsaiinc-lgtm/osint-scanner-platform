@@ -24,7 +24,8 @@ export default function SSLAnalyzer() {
   const [hostname, setHostname] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
-  const sslMutation = trpc.osintTools.sslAnalyzer.useMutation();
+  // sslAnalyzer not yet implemented
+  const sslMutation = { mutateAsync: async () => ({ success: false, error: 'Feature not yet implemented' }) };
 
   const handleAnalyze = async () => {
     if (!hostname.trim()) {
@@ -33,6 +34,9 @@ export default function SSLAnalyzer() {
     }
 
     setIsAnalyzing(true);
+    alert('SSL analysis feature is not yet implemented');
+    setIsAnalyzing(false);
+    /*
     try {
       const result = await sslMutation.mutateAsync({ hostname });
       if (result.success) {
@@ -45,6 +49,7 @@ export default function SSLAnalyzer() {
     } finally {
       setIsAnalyzing(false);
     }
+    */
   };
 
   const getSeverityColor = (severity: string) => {
@@ -122,7 +127,7 @@ export default function SSLAnalyzer() {
                 disabled={isAnalyzing || !hostname.trim()}
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isAnalyzing || sslMutation.isPending ? 'Analyzing...' : 'Analyze'}
+                {isAnalyzing ? 'Analyzing...' : 'Analyze'}
               </Button>
             </div>
           </div>

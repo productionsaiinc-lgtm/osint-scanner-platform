@@ -35,7 +35,7 @@ export function ThreatFeed() {
     setSelectedQuery(searchQuery);
   };
 
-  const threats = selectedQuery ? nvdQuery.data?.vulnerabilities : threatQuery.data?.threats;
+  const threats = selectedQuery ? (nvdQuery.data as any)?.vulnerabilities || [] : (threatQuery.data as any)?.threats || [];
   const isLoading = selectedQuery ? nvdQuery.isLoading : threatQuery.isLoading;
   const error = selectedQuery ? nvdQuery.error : threatQuery.error;
 

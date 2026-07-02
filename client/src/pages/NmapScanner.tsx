@@ -13,6 +13,7 @@ import {
   Clock,
   Network,
   Download,
+  Zap,
 } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 
@@ -75,12 +76,12 @@ export function NmapScanner() {
     setResults(null);
 
     try {
-      const response = await nmapScan.mutateAsync({ target, scanProfile });
+      const response = await nmapScan.mutateAsync({ target, scanProfile: scanProfile as any });
       if (!response.success) {
         setError(response.error || 'Failed to perform Nmap scan');
         return;
       }
-      setResults(response.data as NmapResult);
+      setResults(response.data as any);
     } catch (err) {
       setError('Failed to perform Nmap scan. Please try again.');
     } finally {

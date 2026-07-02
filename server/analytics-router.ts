@@ -44,11 +44,11 @@ export const analyticsRouter = router({
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const subscriptions = await db.select().from(userSubscriptions);
-    const activeCount = subscriptions.filter((s) => !s.cancelledAt).length;
+    const activeCount = subscriptions.filter((s) => s.status === 'active').length;
     const newThisMonth = subscriptions.filter((s) => new Date(s.createdAt) >= monthStart).length;
 
     // Simple churn calculation
-    const cancelled = subscriptions.filter((s) => s.cancelledAt).length;
+    const cancelled = subscriptions.filter((s) => s.status === 'cancelled' || s.status === 'expired').length;
     const churnRate = subscriptions.length > 0 ? (cancelled / subscriptions.length) * 100 : 0;
 
     return {

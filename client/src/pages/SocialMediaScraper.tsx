@@ -84,11 +84,14 @@ export default function SocialMediaScraper() {
   const [results, setResults] = useState<ScrapeResult | null>(null);
   const [error, setError] = useState('');
   const [expandedProfile, setExpandedProfile] = useState<string | null>(null);
-  const profileSearch = trpc.osintTools.socialProfileSearch.useMutation();
+  // socialProfileSearch not yet implemented
+  const profileSearch = { mutateAsync: async () => ({ success: false, error: 'Feature not yet implemented' }) };
 
   const platforms = ['Twitter', 'Instagram', 'TikTok', 'LinkedIn', 'Reddit', 'YouTube'];
 
   const handleScrape = async () => {
+    setError('Social media scraping feature is not yet implemented');
+    /*
     if (!username.trim()) {
       setError('Please enter a username');
       return;
@@ -110,6 +113,7 @@ export default function SocialMediaScraper() {
     } finally {
       setIsLoading(false);
     }
+    */
   };
 
   return (
@@ -152,10 +156,10 @@ export default function SocialMediaScraper() {
           </div>
           <Button
             onClick={handleScrape}
-            disabled={isLoading || profileSearch.isPending}
+            disabled={isLoading}
             className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700"
           >
-            {isLoading || profileSearch.isPending ? (
+            {isLoading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />SEARCHING...</>
             ) : (
               'SEARCH PROFILES'

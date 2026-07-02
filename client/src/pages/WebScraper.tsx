@@ -186,7 +186,7 @@ export default function WebScraper() {
               <CardHeader>
                 <CardTitle className="text-pink-400 text-sm">SELECTOR MATCHES</CardTitle>
                 <CardDescription className="text-gray-400">
-                  {results.selector} · {results.selectedText.length} matched item{results.selectedText.length === 1 ? '' : 's'}
+                  {(results as any).selector || 'CSS Selector'} · {results.selectedText.length} matched item{results.selectedText.length === 1 ? '' : 's'}
                 </CardDescription>
               </CardHeader>
               <CardContent>

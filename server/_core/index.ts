@@ -336,7 +336,12 @@ Content-Type: application/json
   
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
+    try {
+      await setupVite(app, server);
+    } catch (error: any) {
+      console.error("Failed to setup Vite (expected in production):", error.message);
+      serveStatic(app);
+    }
   } else {
     serveStatic(app);
   }

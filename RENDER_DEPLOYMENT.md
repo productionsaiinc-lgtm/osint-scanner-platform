@@ -1,247 +1,234 @@
-# OSINT Platform - Render Deployment Guide
+# OSINT Scanner Platform - Render Deployment Guide
 
-## Overview
+This guide walks you through deploying the OSINT Scanner Platform to Render with a static frontend and Node.js backend.
 
-This guide provides step-by-step instructions to deploy your OSINT Scanner Platform permanently to Render with full production setup, including database, environment variables, and GitHub auto-deployments.
+## Architecture Overview
+
+- **Frontend**: Static HTML/CSS/JS built with Vite (served from `dist/public`)
+- **Backend**: Express.js server with tRPC API (Node.js)
+- **Database**: MySQL/TiDB (managed database service)
+- **Environment**: Production Node.js on Render
 
 ## Prerequisites
 
-- GitHub account with your OSINT platform repository
-- Render account (free tier available at https://render.com)
-- All API keys ready (Stripe, Shodan, Etherscan, OpenSky, etc.)
+- Render account (https://render.com)
+- GitHub repository with the project code
+- MySQL/TiDB database (Render offers managed databases)
+- All API keys for external services (Hunter.io, Etherscan, VirusTotal, etc.)
 
-## Deployment Architecture
+## Step 1: Prepare Your Repository
 
-| Component | Service | Details |
-|-----------|---------|---------|
-| **Web App** | Render Web Service | Node.js + Express + React |
-| **Database** | Render PostgreSQL | 15.x with automatic backups |
-| **Environment** | Render Environment | Production-grade deployment |
-| **Domain** | Custom Domain | Optional custom domain setup |
+Ensure your GitHub repository is up to date with all changes:
 
-## Step 1: Create Render Account
-
-1. Visit https://render.com and sign up for a free account
-2. Verify your email address
-3. Connect your GitHub account to Render
-
-## Step 2: Connect GitHub Repository
-
-1. Go to Render Dashboard
-2. Click "New +" → "Web Service"
-3. Select "Deploy an existing repository"
-4. Search for your OSINT platform repository
-5. Click "Connect"
-
-## Step 3: Configure Web Service
-
-### Basic Settings
-- **Name:** `osint-scanner` (or your preferred name)
-- **Environment:** `Node`
-- **Plan:** `Standard` ($7/month) or `Pro` ($12/month)
-- **Build Command:** `pnpm install && pnpm run build`
-- **Start Command:** `node dist/index.js`
-- **Region:** Choose closest to your users (e.g., Oregon, Frankfurt, Singapore)
-
-### Advanced Settings
-- **Auto-Deploy:** Enable (auto-redeploy on GitHub push)
-- **Health Check Path:** `/health`
-- **Health Check Protocol:** `HTTP`
-
-## Step 4: Create PostgreSQL Database
-
-1. In Render Dashboard, click "New +" → "PostgreSQL"
-2. Configure:
-   - **Name:** `osint-db`
-   - **Database:** `osint_scanner`
-   - **User:** `osint_user`
-   - **Region:** Same as web service
-   - **PostgreSQL Version:** 15
-   - **Plan:** `Standard` ($15/month) or `Pro` ($45/month)
-
-3. Note the connection string (you'll need this)
-
-## Step 5: Set Environment Variables
-
-In your Render Web Service settings, add the following environment variables:
-
-### Required Variables
+```bash
+git add .
+git commit -m "Prepare for Render deployment"
+git push origin main
 ```
-NODE_ENV=production
-PORT=3000
-DATABASE_URL=[PostgreSQL connection string from Render]
-JWT_SECRET=[Generate with: openssl rand -hex 32]
-VITE_APP_ID=[Your Manus OAuth App ID]
+
+## Step 2: Create a Render Web Service
+
+1. Go to https://dashboard.render.com
+2. Click **New +** → **Web Service**
+3. Select your GitHub repository
+4. Configure the service:
+   - **Name**: `osint-scanner-platform`
+   - **Environment**: `Node`
+   - **Build Command**: `npm install && npm run build`
+   - **Start Command**: `npm start`
+   - **Plan**: Standard ($7/month) or higher
+
+## Step 3: Configure Environment Variables
+
+In the Render dashboard, add the following environment variables:
+
+### Database
+```
+DATABASE_URL=mysql://user:password@host:3306/database_name
+```
+
+### Authentication & OAuth
+```
+JWT_SECRET=your-secure-random-string
+VITE_APP_ID=your-manus-app-id
 OAUTH_SERVER_URL=https://api.manus.im
-VITE_OAUTH_PORTAL_URL=https://oauth.manus.im
-OWNER_OPEN_ID=[Your Manus Owner ID]
-OWNER_NAME=[Your Name]
+VITE_OAUTH_PORTAL_URL=https://auth.manus.im
+OWNER_OPEN_ID=your-owner-id
+OWNER_NAME=Your Name
 ```
 
-### Payment & API Keys
+### API Keys (External Services)
 ```
-STRIPE_SECRET_KEY=[Your Stripe Live Key]
-STRIPE_WEBHOOK_SECRET=[Your Stripe Webhook Secret]
-VITE_STRIPE_PUBLISHABLE_KEY=[Your Stripe Publishable Key]
-PAYPAL_CLIENT_ID=[Your PayPal Client ID]
-PAYPAL_CLIENT_SECRET=[Your PayPal Client Secret]
+HUNTER_API_KEY=your-hunter-io-key
+ETHERSCAN_API_KEY=your-etherscan-key
+VIRUSTOTAL_API_KEY=your-virustotal-key
+OPENSKY_API_KEY=your-opensky-key
+NUMVERIFY_API_KEY=your-numverify-key
+SHODAN_API_KEY=your-shodan-key
+```
+
+### Stripe Integration
+```
+STRIPE_SECRET_KEY=sk_live_your_key
+STRIPE_WEBHOOK_SECRET=whsec_your_secret
+VITE_STRIPE_PUBLISHABLE_KEY=pk_live_your_key
+```
+
+### PayPal Integration
+```
 PAYPAL_MODE=live
-PAYPAL_PAYOUT_EMAIL=productions.ai.inc@gmail.com
+PAYPAL_CLIENT_ID=your-client-id
+PAYPAL_CLIENT_SECRET=your-client-secret
+PAYPAL_PAYOUT_EMAIL=your-payout-email
 ```
 
-### OSINT & Data Integration Keys
+### Manus Built-in APIs
 ```
-SHODAN_API_KEY=[Your Shodan API Key]
-ETHERSCAN_API_KEY=[Your Etherscan API Key]
-VIRUSTOTAL_API_KEY=[Your VirusTotal API Key]
-OPENSKY_API_KEY=[Your OpenSky API Key]
-IMEI_API_KEY=[Your IMEI API Key]
-```
-
-### Built-in Forge API (Manus)
-```
-BUILT_IN_FORGE_API_URL=https://api.manus.im/forge
-BUILT_IN_FORGE_API_KEY=[Your Manus Forge API Key]
-VITE_FRONTEND_FORGE_API_URL=https://api.manus.im/forge
-VITE_FRONTEND_FORGE_API_KEY=[Your Manus Frontend Forge API Key]
+BUILT_IN_FORGE_API_URL=https://api.manus.im
+BUILT_IN_FORGE_API_KEY=your-forge-key
+VITE_FRONTEND_FORGE_API_URL=https://api.manus.im
+VITE_FRONTEND_FORGE_API_KEY=your-frontend-forge-key
 ```
 
 ### Analytics (Optional)
 ```
-VITE_ANALYTICS_ENDPOINT=[Your Analytics Endpoint]
-VITE_ANALYTICS_WEBSITE_ID=[Your Analytics Website ID]
+VITE_ANALYTICS_ENDPOINT=your-analytics-endpoint
+VITE_ANALYTICS_WEBSITE_ID=your-website-id
 ```
 
-## Step 6: Configure GitHub Auto-Deployment
-
-### Option A: Automatic (Recommended)
-1. Render automatically detects pushes to your GitHub repository
-2. Each push to `main` branch triggers automatic deployment
-3. No additional configuration needed
-
-### Option B: Manual Webhook Setup
-1. Get your Render webhook URL from service settings
-2. Add to GitHub repository:
-   - Settings → Webhooks → Add webhook
-   - Payload URL: [Render webhook URL]
-   - Content type: `application/json`
-   - Events: Push events
-   - Active: ✓
-
-## Step 7: Deploy
-
-1. Push your code to GitHub:
-   ```bash
-   git add .
-   git commit -m "Deploy to Render"
-   git push origin main
-   ```
-
-2. Render automatically starts deployment
-3. Monitor deployment progress in Render Dashboard
-4. Your site will be live at: `https://osint-scanner.onrender.com`
-
-## Step 8: Configure Custom Domain (Optional)
-
-1. In Render Web Service settings, go to "Custom Domains"
-2. Add your domain (e.g., `osint.yourdomain.com`)
-3. Update DNS records as instructed by Render
-4. SSL certificate automatically provisioned
-
-## Step 9: Verify Deployment
-
-### Health Check
-```bash
-curl https://osint-scanner.onrender.com/health
+### App Configuration
+```
+NODE_ENV=production
+VITE_APP_TITLE=OSINT Scanner Platform
+VITE_APP_LOGO=https://your-logo-url.png
 ```
 
-### API Test
-```bash
-curl https://osint-scanner.onrender.com/api/health
-```
+## Step 4: Create or Connect Database
 
-### Database Connection
-Check Render logs for database connection confirmation
+### Option A: Use Render's Managed MySQL
+1. In Render dashboard, click **New +** → **MySQL**
+2. Configure the database
+3. Copy the connection string to `DATABASE_URL`
+
+### Option B: Use External Database
+If using TiDB or another provider, ensure the connection string is added to `DATABASE_URL`.
+
+## Step 5: Deploy
+
+1. Click **Create Web Service**
+2. Render will automatically build and deploy your application
+3. Monitor the deployment in the **Logs** tab
+4. Once deployed, your app will be available at `https://your-service-name.onrender.com`
+
+## Step 6: Verify Deployment
+
+1. Visit your deployed URL
+2. Check that the frontend loads correctly
+3. Test API endpoints: `https://your-service-name.onrender.com/api/trpc`
+4. Verify database connectivity by checking user authentication
+
+## Step 7: Configure Custom Domain (Optional)
+
+1. In Render dashboard, go to your Web Service
+2. Click **Settings** → **Custom Domain**
+3. Add your domain and follow DNS configuration instructions
+
+## Step 8: Set Up Webhooks
+
+### Stripe Webhook
+1. Go to Stripe Dashboard → Developers → Webhooks
+2. Add endpoint: `https://your-service-name.onrender.com/api/stripe/webhook`
+3. Select events: `payment_intent.succeeded`, `charge.refunded`
+4. Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+
+### PayPal Webhook
+1. Go to PayPal Developer Dashboard
+2. Configure webhook URL: `https://your-service-name.onrender.com/api/paypal/webhook`
+3. Copy webhook ID to environment variables if needed
 
 ## Troubleshooting
 
-### Build Failures
-- Check build logs in Render Dashboard
-- Ensure all dependencies in `package.json` are correct
-- Verify Node.js version compatibility
+### Build Fails
+- Check logs for errors
+- Ensure `npm run build` works locally: `npm run build`
+- Verify all dependencies are in `package.json`
+
+### Runtime Errors
+- Check environment variables are set correctly
+- Verify database connection string
+- Check API keys are valid
+- Review logs for specific error messages
+
+### 404 Errors
+- Ensure frontend is built: `npm run build` creates `dist/public`
+- Check `serveStatic()` middleware is configured
+- Verify `dist/public/index.html` exists
 
 ### Database Connection Issues
-- Verify `DATABASE_URL` environment variable
-- Check PostgreSQL service is running
-- Ensure IP allowlist includes Render IP
+- Verify `DATABASE_URL` format: `mysql://user:pass@host:port/db`
+- Check database is running and accessible
+- Ensure firewall allows connections from Render
 
-### Environment Variable Issues
-- Double-check all variable names and values
-- Ensure no typos in API keys
-- Verify special characters are properly escaped
+## Performance Optimization
 
-### Performance Issues
-- Upgrade to Pro plan for better resources
-- Enable caching for static assets
-- Optimize database queries
+### Enable Caching
+Add to Render environment:
+```
+CACHE_CONTROL=public, max-age=3600
+```
 
-## Monitoring & Maintenance
+### Monitor Performance
+- Use Render's built-in metrics
+- Check database query performance
+- Monitor API response times
 
-### Logs
-- View real-time logs in Render Dashboard
-- Monitor for errors and warnings
-- Set up email alerts for deployment failures
+## Scaling
 
-### Backups
-- PostgreSQL automatic daily backups (14-day retention)
-- Manual backup option available in Render Dashboard
+### Vertical Scaling
+- Upgrade Render plan for more CPU/RAM
+- Standard ($7) → Pro ($12) → Premium ($25+)
 
-### Updates
-- Render automatically applies security patches
-- Zero-downtime deployments on code updates
-- Automatic rollback on deployment failure
+### Horizontal Scaling
+- Use Render's load balancing
+- Deploy multiple instances
+- Use Redis for session management (if needed)
+
+## Maintenance
+
+### Regular Updates
+```bash
+git pull origin main
+git push origin main  # Triggers auto-deploy
+```
+
+### Database Backups
+- Enable automated backups in database settings
+- Test restore procedures regularly
+
+### Monitoring
+- Set up alerts for deployment failures
+- Monitor error rates and performance
+- Review logs weekly
 
 ## Cost Estimation
 
-| Service | Plan | Monthly Cost |
-|---------|------|--------------|
-| Web Service | Standard | $7 |
-| PostgreSQL | Standard | $15 |
-| **Total** | | **$22/month** |
+| Service | Cost |
+|---------|------|
+| Web Service (Standard) | $7/month |
+| MySQL Database (Starter) | $15/month |
+| **Total** | **$22/month** |
 
-*Prices as of 2026. See https://render.com/pricing for current rates.*
+## Support
+
+- Render Documentation: https://render.com/docs
+- Render Support: https://support.render.com
+- Project Issues: Check GitHub repository
 
 ## Next Steps
 
-1. **Monitor Performance** - Check Render Dashboard regularly
-2. **Set Up Monitoring** - Enable error tracking and performance monitoring
-3. **Configure Backups** - Set up automated backup strategy
-4. **Add Custom Domain** - Point your domain to Render
-5. **Scale as Needed** - Upgrade to Pro plans as traffic increases
-
-## Support & Resources
-
-- **Render Docs:** https://render.com/docs
-- **Render Support:** https://render.com/support
-- **GitHub Deployments:** https://render.com/docs/deploy-from-github
-- **Environment Variables:** https://render.com/docs/environment-variables
-
-## Deployment Checklist
-
-- [ ] GitHub repository connected to Render
-- [ ] Web Service created and configured
-- [ ] PostgreSQL database created
-- [ ] All environment variables set
-- [ ] Database connection verified
-- [ ] Initial deployment successful
-- [ ] Health checks passing
-- [ ] Webhooks configured (if manual)
-- [ ] Custom domain configured (optional)
-- [ ] Monitoring and alerts enabled
-- [ ] Backup strategy implemented
-
----
-
-**Deployment Status:** Ready for production  
-**Last Updated:** June 2026  
-**Maintained By:** Manus AI
+1. Deploy to Render using this guide
+2. Test all OSINT tools with real API keys
+3. Monitor performance and logs
+4. Set up custom domain
+5. Configure automated backups
+6. Document any customizations

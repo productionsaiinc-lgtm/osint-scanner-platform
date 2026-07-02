@@ -230,6 +230,7 @@ export const virtualPhonesRouter = router({
         id: z.number(),
         name: z.string().optional(),
         location: z.string().optional(),
+        status: z.enum(['online', 'offline', 'idle']).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -243,6 +244,7 @@ export const virtualPhonesRouter = router({
         const updates: Record<string, any> = {};
         if (input.name) updates.name = input.name;
         if (input.location) updates.location = input.location;
+        if (input.status) updates.status = input.status;
 
         if (Object.keys(updates).length === 0) {
           return { success: false, message: "No updates provided" };

@@ -207,7 +207,7 @@ export function RewardsDashboard() {
         <TabsContent value="achievements" className="space-y-4">
           {achievements.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {achievements.map((achievement) => (
+              {achievements.map((achievement: any) => (
                 <Card key={achievement.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">

@@ -90,24 +90,24 @@ export function PortScanner() {
             <CardContent className="grid grid-cols-3 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Target IP</p>
-                <p className="font-semibold">{data.ip}</p>
+                <p className="font-semibold">{(data as any).ip || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Organization</p>
-                <p className="font-semibold">{data.organization || "N/A"}</p>
+                <p className="font-semibold">{(data as any).organization || "N/A"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">ISP</p>
-                <p className="font-semibold">{data.isp || "N/A"}</p>
+                <p className="font-semibold">{(data as any).isp || "N/A"}</p>
               </div>
             </CardContent>
           </Card>
 
-          {data.ports && data.ports.length > 0 ? (
+          {(data as any).ports && (data as any).ports.length > 0 ? (
             <Card>
               <CardHeader>
                 <CardTitle>Open Ports</CardTitle>
-                <CardDescription>Found {data.ports.length} open port(s)</CardDescription>
+                <CardDescription>Found {(data as any).ports.length} open port(s)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -120,7 +120,7 @@ export function PortScanner() {
                       </tr>
                     </thead>
                     <tbody>
-                      {data.ports.map((port: number, index: number) => (
+                      {(data as any).ports?.map((port: number, index: number) => (
                         <tr key={index} className="border-b hover:bg-muted/50">
                           <td className="py-2 font-mono font-semibold">{port}</td>
                           <td className="py-2">
@@ -144,13 +144,13 @@ export function PortScanner() {
             </Card>
           )}
 
-          {data.services && data.services.length > 0 && (
+          {(data as any).services && (data as any).services.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Service Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {data.services.map((service: any, index: number) => (
+                {(data as any).services?.map((service: any, index: number) => (
                   <div key={index} className="border-b pb-4 last:border-0">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -176,14 +176,14 @@ export function PortScanner() {
             </Card>
           )}
 
-          {data.hostnames && data.hostnames.length > 0 && (
+          {(data as any).hostnames && (data as any).hostnames.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Hostnames</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {data.hostnames.map((hostname: string, index: number) => (
+                  {(data as any).hostnames?.map((hostname: string, index: number) => (
                     <Badge key={index} variant="outline">{hostname}</Badge>
                   ))}
                 </div>

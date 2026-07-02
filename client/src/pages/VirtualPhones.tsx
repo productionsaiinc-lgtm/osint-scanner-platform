@@ -23,23 +23,23 @@ export function VirtualPhones() {
       setShowCreateForm(false);
       utils.virtualPhones.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Failed to create virtual phone"),
+    onError: (err: any) => toast.error(err.message || "Failed to create virtual phone"),
   });
 
-  const startMutation = trpc.virtualPhones.start.useMutation({
-    onSuccess: (data) => {
+  const startMutation = trpc.virtualPhones.provision.useMutation({
+    onSuccess: (data: any) => {
       toast.success(`Phone started — ADB port ${data.adbPort}`);
       utils.virtualPhones.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Failed to start phone"),
+    onError: (err: any) => toast.error(err.message || "Failed to start phone"),
   });
 
-  const stopMutation = trpc.virtualPhones.stop.useMutation({
+  const updateMutation = trpc.virtualPhones.update.useMutation({
     onSuccess: () => {
-      toast.success("Phone stopped");
+      toast.success("Virtual phone updated");
       utils.virtualPhones.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Failed to stop phone"),
+    onError: (err: any) => toast.error(err.message || "Failed to update phone"),
   });
 
   const deleteMutation = trpc.virtualPhones.delete.useMutation({
@@ -47,7 +47,7 @@ export function VirtualPhones() {
       toast.success("Virtual phone deleted");
       utils.virtualPhones.list.invalidate();
     },
-    onError: (err) => toast.error(err.message || "Failed to delete phone"),
+    onError: (err: any) => toast.error(err.message || "Failed to delete phone"),
   });
 
   const handleCreate = () => {
@@ -64,7 +64,7 @@ export function VirtualPhones() {
 
   const handleToggle = (phone: (typeof phones)[0]) => {
     if (phone.status === "online") {
-      stopMutation.mutate({ id: phone.id });
+      updateMutation.mutate({ id: phone.id, status: "offline" });
     } else {
       startMutation.mutate({ id: phone.id });
     }
@@ -259,7 +259,7 @@ export function VirtualPhones() {
                 const isOnline = phone.status === "online";
                 const isToggling =
                   (startMutation.isPending && startMutation.variables?.id === phone.id) ||
-                  (stopMutation.isPending && stopMutation.variables?.id === phone.id);
+                  (updateMutation.isPending && updateMutation.variables?.id === phone.id);
                 const isDeleting =
                   deleteMutation.isPending && deleteMutation.variables?.id === phone.id;
 

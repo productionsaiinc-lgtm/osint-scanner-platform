@@ -4,6 +4,31 @@ Live website: https://osintscan-fftqerzj.manus.space
 
 GitHub source: https://github.com/productionsaiinc-lgtm/osint-scanner-platform.git
 
+## 🚀 Quick Start
+
+### Local Development
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm run dev
+
+# Run tests
+pnpm run test
+
+# Build for production
+pnpm run build
+```
+
+### Deploy to Production
+```bash
+# Push to GitHub (auto-deploys to Manus)
+git add .
+git commit -m "feat: add new feature"
+git push origin main
+```
+
 ## Summary
 
 OSINT Scanner Platform is an authenticated web application for open-source intelligence, network reconnaissance, security monitoring, device management, AI-assisted guidance, reporting, and billing workflows. The application combines a React dashboard, an Express/tRPC backend, persistent database records, live third-party API integrations, an AI assistant, export/reporting tools, and Manus deployment.
